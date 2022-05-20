@@ -3,8 +3,10 @@
     Core
 
 */
-const Lani = window.Lani || { };
+Lani = {};
+LaniVersions = window.LaniVersions || {};
 Lani.version = "1.0.0";
+LaniVersions[Lani.version] = Lani;
 Lani.installedModules = [];
 Lani.contentRoot = "/lani";
 
