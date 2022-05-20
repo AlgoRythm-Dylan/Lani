@@ -25,26 +25,6 @@ Lani.TableDataMode = {
     Fetch: 1
 };
 
-Lani.TableColumnFormatting = class {
-    constructor() {
-        this.width = null;
-        this.caseMutation = null;
-        this.titleCaseMutation = null;
-        this.trimData = false;
-        this.textTransform = null;
-        this.nullText = null;
-    }
-}
-
-Lani.TablePaginationOptions = class {
-    constructor() {
-        this.enabled = true;
-        this.rowsPerPage = 10;
-        this.showBackNext = true;
-        this.alwaysShow = false;
-    }
-}
-
 Lani.Table = class {
     
     clear() {
@@ -52,14 +32,6 @@ Lani.Table = class {
         this.container.remove();
 
         this.container = null;
-    }
-    #shouldRenderTitle(){
-        return !(!this.showTitle || !this.title || this.title.length === 0);
-    }
-    #shouldRenderPagination(){
-        return this.paginationCustomizedByUser || 
-            (this.paginationOptions.enabled && (this.paginationOptions.alwaysShow || 
-                (this.data.length > this.paginationOptions.rowsPerPage)));
     }
     generate() {
         if (!this.columns) return;
@@ -113,24 +85,7 @@ Lani.Table = class {
 
         this.generateTable();
     }
-    pages(){
-        if(this.paginationOptions.rowsPerPage === null)
-            return 1;
-        return Math.max(1, Math.ceil(this.data.length / this.paginationOptions.rowsPerPage));
-    }
-    goToPage(pageNum){
-        if(isNaN(pageNum) || pageNum < 1 || pageNum > this.pages() || pageNum == this.page){
-            return false;
-        }
-        else{
-            this.page = pageNum;
-            this.generateTable();
-            this.paginationContainer.querySelectorAll("input.l-table-pagination-input").forEach(el => {
-                el.value = this.page;
-            })
-            return true;
-        }
-    }
+    
     getPaginationIndices(){
         let indices = {
             start: 0,

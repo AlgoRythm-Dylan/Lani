@@ -12,11 +12,26 @@ Lani.getTable = id => {
             return Lani.tables[i];
 }
 
+Lani.TableColumnFormatting = class {
+    constructor() {
+        this.width = null;
+        this.caseMutation = null;
+        this.titleCaseMutation = null;
+        this.trimData = false;
+        this.textTransform = null;
+        this.nullText = null;
+    }
+}
+
 Lani.Table = class {
+    // Title needs to be private so we can employ
+    // a setter function (so we can also update the DOM)
+    // transparently to the user
+    #title
     constructor() {
 
         // General options
-        this.title = null;
+        this.#title = null;
         this.showTitle = true;
         this.showHeaders = true;
         this.id = null;
@@ -37,9 +52,9 @@ Lani.Table = class {
         this.updateSearchWhileTypingTreshold = 100;
 
         // Data fetching
-        this.dataMode = Lani.TableDataMode.Static;
+        /*this.dataMode = Lani.TableDataMode.Static;
         this.dataSource = null;
-        this.fetchOptions = null;
+        this.fetchOptions = null;*/
 
         // Nesting
         this.parentTable = null;
@@ -60,7 +75,7 @@ Lani.Table = class {
             "<p>Try changing your search or filters</p></div></div>"
 
         // DOM
-        this.parent = null;
+        /*this.parent = null;
         this.container = null;
         this.controlsContainerElement = null;
         this.searchInputElement = null;
@@ -69,7 +84,8 @@ Lani.Table = class {
         this.tableElement = null;
         this.tableHeaderElement = null;
         this.tableBodyElement = null;
-        this.paginationContainer = null;
+        this.paginationContainer = null;*/
+        this.DOMHost = null;
 
         // Formatting
         this.defaultRowHeight = null;
@@ -77,18 +93,34 @@ Lani.Table = class {
         this.columnFormatting = new Lani.TableColumnFormatting();
         this.conditionalFormattingRules = [];
 
-        // Pagination
-        this.paginationOptions = new Lani.TablePaginationOptions();
-        this.page = 1;
-        this.paginationCustomizedByUser = false;
-
         // Events
-        this.onRefresh = null;
+        /*this.onRefresh = null;
         this.onPageChange = null;
         this.onRowClick = null;
         this.onCellClick = null;
         this.onUpdate = null;
-        this.onDisplayChange = null;
+        this.onDisplayChange = null;*/
 
     }
+
+    // Private methods
+    #shouldRenderTitle(){
+        return !(!this.showTitle || !this.title || this.title.length === 0);
+    }
+    #shouldRenderPagination(){
+        return this.paginationCustomizedByUser || 
+            (this.paginationOptions.enabled && (this.paginationOptions.alwaysShow || 
+                (this.data.length > this.paginationOptions.rowsPerPage)));
+    }
+
+    // DOM interactions & settings
+    set title(title){
+        this.#title = title;
+        this.DOMHost.getElementById("title").innerHTML = title;
+    }
+
+    get title(){
+        return this.#title;
+    }
+
 }

@@ -4,17 +4,21 @@ const fsp = fs.promises;
 const jsOutputs = ['./build/lani.js', './docs/lani/lani.js', './playground/lani/lani.js'];
 const jsFiles = [
     './core.js',
-    './caching.js',
+    './data.js',
+    './dialog.js',
+    './context.js',
+    './extras.js',
+    //'./caching.js',
+    
     './animations.js',
     './animations/bubbles.js',
     './animations/dot-grid.js',
     './animations/tree.js',
+
     './tables/core.js',
-    './tables/element.js',
+    './tables/element.js'
+    
     //'./tables/table.js',
-    './dialog.js',
-    './context.js',
-    './extras.js'
 ];
 
 const cssOutputs = ['./build/lani.css', './docs/lani/lani.css', './playground/lani/lani.css'];

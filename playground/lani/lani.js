@@ -4,7 +4,7 @@
 
 */
 const Lani = window.Lani || { };
-Lani.version = "1.0.0";
+Lani.version = "0.1.0";
 Lani.installedModules = [];
 Lani.contentRoot = "/lani";
 Lani.templatesPath = () => Lani.contentRoot + "/templates.html";
@@ -112,31 +112,572 @@ Lani.Direction = {
 };
 /*
 
-    Caching module
+    Data container / operations module
 
 */
-Lani.installedModules.push("lani-caching");
+Lani.installedModules.push("lani-data");
 
-Lani.CachedFetchMode = {
-    Memory: "memory",
-    LocalStorage: "localstorage"
-};
+// A data source has the responsibility
+// of providing data
 
-Lani.defaultCachedFetchOptions = {
-    mode: Lani.CachedFetchMode.Memory,
-}
+// A data manager has the responsibility
+// of performing mutations on that data
 
-Lani.CachedFetch = class {
-    constructor(url, fetchOptions, cacheOptions){
-        this.url = url;
-        this.fetchOptions = fetchOptions;
-        this.cacheOptions = cacheOptions;
-        this.timestamp = new Date().getTime();
+// A data source (especially one that is
+// fetching data from a large set of server
+// data) may also perform mutations such
+// as pagination, sorting, and filtering.
+
+
+// This the base DataSource class. Unline the 
+// `DataManager` class, this class is meant to
+// be extended and overridden based on where
+// your specific data is coming from. Since items
+// are likely to be implemented with network
+// calls, all methods are to be async
+Lani.DataSource = class {
+    constructor(data=[]){
+        this.data = data;
+    }
+    async getAll(){
+        return this.data;
+    }
+    async get(delegate){
+        let matches = [];
+        for(let item of this.data)
+            if(delegate(item))
+                matches.push(item);
+        return matches;
+    }
+    async getIndex(index){
+        return this.data[index];
+    }
+    async getRange(startIndex, amount=1){
+        return this.data.slice(startIndex, startIndex + amount);
+    }
+    async setAll(data){
+        this.data = data;
+    }
+    async set(delegate, value){
+        for(let i = 0; i < this.data.length; i++)
+            if(delegate(this.data[i]))
+                this.data[i] = value;
+    }
+    async setIndex(index, value){
+        this.data[index] = value;
+    }
+    async count(){
+        return this.data.length;
+    }
+    async insert(value){
+        this.data.push(value);
+    }
+    async insertAll(values){
+        this.data.push(...values);
+    }
+    async remove(delegate){
+        for(let i = 0; i < this.data.length; i++)
+            if(delegate(data[i]))
+                this.data.splice(i--, 1);
+    }
+    async removeAll(){
+        this.data = [];
     }
 }
 
-Lani.cachedFetch = async (url, fetchOptions, cacheOptions) => {
+Lani.FetchedDataSource = class extends Lani.DataSource {
+    constructor(){
+        this.url = null;
+        this.fetchOptions = {};
+    }
+}
 
+// Pagination is 1-based because a "page" is
+// a COUNT, not an INDEX. You can get index
+// ranges from this pagination class, which
+// do, in fact, start at 0, but
+// the "page" value will allways start at one
+// because nobody reads a book starting from
+// page 0.
+
+// If this bothers you heavily, you can also
+// use the "scroll" value, which allows you
+// to offset the current page by a certain
+// amount of records.
+
+// This class is intended to be more of a 
+// "state" class, which describes the state
+// of the pagination of some object. However,
+// if given a valid data source, it can also
+// provide additional information
+Lani.Pagination = class {
+    constructor(){
+        this.enabled = true;
+        this.itemsPerPage = 10;
+        this.page = 1;
+        this.scroll = 0;
+        this.dataSource = null;
+    }
+    reset(){
+        this.scroll = 0;
+        this.page = 1;
+    }
+    async pages(){
+        if(this.dataSource === null)
+            return 1;
+        else
+            return await this.dataSource.count() / this.itemsPerPage;
+    }
+}
+
+Lani.Filter = class {
+    constructor(){
+
+    }
+}
+
+Lani.Sort = class {
+    constructor(){
+
+    }
+}
+
+// Group an array of objects to a structure of nested objects
+// Example usage: Lani.group([ ... ], ["JobTitle"]); // Group array by only job title
+//                Lani.group([ ... ], ["Company","JobTitle"]); // 2-layer grouping
+Lani.group = (data, groupStack) => {
+
+    // In this case, we have been asked to group data
+    // without any groups to use. We will be nice
+    // and simply return the data.
+    if(groupStack.length === 0)
+        return data;
+    
+    let thisGroup = {};
+    let thisColumn = groupStack.shift();
+    for(let i = 0; i < data.length; i++){
+        let key = data[i][thisColumn];
+        if(thisGroup[key])
+            thisGroup[key].push(data.slice(i, i + 1)[0]);
+        else
+            thisGroup[key] = data.slice(i, i + 1);
+    }
+    if(groupStack.length){
+        // Not so fast, there's more grouping to be done
+        let entries = Object.entries(thisGroup);
+        for([key, value] of entries)
+            thisGroup[key] = Lani.group(value, groupStack.slice());
+    }
+    return thisGroup;
+}
+
+Lani.findGroupDepth = groupedData => {
+    let count = 0;
+    let found = false;
+    let item = groupedData;
+    while(!found){
+        if(Array.isArray(item)){
+            found = true;
+        }
+        else{
+            count++;
+            item = Object.values(item)[0];
+        }
+    }
+    return count;
+}
+
+// Explode a grouped object into an array
+// Luckily, at the bottom of each group is a copy
+// of the original data
+Lani.ungroup = (groupedData) => {
+    let data = [];
+    if(Array.isArray(groupedData)){
+        data.push(groupedData.slice());
+    }
+    else{
+        Object.values(data).forEach(value => {
+            data.push(Lani.ungroup(value));
+        });
+    }
+    return data;
+}
+
+// While `DataSource`s are meant to be specific
+// and even implemented on a per-source level,
+// this DataManager should be the last one you'd
+// ever need, unless you want to extend it's
+// functionality
+Lani.DataManager = class {
+    constructor(){
+        this.dataSource = null;
+
+        // This is the order that these three
+        // items execute. Data is first filtered,
+        // then grouped, then sorted.
+        // The order of the arrays is also important.
+        this.filters = [];
+        this.groups = [];
+        this.sorts = [];
+
+        // If pagination is enabled, this DataManager
+        // will only return data from the current page.
+        // Pagination happens after filtering, grouping,
+        // and sorting
+        this.pagination = new Pagination();
+    }
+    // Returns an arary of gorups, to be used analytically
+    // rather than simply displayed. Not all columns may be
+    // grouped. The bottom-most group will contain the
+    // remaining un-grouped data in a "table" format - an array
+    async getGrouped(){
+        return Lani.group(await this.dataSource.getAll(), this.groups);
+    }
+    // Returns a flat array of objects, ready to just
+    // be thrown 1:1 into a table. In this case,
+    // "groups" are just multi-level sorts
+    async getArray(){
+
+    }
+    // Automatically return either an array or grouping
+    // based on if this table has grouping enabled
+    async get(){
+        if(this.groups.length === 0)
+            return await this.getArray();
+        else
+            return await this.getGrouped();
+    }
+}
+/*
+
+    Dialog module
+
+*/
+Lani.installedModules.push("lani-dialogs");
+
+Lani.dialogLayer = null;
+Lani.dialogOpen = false;
+Lani.dialog = null;
+
+Lani.DialogState = {
+    Windowed: 0,
+    Fullscreen: 1,
+    Maximized: 2,
+    Minimized: 3
+}
+
+Lani.showDialog = dialog => {
+    let layer;
+    if (Lani.dialogLayer === null) layer = Lani.showDialogLayer();
+    else layer = Lani.dialogLayer;
+}
+Lani.showDialogLayer = () => {
+    let layer = document.createElement("div");
+    layer.className = "l-dialog-shader";
+    document.body.appendChild(layer);
+    return layer;
+}
+Lani.destroyDialogLayer = () => {
+    document.querySelectorAll(".l-dialog-shader").forEach(item => item.remove());
+    Lani.dialogLayer = null;
+    Lani.dialogOpen = false;
+}
+Lani.alert = (text, title="") => {
+    let dialog = new LaniDialog();
+    dialog.title = title;
+    let label = document.createElement("p");
+    label.innerHTML = text;
+    dialog.content.appendChild(label);
+    Lani.showDialog(dialog);
+}
+
+Lani.Dialog = class {
+    constructor() {
+        // Options
+        this.allowResize = true;
+        this.showCloseButton = true;
+        this.showMaximizeButton = true;
+        this.showMinimizeButton = false;
+        this.allowMaximize = true;
+        this.allowDrag = true;
+        this.closeOnClickAway = true;
+        this.startMaximized = false;
+        this.startFullscreen = false;
+        this.startMinimized = false;
+        this.showTitle = true;
+
+        // State items
+        this.size = {
+            width: null,
+            height: null
+        }
+        this.position = {
+            x: null,
+            y: null
+        }
+        this.title = null;
+        this.state = null;
+
+        // Outer-ish elements
+        this.shader = null;
+        this.container = null;
+        this.resizeElements = {
+            topLeft: null,
+            top: null,
+            topRight: null,
+            right: null,
+            bottomRight: null,
+            bottom: null,
+            bottomLeft: null,
+            left: null
+        };
+
+        // Contained elements
+        this.closeButton = null;
+        this.maximizeButton = null;
+        this.minimizeButton = null;
+        this.titleElement = null;
+        this.content = null;
+    }
+    stationary(){
+        this.allowResize = false;
+        this.allowDrag = false;
+        this.allowMaximize = false;
+    }
+    dontAllowClose(){
+        this.allowClose = false;
+        this.closeOnClickAway = false;
+    }
+    createResizeElements(){
+
+    }
+    removeResizeElements(){
+
+    }
+    createButtons(){
+        this.closeButton = document.createElement("button");
+        this.maximizeButton = document.createElement("button");
+        this.minimizeButton = document.createElement("button");
+    }
+    showCloseButton(){
+        if(this.closeButton)
+            this.closeButton.style.display = "inline-flex";
+    }
+    showMaxmimizeButton(){
+        if(this.maximizeButton)
+            this.maximizeButton.style.display = "inline-flex";
+    }
+    showMinimizeButton(){
+        if(this.minimizeButton)
+            this.minimizeButton.style.display = "inline-flex";
+    }
+    hideCloseButton(){
+        if(this.closeButton)
+            this.closeButton.style.display = "none";
+    }
+    hideMaxmimizeButton(){
+        if(this.maximizeButton)
+            this.maximizeButton.style.display = "none";
+    }
+    hideMinimizeButton(){
+        if(this.minimizeButton)
+            this.minimizeButton.style.display = "none";
+    }
+    showTitle(){
+        if(this.title)
+            this.title.style.display = "inline-flex";
+    }
+    hideTitle(){
+        if(this.title)
+            this.title.style.display = "none";
+    }
+    moveTo(x, y){
+
+    }
+    resize(width, height){
+
+    }
+    /**
+     * Used to display the dialog for the first time
+     */
+    show(){
+
+    }
+    restore(){
+
+    }
+}
+/*
+
+    Dialog module
+
+*/
+Lani.installedModules.push("lani-context");
+
+
+Lani.customContextMenu = (element, contextMenuItems, activateCallback, compact = false) => {
+
+    let iconMode = false;
+    for (let i = 0; i < contextMenuItems.length; i++) {
+        if (contextMenuItems[i].icon !== null) {
+            iconMode = true;
+            break;
+        }
+    }
+
+
+    element.addEventListener("contextmenu", event => {
+        event.preventDefault();
+        let contextElement = new Lani.ContextElement();
+
+        let parent = document.createElement("div");
+        parent.className = "l-context-element";
+        contextElement.containerElement = parent;
+
+        for (let i = 0; i < contextMenuItems.length; i++) {
+            let menuItem = contextMenuItems[i];
+            if (menuItem.isSeparator) {
+                let menuItemElement = document.createElement("div");
+                menuItemElement.className = "l-context-element-item-separator";
+                parent.appendChild(menuItemElement);
+            }
+            else {
+                let menuItemElement = document.createElement("p");
+
+                if(compact)
+                    menuItemElement.className = "l-context-element-item-compact";
+                else
+                    menuItemElement.className = "l-context-element-item";
+                let text = menuItem.text;
+                if (iconMode) {
+                    if (menuItem.icon !== null) {
+                        text = `<i class="${menuItem.icon} l-context-element-item-icon"></i>${text}`
+                    }
+                    else {
+                        text = `<div class="l-context-element-item-icon"></div>${text}`
+                    }
+                }
+                menuItemElement.innerHTML = text;
+
+                menuItemElement.addEventListener("click", e => {
+                    if (menuItem.onAction)
+                        menuItem.onAction();
+                    contextElement.close();
+                });
+
+                parent.appendChild(menuItemElement);
+            }
+
+        }
+
+        if (activateCallback)
+            activateCallback(contextElement.containerElement, contextElement);
+
+        parent.style.top = `${event.layerY}px`;
+        parent.style.left = `${event.layerX}px`;
+        document.body.appendChild(parent);
+
+        contextElement.addListeners();
+        return contextElement;
+
+    });
+}
+
+Lani.ContextElement = class {
+    constructor(container = null) {
+        this.containerElement = container;
+        this.relatedElements = [];
+        this.autoClose = true;
+
+        this.mousedownListener = e => this.handleWindowEvent(e);
+        this.scrollListener = e => this.handleWindowEvent(e);
+        this.blurListener = e => this.handleWindowEvent(e);
+
+        // Events
+        this.onClickAway = null;
+        this.onClose = null;
+    }
+    addListeners() {
+        window.addEventListener("mousedown", this.mousedownListener);
+        window.addEventListener("scroll", this.scrollListener);
+        window.addEventListener("blur", this.blurListener);
+    }
+    removeListeners() {
+        window.removeEventListener("mousedown", this.mousedownListener);
+        window.removeEventListener("scroll", this.scrollListener);
+        window.removeEventListener("blur", this.blurListener);
+    }
+    handleWindowEvent(event) {
+        let target = event.target;
+        if (target === this.containerElement) return;
+        let parent = target;
+        while ((parent = parent.parentNode)) {
+            if (parent === this.containerElement ||
+                this.relatedElements.indexOf(parent) !== -1)
+                return;
+        }
+        if (this.onClickAway)
+            this.onClickAway();
+        if (this.autoClose)
+            this.close();
+
+    }
+    close() {
+        let continueClose = null;
+        if (this.onClose)
+            continueClose = this.onClose();
+        if (typeof cancel !== "undefined" && continueClose === false)
+            return;
+        this.removeListeners();
+        if(this.containerElement)
+            this.containerElement.remove();
+    }
+}
+
+Lani.ContextMenuItem = class {
+    constructor(text, onAction=null, icon=null) {
+        this.text = text;
+        this.icon = icon;
+        this.isSeparator = false;
+
+        this.onAction = onAction;
+    }
+}
+
+Lani.ContextMenuSeparator = class extends Lani.ContextMenuItem {
+    constructor() {
+        super();
+        this.isSeparator = true;
+    }
+}
+/*
+
+    Lani "extras" module
+
+*/
+Lani.installedModules.push("lani-extras");
+
+Lani.GibberishLength = {
+    Short: 2,
+    Medium: 15,
+    Long: 100,
+    VeryLong: 200
+};
+Lani.GibberishText = [
+    'apple', 'mint', 'Florida', 'soda', 'leather', 'the',
+    'a', 'to', 'bubblegum', 'bravery', 'environment', 'tea',
+    'water', 'cake', 'chicken', 'wave', 'ice', 'lamp',
+    'sheep', 'whereas', 'windy', 'tall', 'tree', 'lock',
+    'finished', 'image', 'daytime', 'of', 'work', 'cow',
+    'door', 'coin', 'by', 'blue', 'half', 'red', 'stone',
+    'inside', 'loud', 'frozen', 'happy', 'scared', 'burnt',
+    'bread', 'slide', 'increase', 'taste'
+];
+Lani.gibberish = length => {
+    let words = [];
+    for(let i = 0; i < length; i++)
+        words.push(Lani.GibberishText[Math.floor(Math.random() * Lani.GibberishText.length)]);
+    return words.join(" ");
 }
 /*
 
@@ -535,54 +1076,11 @@ Lani.regEl("lani-tree", Lani.TreeElement);
 Lani.installedModules.push("lani-tables");
 
 Lani.tables = [];
-
-Lani.TableElement = class extends Lani.Element {
-    constructor(){
-        super();
-        this.table = new Lani.Table();
-        this.table.id = this.id;
-        if(this.id){
-            Lani.tables.push(table);
-        }
-        let title = this.getAttribute("table-title");
-        if(title)
-            this.table.setTitle(title);
-    }
-    async setup(){
-        this.useTemplate(Lani.templatesPath(), "#table-main")
-    }
-};
-/*
-
-    Lani tables module
-
-*/
-Lani.installedModules.push("lani-tables");
-
-Lani.tables = [];
-Lani.tableLoadHandler = e => {
-    document.querySelectorAll(".l-table-parent").forEach(el => {
-        let table = new Lani.Table();
-        table.id = el.id;
-        if(el.id){
-            Lani.tables.push(table);
-        }
-        Lani.attributeMap(el, table, {
-            "title": "title"
-        })
-        table.appendTo(el);
-    });
-}
 Lani.getTable = id => {
     for(let i = 0; i < Lani.tables.length; i++)
         if(Lani.tables[i].id == id)
             return Lani.tables[i];
 }
-
-Lani.TableDataMode = {
-    Static: 0,
-    Fetch: 1
-};
 
 Lani.TableColumnFormatting = class {
     constructor() {
@@ -595,20 +1093,15 @@ Lani.TableColumnFormatting = class {
     }
 }
 
-Lani.TablePaginationOptions = class {
-    constructor() {
-        this.enabled = true;
-        this.rowsPerPage = 10;
-        this.showBackNext = true;
-        this.alwaysShow = false;
-    }
-}
-
 Lani.Table = class {
+    // Title needs to be private so we can employ
+    // a setter function (so we can also update the DOM)
+    // transparently to the user
+    #title
     constructor() {
 
         // General options
-        this.title = null;
+        this.#title = null;
         this.showTitle = true;
         this.showHeaders = true;
         this.id = null;
@@ -629,9 +1122,9 @@ Lani.Table = class {
         this.updateSearchWhileTypingTreshold = 100;
 
         // Data fetching
-        this.dataMode = Lani.TableDataMode.Static;
+        /*this.dataMode = Lani.TableDataMode.Static;
         this.dataSource = null;
-        this.fetchOptions = null;
+        this.fetchOptions = null;*/
 
         // Nesting
         this.parentTable = null;
@@ -652,7 +1145,7 @@ Lani.Table = class {
             "<p>Try changing your search or filters</p></div></div>"
 
         // DOM
-        this.parent = null;
+        /*this.parent = null;
         this.container = null;
         this.controlsContainerElement = null;
         this.searchInputElement = null;
@@ -661,7 +1154,8 @@ Lani.Table = class {
         this.tableElement = null;
         this.tableHeaderElement = null;
         this.tableBodyElement = null;
-        this.paginationContainer = null;
+        this.paginationContainer = null;*/
+        this.DOMHost = null;
 
         // Formatting
         this.defaultRowHeight = null;
@@ -669,26 +1163,17 @@ Lani.Table = class {
         this.columnFormatting = new Lani.TableColumnFormatting();
         this.conditionalFormattingRules = [];
 
-        // Pagination
-        this.paginationOptions = new Lani.TablePaginationOptions();
-        this.page = 1;
-        this.paginationCustomizedByUser = false;
-
         // Events
-        this.onRefresh = null;
+        /*this.onRefresh = null;
         this.onPageChange = null;
         this.onRowClick = null;
         this.onCellClick = null;
         this.onUpdate = null;
-        this.onDisplayChange = null;
+        this.onDisplayChange = null;*/
 
     }
-    clear() {
-        if (!this.container) return;
-        this.container.remove();
 
-        this.container = null;
-    }
+    // Private methods
     #shouldRenderTitle(){
         return !(!this.showTitle || !this.title || this.title.length === 0);
     }
@@ -697,930 +1182,50 @@ Lani.Table = class {
             (this.paginationOptions.enabled && (this.paginationOptions.alwaysShow || 
                 (this.data.length > this.paginationOptions.rowsPerPage)));
     }
-    generate() {
-        if (!this.columns) return;
-        this.clear();
 
-        this.container = document.createElement("div");
-        this.container.className = "l-table-container l-light-shadow";
-
-        if(this.parent)
-            this.parent.appendChild(this.container);
-
-        this.controlsContainerElement = document.createElement("div");
-        this.controlsContainerElement.className = "l-table-controls-container";
-        this.container.appendChild(this.controlsContainerElement);
-
-        this.titleElement = document.createElement("p");
-        this.titleElement.className = "l-table-title";
-        if (!this.#shouldRenderTitle()) {
-            this.titleElement.style.display = "none";
-        }
-        else {
-            this.titleElement.innerHTML = this.title;
-        }
-        this.controlsContainerElement.appendChild(this.titleElement);
-
-        this.searchInputElement = document.createElement("input");
-        this.searchInputElement.className = "l-table-search-input";
-        this.searchInputElement.placeholder = "Search...";
-        this.controlsContainerElement.appendChild(this.searchInputElement);
-        this.searchInputElement.addEventListener("input", e => {
-            let tooManyRows = this.updateSearchWhileTypingTreshold !== null &&
-                this.sourceData.length > this.updateSearchWhileTypingTreshold;
-            if(this.updateSearchWhileTyping && !tooManyRows)
-                this.search();
-        });
-        this.searchInputElement.addEventListener("keydown", e => {
-            if(e.keyCode === 13)
-                this.search();
-        });
-
-        this.tableContainer = document.createElement("div");
-        this.tableContainer.className = "l-table-element-container";
-        this.container.appendChild(this.tableContainer);
-
-        this.paginationContainer = document.createElement("div");
-        this.paginationContainer.className = "l-pagination-container";
-        if(this.#shouldRenderPagination()){
-            this.container.appendChild(this.paginationContainer);
-            this.createPaginationControls();
-        }
-
-        this.generateTable();
+    // DOM interactions & settings
+    set title(title){
+        this.#title = title;
+        this.DOMHost.getElementById("title").innerHTML = title;
     }
-    pages(){
-        if(this.paginationOptions.rowsPerPage === null)
-            return 1;
-        return Math.max(1, Math.ceil(this.data.length / this.paginationOptions.rowsPerPage));
+
+    get title(){
+        return this.#title;
     }
-    goToPage(pageNum){
-        if(isNaN(pageNum) || pageNum < 1 || pageNum > this.pages() || pageNum == this.page){
-            return false;
-        }
-        else{
-            this.page = pageNum;
-            this.generateTable();
-            this.paginationContainer.querySelectorAll("input.l-table-pagination-input").forEach(el => {
-                el.value = this.page;
-            })
-            return true;
-        }
-    }
-    getPaginationIndices(){
-        let indices = {
-            start: 0,
-            end: 0
-        };
-        if(this.paginationOptions.enabled && this.paginationOptions.rowsPerPage !== null){
-            indices.start = (this.page - 1) * this.paginationOptions.rowsPerPage;
-            indices.end = Math.min(indices.start + this.paginationOptions.rowsPerPage, this.data.length);
-        }
-        else{
-            indices.end = this.data.length;
-        }
-        return indices;
-    }
-    updatePagination(){
-        if(this.#shouldRenderPagination()){
-            this.createPaginationControls();
-            console.log("Yope");
-        }
-        else{
-            this.clearPaginationControls();
-            console.log("Nope");
-        }
-    }
-    clearPaginationControls(){
-        this.paginationContainer.innerHTML = "";
-    }
-    createPaginationControls(){
-        this.clearPaginationControls();
 
-        let leftSide = document.createElement("div");
-        let rightSide = document.createElement("div");
-
-        leftSide.className = "l-table-pagination-left"
-        rightSide.className = "l-table-pagination-right"
-
-        let itemsPerPageSpan1 = document.createElement("span");
-        let itemsPerPageInput = document.createElement("input");
-        let itemsPerPageSpan2 = document.createElement("span");
-
-        itemsPerPageSpan1.className = "l-subtle-text";
-        itemsPerPageInput.className = "l-items-per-page-input";
-        itemsPerPageSpan2.className = "l-subtle-text";
-
-        itemsPerPageSpan1.innerHTML = "Show&nbsp;";
-        itemsPerPageInput.value = this.paginationOptions.rowsPerPage ?? "all";
-        itemsPerPageSpan2.innerHTML = this.paginationOptions.rowsPerPage == 1 ? "&nbsp;item per page" : "&nbsp;items per page";
-
-        itemsPerPageInput.onblur = e => {
-            if(itemsPerPageInput.value.toLowerCase() === "all"){
-                if(this.paginationOptions.rowsPerPage !== null){
-                    this.paginationCustomizedByUser = true;
-                    this.paginationOptions.rowsPerPage = null;
-                    this.generateTable();
-                    this.updatePagination();
-                }
-            }
-            else{
-                let itemsPerPage = parseInt(itemsPerPageInput.value);
-                if(isNaN(itemsPerPage) || itemsPerPage < 1){
-                    itemsPerPageInput.value = this.paginationOptions.rowsPerPage;
-                }
-                else{
-                    if(itemsPerPage !== this.paginationOptions.rowsPerPage){
-                        this.paginationCustomizedByUser = true;
-                        this.paginationOptions.rowsPerPage = itemsPerPage;
-                        this.generateTable();
-                        this.updatePagination();
-                    }
-                }
-            }
-        }
-
-        leftSide.appendChild(itemsPerPageSpan1);
-        leftSide.appendChild(itemsPerPageInput);
-        leftSide.appendChild(itemsPerPageSpan2);
-
-        let skipToBeginning = document.createElement("button");
-        skipToBeginning.className = "l-table-pagination-button";
-        skipToBeginning.innerHTML = "<i class='fa-solid fa-backward-fast'></i>";
-        skipToBeginning.style.marginRight = "0px";
-        rightSide.appendChild(skipToBeginning);
-
-        skipToBeginning.onclick = e => {
-            this.goToPage(1);
-        }
-
-        let backOnePage = document.createElement("button");
-        backOnePage.className = "l-table-pagination-button";
-        backOnePage.innerHTML = "<i class='fa-solid fa-backward'></i>";
-        rightSide.appendChild(backOnePage);
-
-        backOnePage.onclick = e => {
-            this.goToPage(this.page - 1);
-        }
-
-        let pageTextInput = document.createElement("input");
-        pageTextInput.className = "l-table-pagination-input";
-        pageTextInput.value = this.page;
-        pageTextInput.onblur = e => {
-            let pageNum = parseInt(pageTextInput.value);
-            if(!this.goToPage(pageNum))
-                pageTextInput.value = this.page;
-        }
-        rightSide.appendChild(pageTextInput);
-
-        let totalPageCountDisplay = document.createElement("p");
-        totalPageCountDisplay.className = "l-page-count-display";
-        totalPageCountDisplay.innerHTML = " / " + this.pages();
-        rightSide.appendChild(totalPageCountDisplay);
-
-        let forwardsOnePage = document.createElement("button");
-        forwardsOnePage.className = "l-table-pagination-button";
-        forwardsOnePage.innerHTML = "<i class='fa-solid fa-forward'></i>";
-        forwardsOnePage.style.marginRight = "0px";
-        rightSide.appendChild(forwardsOnePage);
-
-        forwardsOnePage.onclick = e => {
-            this.goToPage(this.page + 1);
-        }
-
-        let skipToEnd = document.createElement("button");
-        skipToEnd.className = "l-table-pagination-button";
-        skipToEnd.innerHTML = "<i class='fa-solid fa-forward-fast'></i>";
-        rightSide.appendChild(skipToEnd);
-
-        skipToEnd.onclick = e => {
-            this.goToPage(this.pages());
-        }
-
-        this.paginationContainer.appendChild(leftSide);
-        this.paginationContainer.appendChild(rightSide);
-    }
-    search(query) {
-        if (!query)
-            query = this.searchInputElement.value;
-        this.searchQuery = query;
-        this.mutateData();
-        this.clearTable();
-        this.applySearch();
-        this.generateTable();
-    }
-    clearTable() {
-        if(this.tableElement)
-            this.tableElement.remove();
-    }
-    createTable(startIndex=null, endIndex=null){
-        let paginationIndices;
-        if(startIndex === null || endIndex === null){
-            paginationIndices = this.getPaginationIndices();
-        }
-        if(startIndex === null)
-            startIndex = paginationIndices.start;
-        if(endIndex === null)
-            endIndex = paginationIndices.end;
-
-        this.tableElement = document.createElement("table");
-        this.tableElement.className = "l-table";
-
-        this.tableHeaderElement = document.createElement("tr");
-        this.tableHeaderElement.className = "l-table-header";
-        if (this.hasStickyHeaders) {
-            this.tableHeaderElement.className += " l-table-sticky";
-            if(this.stickyHeadersBelow){
-                let rect = this.stickyHeadersBelow.getBoundingClientRect();
-                this.tableHeaderElement.style.top = rect.top + rect.height + this.stickyTopOffset + "px";
-            }
-        }
-        this.tableElement.appendChild(this.tableHeaderElement);
-
-        this.columns.forEach(column => {
-            if (this.dontRender.indexOf(column.dataName) === -1) {
-                let cell = document.createElement("th");
-                cell.className = "l-table-header-cell";
-                if (column.titleCaseMutation !== null)
-                    cell.style.textTransform = column.titleCaseMutation;
-                else if (this.columnFormatting.titleCaseMutation !== null)
-                    cell.style.textTransform = this.columnFormatting.titleCaseMutation;
-                cell.innerHTML = column.title;
-                this.tableHeaderElement.appendChild(cell);
-            }
-        });
-
-        let dataSlice = this.data.slice(startIndex, endIndex);
-
-        dataSlice.forEach(data => {
-            let row = document.createElement("tr");
-            row.className = "l-table-row";
-            this.columns.forEach(column => {
-                if (this.dontRender.indexOf(column.dataName) === -1) {
-                    let cell = document.createElement("td");
-                    cell.className = "l-table-row-cell";
-                    let value = data[column.dataName];
-                    if (value === null) {
-                        if (column.nullText !== null)
-                            cell.innerHTML = column.nullText;
-                        else if (this.columnFormatting.nullText !== null)
-                            cell.innerHTML = this.columnFormatting.nullText;
-                    }
-                    else {
-                        if (column.textTransform)
-                            cell.innerHTML = column.textTransform(value);
-                        else
-                            cell.innerHTML = value;
-                    }
-                    this.conditionalFormattingRules.forEach(rule => {
-                        if (rule.meetsCondition(value))
-                            rule.format(cell);
-                    });
-                    column.conditionalFormattingRules.forEach(rule => {
-                        if (rule.meetsCondition(value))
-                            rule.format(cell);
-                    });
-                    row.appendChild(cell);
-                }
-            });
-            this.tableElement.appendChild(row);
-        });
-        if(this.data.length == 0){
-            let ndfRow = document.createElement("tr");
-            let ndfCell = document.createElement("td");
-            ndfCell.colSpan = this.columns.length;
-            ndfCell.innerHTML = this.noDataFoundMessage;
-            ndfRow.appendChild(ndfCell);
-            this.tableElement.appendChild(ndfRow);
-        }
-        if(this.#shouldRenderTitle()){
-            this.titleElement.querySelectorAll(".l-table-count").forEach(el => {
-                el.innerHTML = this.data.length;
-            });
-            this.titleElement.querySelectorAll(".l-table-unfiltered-count").forEach(el => {
-                el.innerHTML = this.sourceData.length;
-            });
-            this.titleElement.querySelectorAll(".l-table-if-filtered").forEach(el => {
-                if(this.data.length == this.sourceData.length){
-                    el.style.display = "none";
-                }
-                else{
-                    el.style.display = "inline-block";
-                }
-            });
-            this.titleElement.querySelectorAll(".l-table-if-not-filtered").forEach(el => {
-                if(this.data == this.sourceData.length){
-                    el.style.display = "none";
-                }
-                else{
-                    el.style.display = "inline-block";
-                }
-            });
-        }
-    }
-    generateTable() {
-        this.clearTable();
-        this.createTable();
-        this.tableContainer.appendChild(this.tableElement);
-    }
-    interpretColumnsFromData() {
-        if (!this.sourceData) return;
-        this.columns = [];
-        let allFound = [];
-        if (Array.isArray(this.sourceData)) {
-            for (let i = 0; i < this.sourceData.length; i++) {
-                let data = this.sourceData[i];
-                if (typeof (data) === "object") {
-                    let keys = Object.keys(data);
-                    keys.forEach(key => {
-                        if (allFound.indexOf(key) === -1)
-                            allFound.push(key);
-                    });
-                }
-            }
-        }
-        allFound.forEach(name => {
-            let column = new LaniTableColumn();
-            column.dataName = name;
-            column.title = name;
-            this.columns.push(column);
-        });
-    }
-    findColumnFromDataName(dataName){
-        for(let i = 0; i < this.columns.length; i++)
-            if(this.columns[i].dataName == dataName)
-                return this.columns[i];
-    }
-    findColumn(delegate){
-        for(let i = 0; i < this.columns.length; i++)
-            if(delegate(this.columns[i]))
-                return this.columns[i];
-    }
-    refresh() {
-        this.mutateData();
-        this.generate();
-    }
-    applySearch() {
-        if (this.searchQuery === null || this.searchQuery.length == 0){
-            this.page = 1;
-            this.updatePagination();
-            return;
-        }
-        let originalDataLength = this.data.length;
-        this.data = this.data.filter(item => {
-            let match = false;
-            this.columns.forEach(column => {
-                if (this.columns !== null || this.columns.filter(item => item.dataName).length !== 0) {
-                    let data = item[column.dataName];
-                    if (data !== null) {
-                        data = `${data}`; // stringify
-                        if (this.regexSearch) {
-                            match = new RegExp(this.searchQuery).test(data);
-                        }
-                        else {
-                            let query = this.searchQuery;
-                            if (!this.matchCaseSearch) {
-                                data = data.toLowerCase();
-                                query = query.toLowerCase();
-                            }
-                            match = data.indexOf(query) !== -1 || match;
-                        }
-                    }
-                }
-            });
-            return match;
-        });
-        if(this.data.length !== originalDataLength){
-            this.page = 1;
-            this.updatePagination();
-        }
-    }
-    applyFilters() {
-        this.columns.forEach(column => {
-            let filters = this.filters.filter(filter => filter.column == column.dataName);
-            for (let i = 0; i < filters.length; i++) {
-                let filter = filters[i];
-                if (i === 0) {
-                    this.data = filter.apply(this.sourceData);
-                }
-                else {
-                    let lastFilter = filters[i - 1];
-                    if (lastFilter.combineMode == LaniTableFilterCombineMode.And)
-                        this.data = filter.apply(this.data);
-                    else
-                        this.data = filter.apply(this.sourceData).concat(this.data);
-                }
-            }
-        })
-    }
-    applySorts() {
-        // For now, just simple, single-column sorting. Advanced (grouped) sorting TODO
-        if (this.sorts.length == 0) return;
-        let sort = this.sorts[0];
-        this.data.sort((row1, row2) => sort.compare(row1, row2));
-    }
-    mutateData() {
-        if (this.sourceData === null) return;
-        this.data = this.sourceData.slice(); // clone data source array
-        this.applyFilters();
-        this.applySorts();
-    }
-    async fetchData() {
-
-    }
-    async refreshData() {
-
-    }
-    json(data) {
-        this.sourceData = JSON.parse(data);
-        this.refresh();
-    }
-    csv(data, hasHeaders=true) {
-        throw "CSV intake not yet implemented";
-    }
-    array(data) {
-        this.sourceData = data;
-        if(this.columns === null)
-            this.interpretColumnsFromData();
-        this.refresh();
-    }
-    expandAll() {
-
-    }
-    collapseAll() {
-
-    }
-    appendTo(parent, refresh=true) {
-        if (typeof (parent) === "string") parent = document.querySelector(parent);
-        this.parent = parent;
-        if(refresh)
-            this.refresh();
-    }
 }
-
-Lani.TableRow = class {
-    constructor() {
-        this.data = null;
-        this.isChildRow = false;
-        this.collapsed = false;
-        this.height = null;
-        this.childRows = [];
-    }
-}
-
-Lani.TableCaseMutation = {
-    Lower: "lowercase",
-    Upper:  "uppercase",
-    Capitalize: "capitalize"
-}
-
-Lani.TableColumn = class extends Lani.TableColumnFormatting {
-    constructor(title = null, dataName = null) {
+Lani.TableElement = class extends Lani.Element {
+    constructor(){
         super();
-        this.title = title;
-        this.dataName = dataName;
-        if (this.title !== null && this.dataName === null)
-            this.dataName = this.title;
-        // Filter / sort by has a drop-down menu as "suggestions"
-        this.forceSuggestions = false;
-        // Drop-down menu will be replaced with text input at this number of distinct items
-        this.suggestionCutoff = 100;
-        this.caseInsensitiveSuggestions = false;
-        this.ignoredInSearch = false;
-        this.showFilterButton = true;
-        this.showSortButton = true;
-        this.index = 0;
-        this.conditionalFormattingRules = [];
-        this.dataTypeHint = null;
+        this.table = null;
+        this.setup();
     }
-}
+    async setup(){
+        await this.useTemplate(Lani.templatesPath(), "#lani-table-core");
 
-Lani.TableFilterMode = {
-    Equals: "=",
-    GreaterThan: ">",
-    LessThan: "<",
-    StartsWith: "startswith",
-    EndsWith: "endswith",
-    Contains: "contains",
-    Between: "between"
-};
+        this.table = new Lani.Table();
 
-Lani.TableFilterCombineMode = {
-    Or: "||",
-    And: "&&"
-};
+        this.table.DOMHost = this.shadow;
 
-Lani.TableFilter = class {
-    constructor(column, comparison, value, combineMode = Lani.TableFilterCombineMode.And) {
-        this.column = column;
-        this.comparison = comparison;
-        this.value = value;
-        this.combineMode = combineMode;
-        this.negated = false;
-        this.caseSensitivity = false;
-    }
-    apply(data) {
-        return data.filter(item => {
-            let data = this.item[this.column];
-            let type = typeof data;
-            if (this.comparison == Lani.TableFilterMode.Equals) {
-                if (type === "string" && !this.caseSensitivity)
-                    return (!this.negated) && data.toLowerCase() == this.value.toLowerCase();
-                else
-                    return (!this.negated) && item[this.column] == this.value;
-            }
-        });
-    }
-}
-
-Lani.TableConditionalFormatting = class {
-    constructor() {
-
-    }
-    meetsCondition(row) {
-        // to be overridden
-    }
-    format(cell) {
-        // To be overridden
-    }
-}
-
-Lani.TableSortDirection = {
-    Ascending: 0,
-    Descending: 1
-};
-
-Lani.TableSort = class {
-    constructor(columnName, sortDirection = Lani.TableSortDirection.Descending) {
-        this.columnName = columnName;
-        this.direction = sortDirection;
-    }
-    compare(row1, row2) {
-        if (row1[this.columnName] == row2[this.columnName]) return 0;
-        else if (row1[this.columnName] > row2[this.columnName])
-            return this.direction === Lani.TableSortDirection.Descending ? -1 : 1;
-        else
-            return this.direction === Lani.TableSortDirection.Descending ? 1 : -1;
-    }
-}
-
-Lani.TableAnimationDirection = {
-    Forwards: 0,
-    Backwards: 1
-};
-
-Lani.TablePaginationAnimation = class {
-    constructor(table){
-        this.table = table;
-        this.speed = 1.0;
-    }
-    animate(direction, oldPage, newPage){
-        // To be overridden
-    }
-};
-
-Lani.TablePageAnimations = {
-    Fade: class extends Lani.TablePaginationAnimation {
-        constructor(table){
-            super(table);
+        this.table.id = this.id;
+        if(this.id){
+            Lani.tables.push(table);
         }
-    },
-    Shuffle: class extends Lani.TablePaginationAnimation {
-        constructor(table){
-            super(table);
-        }
+        let title = this.getAttribute("table-title");
+        if(title)
+            this.table.title = title;
     }
-}
-
-window.addEventListener("load", Lani.tableLoadHandler);
-/*
-
-    Dialog module
-
-*/
-Lani.installedModules.push("lani-dialogs");
-
-Lani.dialogLayer = null;
-Lani.dialogOpen = false;
-Lani.dialog = null;
-
-Lani.DialogState = {
-    Windowed: 0,
-    Fullscreen: 1,
-    Maximized: 2,
-    Minimized: 3
-}
-
-Lani.showDialog = dialog => {
-    let layer;
-    if (Lani.dialogLayer === null) layer = Lani.showDialogLayer();
-    else layer = Lani.dialogLayer;
-}
-Lani.showDialogLayer = () => {
-    let layer = document.createElement("div");
-    layer.className = "l-dialog-shader";
-    document.body.appendChild(layer);
-    return layer;
-}
-Lani.destroyDialogLayer = () => {
-    document.querySelectorAll(".l-dialog-shader").forEach(item => item.remove());
-    Lani.dialogLayer = null;
-    Lani.dialogOpen = false;
-}
-Lani.alert = (text, title="") => {
-    let dialog = new LaniDialog();
-    dialog.title = title;
-    let label = document.createElement("p");
-    label.innerHTML = text;
-    dialog.content.appendChild(label);
-    Lani.showDialog(dialog);
-}
-
-Lani.Dialog = class {
-    constructor() {
-        // Options
-        this.allowResize = true;
-        this.showCloseButton = true;
-        this.showMaximizeButton = true;
-        this.showMinimizeButton = false;
-        this.allowMaximize = true;
-        this.allowDrag = true;
-        this.closeOnClickAway = true;
-        this.startMaximized = false;
-        this.startFullscreen = false;
-        this.startMinimized = false;
-        this.showTitle = true;
-
-        // State items
-        this.size = {
-            width: null,
-            height: null
-        }
-        this.position = {
-            x: null,
-            y: null
-        }
-        this.title = null;
-        this.state = null;
-
-        // Outer-ish elements
-        this.shader = null;
-        this.container = null;
-        this.resizeElements = {
-            topLeft: null,
-            top: null,
-            topRight: null,
-            right: null,
-            bottomRight: null,
-            bottom: null,
-            bottomLeft: null,
-            left: null
-        };
-
-        // Contained elements
-        this.closeButton = null;
-        this.maximizeButton = null;
-        this.minimizeButton = null;
-        this.titleElement = null;
-        this.content = null;
+    // declare the watched attributes
+    static get observedAttributes() {
+        return ["table-title"];
     }
-    stationary(){
-        this.allowResize = false;
-        this.allowDrag = false;
-        this.allowMaximize = false;
-    }
-    dontAllowClose(){
-        this.allowClose = false;
-        this.closeOnClickAway = false;
-    }
-    createResizeElements(){
-
-    }
-    removeResizeElements(){
-
-    }
-    createButtons(){
-        this.closeButton = document.createElement("button");
-        this.maximizeButton = document.createElement("button");
-        this.minimizeButton = document.createElement("button");
-    }
-    showCloseButton(){
-        if(this.closeButton)
-            this.closeButton.style.display = "inline-flex";
-    }
-    showMaxmimizeButton(){
-        if(this.maximizeButton)
-            this.maximizeButton.style.display = "inline-flex";
-    }
-    showMinimizeButton(){
-        if(this.minimizeButton)
-            this.minimizeButton.style.display = "inline-flex";
-    }
-    hideCloseButton(){
-        if(this.closeButton)
-            this.closeButton.style.display = "none";
-    }
-    hideMaxmimizeButton(){
-        if(this.maximizeButton)
-            this.maximizeButton.style.display = "none";
-    }
-    hideMinimizeButton(){
-        if(this.minimizeButton)
-            this.minimizeButton.style.display = "none";
-    }
-    showTitle(){
-        if(this.title)
-            this.title.style.display = "inline-flex";
-    }
-    hideTitle(){
-        if(this.title)
-            this.title.style.display = "none";
-    }
-    moveTo(x, y){
-
-    }
-    resize(width, height){
-
-    }
-    /**
-     * Used to display the dialog for the first time
-     */
-    show(){
-
-    }
-    restore(){
-
-    }
-}
-/*
-
-    Dialog module
-
-*/
-Lani.installedModules.push("lani-context");
-
-
-Lani.customContextMenu = (element, contextMenuItems, activateCallback, compact = false) => {
-
-    let iconMode = false;
-    for (let i = 0; i < contextMenuItems.length; i++) {
-        if (contextMenuItems[i].icon !== null) {
-            iconMode = true;
-            break;
-        }
-    }
-
-
-    element.addEventListener("contextmenu", event => {
-        event.preventDefault();
-        let contextElement = new Lani.ContextElement();
-
-        let parent = document.createElement("div");
-        parent.className = "l-context-element";
-        contextElement.containerElement = parent;
-
-        for (let i = 0; i < contextMenuItems.length; i++) {
-            let menuItem = contextMenuItems[i];
-            if (menuItem.isSeparator) {
-                let menuItemElement = document.createElement("div");
-                menuItemElement.className = "l-context-element-item-separator";
-                parent.appendChild(menuItemElement);
-            }
-            else {
-                let menuItemElement = document.createElement("p");
-
-                if(compact)
-                    menuItemElement.className = "l-context-element-item-compact";
-                else
-                    menuItemElement.className = "l-context-element-item";
-                let text = menuItem.text;
-                if (iconMode) {
-                    if (menuItem.icon !== null) {
-                        text = `<i class="${menuItem.icon} l-context-element-item-icon"></i>${text}`
-                    }
-                    else {
-                        text = `<div class="l-context-element-item-icon"></div>${text}`
-                    }
-                }
-                menuItemElement.innerHTML = text;
-
-                menuItemElement.addEventListener("click", e => {
-                    if (menuItem.onAction)
-                        menuItem.onAction();
-                    contextElement.close();
-                });
-
-                parent.appendChild(menuItemElement);
-            }
-
-        }
-
-        if (activateCallback)
-            activateCallback(contextElement.containerElement, contextElement);
-
-        parent.style.top = `${event.layerY}px`;
-        parent.style.left = `${event.layerX}px`;
-        document.body.appendChild(parent);
-
-        contextElement.addListeners();
-        return contextElement;
-
-    });
-}
-
-Lani.ContextElement = class {
-    constructor(container = null) {
-        this.containerElement = container;
-        this.relatedElements = [];
-        this.autoClose = true;
-
-        this.mousedownListener = e => this.handleWindowEvent(e);
-        this.scrollListener = e => this.handleWindowEvent(e);
-        this.blurListener = e => this.handleWindowEvent(e);
-
-        // Events
-        this.onClickAway = null;
-        this.onClose = null;
-    }
-    addListeners() {
-        window.addEventListener("mousedown", this.mousedownListener);
-        window.addEventListener("scroll", this.scrollListener);
-        window.addEventListener("blur", this.blurListener);
-    }
-    removeListeners() {
-        window.removeEventListener("mousedown", this.mousedownListener);
-        window.removeEventListener("scroll", this.scrollListener);
-        window.removeEventListener("blur", this.blurListener);
-    }
-    handleWindowEvent(event) {
-        let target = event.target;
-        if (target === this.containerElement) return;
-        let parent = target;
-        while ((parent = parent.parentNode)) {
-            if (parent === this.containerElement ||
-                this.relatedElements.indexOf(parent) !== -1)
-                return;
-        }
-        if (this.onClickAway)
-            this.onClickAway();
-        if (this.autoClose)
-            this.close();
-
-    }
-    close() {
-        let continueClose = null;
-        if (this.onClose)
-            continueClose = this.onClose();
-        if (typeof cancel !== "undefined" && continueClose === false)
+    attributeChangedCallback(name, oldValue, newValue){
+        // Table has not loaded yet
+        if(!this.table)
             return;
-        this.removeListeners();
-        if(this.containerElement)
-            this.containerElement.remove();
+        if(name == "table-title")
+            this.table.title = newValue;
     }
-}
-
-Lani.ContextMenuItem = class {
-    constructor(text, onAction=null, icon=null) {
-        this.text = text;
-        this.icon = icon;
-        this.isSeparator = false;
-
-        this.onAction = onAction;
-    }
-}
-
-Lani.ContextMenuSeparator = class extends Lani.ContextMenuItem {
-    constructor() {
-        super();
-        this.isSeparator = true;
-    }
-}
-/*
-
-    Lani "extras" module
-
-*/
-Lani.installedModules.push("lani-extras");
-
-Lani.GibberishLength = {
-    Short: 2,
-    Medium: 15,
-    Long: 100,
-    VeryLong: 200
 };
-Lani.GibberishText = [
-    'apple', 'mint', 'Florida', 'soda', 'leather', 'the',
-    'a', 'to', 'bubblegum', 'bravery', 'environment', 'tea',
-    'water', 'cake', 'chicken', 'wave', 'ice', 'lamp',
-    'sheep', 'whereas', 'windy', 'tall', 'tree', 'lock',
-    'finished', 'image', 'daytime', 'of', 'work', 'cow',
-    'door', 'coin', 'by', 'blue', 'half', 'red', 'stone',
-    'inside', 'loud', 'frozen', 'happy', 'scared', 'burnt',
-    'bread', 'slide', 'increase', 'taste'
-];
-Lani.gibberish = length => {
-    let words = [];
-    for(let i = 0; i < length; i++)
-        words.push(Lani.GibberishText[Math.floor(Math.random() * Lani.GibberishText.length)]);
-    return words.join(" ");
-}
+
+Lani.regEl("lani-table", Lani.TableElement);

@@ -4,7 +4,7 @@
 
 */
 :root, :host {
-    --lani-version: "1.0.0";
+    --lani-version: "0.1.0";
 
     /* Gradients */
     --lani-sky: linear-gradient(145deg, #1692ab, #90e0ef);
