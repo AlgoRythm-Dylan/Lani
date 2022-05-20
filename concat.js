@@ -10,7 +10,8 @@ const jsFiles = [
     './animations/dot-grid.js',
     './animations/tree.js',
     './tables/core.js',
-    './tables/table.js',
+    './tables/element.js',
+    //'./tables/table.js',
     './dialog.js',
     './context.js',
     './extras.js'
