@@ -58,7 +58,7 @@ Lani.BubblesElement = class extends Lani.Element {
         this.animation = null;
     }
     async setup(){
-        await this.useTemplate(Lani.contentRoot + "/templates.html", "#lani-animation-basic");
+        await this.useTemplate(Lani.templatesPath(), "#lani-animation-basic");
 
         let amount = this.getAttribute("count");
         if (amount && amount != "")

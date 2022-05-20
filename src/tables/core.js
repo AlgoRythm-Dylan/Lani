@@ -19,4 +19,7 @@ Lani.TableElement = class extends Lani.Element {
         if(title)
             this.table.setTitle(title);
     }
+    async setup(){
+        this.useTemplate(Lani.templatesPath(), "#table-main")
+    }
 };

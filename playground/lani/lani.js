@@ -7,6 +7,7 @@ const Lani = window.Lani || { };
 Lani.version = "1.0.0";
 Lani.installedModules = [];
 Lani.contentRoot = "/lani";
+Lani.templatesPath = () => Lani.contentRoot + "/templates.html";
 
 Lani.requireModule = moduleName => {
     if(!Lani.installedModules.includes(moduleName))
@@ -325,7 +326,7 @@ Lani.BubblesElement = class extends Lani.Element {
         this.animation = null;
     }
     async setup(){
-        await this.useTemplate(Lani.contentRoot + "/templates.html", "#lani-animation-basic");
+        await this.useTemplate(Lani.templatesPath(), "#lani-animation-basic");
 
         let amount = this.getAttribute("count");
         if (amount && amount != "")
@@ -403,7 +404,7 @@ Lani.DotGridElement = class extends Lani.Element {
         this.animation = null;
     }
     async setup(){
-        await this.useTemplate(Lani.contentRoot + "/templates.html", "#lani-animation-basic");
+        await this.useTemplate(Lani.templatesPath(), "#lani-animation-basic");
 
         let dotsDensity = this.getAttribute("density");
         if (dotsDensity && dotsDensity != "")
@@ -434,7 +435,12 @@ Lani.DotGridElement = class extends Lani.Element {
 Lani.regEl("lani-dots", Lani.DotGridElement);
 /*
 
-    Lani "Bubbles" animation
+    Lani "tree" animation
+
+    Inspiration:
+        https://openprocessing.org/sketch/1279382
+        https://openprocessing.org/sketch/1520641
+        https://openprocessing.org/sketch/1025683
 
 */
 Lani.requireModule("lani-animations");
@@ -506,7 +512,7 @@ Lani.TreeElement = class extends Lani.Element {
         this.animation = null;
     }
     async setup(){
-        await this.useTemplate(Lani.contentRoot + "/templates.html", "#lani-animation-basic");
+        await this.useTemplate(Lani.templatesPath(), "#lani-animation-basic");
 
         this.animation = new Lani.TreeAnimation(
             this.shadow.getElementById("screen")
@@ -541,6 +547,9 @@ Lani.TableElement = class extends Lani.Element {
         let title = this.getAttribute("table-title");
         if(title)
             this.table.setTitle(title);
+    }
+    async setup(){
+        this.useTemplate(Lani.templatesPath(), "#table-main")
     }
 };
 /*

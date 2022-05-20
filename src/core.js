@@ -7,6 +7,7 @@ const Lani = window.Lani || { };
 Lani.version = "1.0.0";
 Lani.installedModules = [];
 Lani.contentRoot = "/lani";
+Lani.templatesPath = () => Lani.contentRoot + "/templates.html";
 
 Lani.requireModule = moduleName => {
     if(!Lani.installedModules.includes(moduleName))
