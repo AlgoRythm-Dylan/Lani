@@ -1,0 +1,14 @@
+{
+  "name": "lani",
+  "version": "1.0.0",
+  "description": "Front-end UI framework for web apps",
+  "scripts": {
+    "concat": "node concat",
+    "serve-playground": "node serve playground",
+    "serve-docs": "node serve docs"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "g": "^2.0.1"
+  }
+}

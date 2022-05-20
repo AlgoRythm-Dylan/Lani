@@ -1,0 +1,150 @@
+/*
+
+    Variable declarations
+
+*/
+:root, :host {
+    --lani-version: "1.0.0";
+
+    /* Gradients */
+    --lani-sky: linear-gradient(145deg, #1692ab, #90e0ef);
+    --lani-sunset: linear-gradient(145deg, #ec4176, #ffa45e);
+    --lani-grass: linear-gradient(145deg, #698768, #bfedab);
+    --lani-cotton-candy: linear-gradient(145deg, #f99cee, #bcf7f8);
+    --lani-dusk: linear-gradient(145deg, #573269, #ec4176);
+
+    /* Text color */
+    --lani-text-strong-color: rgb(0, 0, 0);
+    --lani-text-color: rgb(35, 35, 35);
+    --lani-text-subtle-color: rgb(85, 85, 85);
+
+    /* Text-accent */
+    --lani-text-accent-strong-color: rgb(0, 60, 150);
+    --lani-text-accent-color: rgb(30, 105, 225);
+    --lani-text-accent-subtle-color: rgb(85, 145, 245);
+
+    /* Corner rounding */
+    --lani-rounded-strong: .8pc;
+    --lani-rounded: .6pc;
+    --lani-rounded-subtle: .3pc;
+
+    /* Shadows */
+    --lani-shadow-strong: rgba(32, 32, 128, 0.4) 0px 24px 80px;
+    --lani-shadow: rgba(32, 32, 128, 0.2) 0px 16px 55px;
+    --lani-shadow-subtle: rgba(32, 32, 128, 0.2) 0px 12px 40px;
+
+    /* Scale */
+    --lani-scale-up-strong: 1.6;
+    --lani-scale-up: 1.4;
+    --lani-scale-up-subtle: 1.2;
+
+    --lani-scale-down-strong: 0.4;
+    --lani-scale-down: 0.6;
+    --lani-scale-down-subtle: 0.8;
+
+    /* Animation speeds */
+    --lani-speed-slow: 1.25;
+    --lani-speed: 0.75;
+    --lani-speed-fast: 0.25;
+
+    /* Extras */
+    --lani-selection-bg: rgba(80, 175, 255, 0.5);
+}
+
+/*
+    Version
+*/
+.l-version-display::before {
+    content: var(--lani-version);
+}
+
+/*
+    text
+*/
+.l-text-strong {
+    color: var(--lani-text-color-strong);
+}
+.l-text, .l-body * {
+    color: var(--lani-text-color);
+}
+.l-text-subtle {
+    color: var(--lani-text-subtle-color)
+}
+
+/*
+    text-accent
+*/
+.l-text-accent-strong {
+    color: var(--lani-text-accent-strong-color);
+}
+.l-text-accent {
+    color: var(--lani-text-accent-color);
+}
+.l-text-accent-subtle {
+    color: var(--lani-text-accent-subtle-color);
+}
+
+/*
+    rounding
+*/
+.l-rounded-strong {
+    border-radius: var(--lani-rounded-strong);
+}
+.l-rounded {
+    border-radius: var(--lani-rounded);
+}
+.l-rounded-subtle {
+    border-radius: var(--lani-rounded-subtle);
+}
+
+/*
+    shadow
+*/
+.l-shadow-strong {
+    box-shadow: var(--lani-shadow-strong);
+}
+.l-shadow {
+    box-shadow: var(--lani-shadow);
+}
+.l-shadow-subtle {
+    box-shadow: var(--lani-shadow-subtle);
+}
+
+/*
+    grow
+*/
+.l-grow-strong:hover {
+    transition: scale(var(--lani-scale-up-strong)) var(--lani-speed);
+}
+.l-grow:hover {
+    transition: scale(var(--lani-scale-up)) var(--lani-speed);
+}
+.l-grow-subtle:hover {
+    transition: scale(var(--lani-scale-up-subtle)) var(--lani-speed);
+}
+
+/*
+    selection
+*/
+.l-selection::selection, .l-body *::selection{
+    background-color: var(--lani-selection-bg);
+}
+
+/*
+    gradients
+*/
+.l-sky {
+    background: var(--lani-sky);
+}
+.l-sunset {
+    background: var(--lani-sunset);
+}
+.l-grass {
+    background: var(--lani-grass);
+}
+.l-cotton-candy {
+    background: var(--lani-cotton-candy);
+}
+.l-dusk {
+    background: var(--lani-dusk);
+}

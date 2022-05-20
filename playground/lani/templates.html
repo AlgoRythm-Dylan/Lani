@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<head>
+    <title>Lani Templates</title>
+</head>
+<body>
+
+    <template id="lani-animation-basic">
+        <style>
+            :host {
+                display: flex;
+                position: relative;
+            }
+            canvas#screen, div#content {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+        <canvas id="screen"></canvas>
+        <div id="content">
+            <slot></slot>
+        </div>
+    </template>
+
+    <template id="lani-table">
+        
+    </template>
+</body>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<head>
+    <title>Lani</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta&family=Square+Peg&display=swap" rel="stylesheet"> 
+    <script src="lani/lani.js"></script>
+    <link href="lani/lani.css" type="text/css" rel="stylesheet"></link>
+    <style>
+        * {
+            font-family: 'Mukta';
+        }
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0px;
+        }
+        lani-bubbles, lani-dots, lani-tree {
+            height: 100%;
+            width: 100%;
+        }
+
+        div.funny-text-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+        }
+        h1.funny-text {
+            color: white;
+        }
+    </style>
+</head>
+<body class="l-body">
+
+    <lani-tree class="l-grass">
+        <!--<div class="funny-text-container">
+            <h1 class="funny-text">Oh shit a tree, that's nice</h1>
+        </div>-->
+    </lani-tree>
+
+    <lani-bubbles size="2" count="10" speed="0.5" class="l-sky">
+        <div class="funny-text-container">
+            <h1 class="funny-text">Help, please, I'm terribly afraid of bubbles</h1>
+        </div>
+    </lani-bubbles>
+
+    <lani-dots class="l-dusk">
+        <div class="funny-text-container">
+            <h1 class="funny-text">I am also afraid of dots, this is hell</h1>
+        </div>
+    </lani-dots>
+</body>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<head>
+    <title>Lani</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta&display=swap" rel="stylesheet"> 
+    <script src="/lani/lani.js"></script>
+    <!--<link href="/lani/lani.css" type="text/css" rel="stylesheet"></link>-->
+    <style>
+        * {
+            font-family: 'Mukta';
+        }
+        .muted {
+            color: rgb(85, 85, 85);
+        }
+    </style>
+</head>
+<body class="l-body">
+    <h1>Lani-CSS Version <span class="l-version-display"></span></h1>
+    <h1>The Gist</h1>
+    <p>
+        All Lani CSS classes are prefixed with <code>l-</code>.
+        This is to help with compatibility with other CSS frameworks
+        (like Bootstrap) and to simply not pollute the CSS global
+        namespace.
+    </p>
+    <p>
+        Lani uses CSS3 variables so that you have dynamic access to
+        all the values Lani uses. This also enables some pretty
+        easy dynamic theming. CSS3 variables are prefixed with
+        <code>--lani</code>
+    </p>
+    <p>
+        Many classes come with three different intensity values,
+        each with their own postfix on the class name:
+        strong, subtle, and normal, which has no postfix.
+    </p>
+    <ul>
+        <li>l-<span class="muted">[class]</span>-strong</li>
+        <li>l-<span class="muted">[class]</span></li>
+        <li>l-<span class="muted">[class]</span>-subtle</li>
+    </ul>
+    <p>Where <span class="muted">[class]</span> is one of: <span class="l-text-accent">
+        text, text-accent, rounded, shadow, grow
+    </span></p>
+    <h1>Samples</h1>
+    
+    
+    
+    <lani-test>
+        <p>This is some content inside the custom element</p>
+    </lani-test>
+
+
+</body>
+<script>
+    class LaniTest extends Lani.Element {
+        constructor(){
+            super();
+            this.useTemplate("/lani/templates.html", "#lani-test-template");
+        }
+    }
+    Lani.regEl("lani-test", LaniTest);
+
+</script>
