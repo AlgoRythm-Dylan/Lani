@@ -8,7 +8,7 @@ Bootstrap and jQuery, but has no dependency on either.
 
 **Uses FontAwesome (free ed.) for icons**
 
-See [the GitHub Pages site](https://lani.algorythm-dylan.github.io/) for demos and docs
+See [the GitHub Pages site](https://algorythm-dylan.github.io/Lani/) for demos and docs
 
 Highlights:
 - Animations to spice up your reports
