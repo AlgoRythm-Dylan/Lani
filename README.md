@@ -19,14 +19,18 @@ See [the GitHub Pages site](https://algorythm-dylan.github.io/Lani/) for demos a
 
 ## FontAwesome / Icons
 
-Lani alpha has a hard dependency on FontAwesome. There is
-no icon resolution service in Lani - everything is hard-coded.
+By default, Lani uses FontAwesome for icons. FontAwesome
+doesn't need to be installed in any special way. Lani
+was built with FontAwesome 6.
 
-This will change well before release of Lani 1. But for now,
-it's the way things are. Lani depends on FontAwesome version 6.
+If you use anything other than the free version, you
+can even set the `Lani.iconResolver.defaultStyle` to
+something like `fa-regular`. Note that `defaultStyle`
+is only available for `Lani.FontAwesomeIconResolver`.
 
-Please refer to the changelog for the most up-to-date information
-regarding this issue.
+You can use your own icon library if you want, you just need
+to write your own `Lani.IconResolver` and then set
+`Lani.iconResolver` to an instance of your new resolver.
 
 ## Development and this repository
 
