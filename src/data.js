@@ -5,6 +5,15 @@
 */
 Lani.installedModules.push("lani-data");
 
+Lani.DataSourceFeatures = {
+    Count: 0,
+
+    Select: 1,
+    Update: 2,
+    Delete: 3,
+    Insert: 4
+};
+
 // A data source has the responsibility
 // of providing data
 
@@ -26,6 +35,8 @@ Lani.installedModules.push("lani-data");
 Lani.DataSource = class {
     constructor(data=[]){
         this.data = data;
+        this.supportedFeatures = [];
+        this.supportsAllFeatures = true;
     }
     async getAll(){
         return this.data;
@@ -71,12 +82,22 @@ Lani.DataSource = class {
     async removeAll(){
         this.data = [];
     }
+    supports(feature){
+        return this.supportsAllFeatures || this.supportedFeatures.includes(feature);
+    }
 }
 
 Lani.FetchedDataSource = class extends Lani.DataSource {
     constructor(){
+        super();
+
+        this.supportsAllFeatures = false;
+
         this.url = null;
         this.fetchOptions = {};
+    }
+    async getAll(){
+        return await (await fetch(this.url, this.fetchOptions)).json();
     }
 }
 
@@ -109,6 +130,21 @@ Lani.Pagination = class {
     reset(){
         this.scroll = 0;
         this.page = 1;
+    }
+    getIndices(maxCount = null, inclusive = true){
+        let indices = {
+            start: this.scroll + ((this.page - 1) * this.itemsPerPage),
+            end: this.scroll + (this.page * this.itemsPerPage)
+        };
+        if(inclusive)
+            indices.end--;
+        if(maxCount !== null){
+            if(indices.end > maxCount)
+                indices.end = maxCount;
+            if(indices.start > maxCount)
+                indices.start = maxCount;
+        }
+        return indices;
     }
     async pages(){
         if(this.dataSource === null)
@@ -181,11 +217,11 @@ Lani.findGroupDepth = groupedData => {
 Lani.ungroup = (groupedData) => {
     let data = [];
     if(Array.isArray(groupedData)){
-        data.push(groupedData.slice());
+        data.push(...groupedData.slice());
     }
     else{
-        Object.values(data).forEach(value => {
-            data.push(Lani.ungroup(value));
+        Object.values(groupedData).forEach(value => {
+            data.push(...Lani.ungroup(value));
         });
     }
     return data;
@@ -212,14 +248,23 @@ Lani.DataManager = class {
         // will only return data from the current page.
         // Pagination happens after filtering, grouping,
         // and sorting
-        this.pagination = new Pagination();
+        this.pagination = new Lani.Pagination();
     }
     // Returns an arary of gorups, to be used analytically
     // rather than simply displayed. Not all columns may be
     // grouped. The bottom-most group will contain the
     // remaining un-grouped data in a "table" format - an array
     async getGrouped(){
-        return Lani.group(await this.dataSource.getAll(), this.groups);
+        if(!this.pagination.enabled)
+            return Lani.group(await this.dataSource.getAll(), this.groups);
+        else{
+            let count = null;
+            if(this.dataSource.supports(Lani.DataSourceFeatures.Count))
+                count = await this.dataSource.count();
+            let indices = this.pagination.getIndices(count, false);
+            let data = await (await this.dataSource.getRange(indices.start, indices.end - indices.end)).json();
+            return Lani.group(data, this.groups);
+        }
     }
     // Returns a flat array of objects, ready to just
     // be thrown 1:1 into a table. In this case,

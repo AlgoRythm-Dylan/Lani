@@ -100,6 +100,9 @@ Lani.Element = class extends HTMLElement {
         let template = await Lani.loadTemplate(src, querySelector);
         this.shadow.appendChild(template.content.cloneNode(true));
     }
+    ready(detail){
+        this.dispatchEvent(new CustomEvent("ready", { detail } ));
+    }
 }
 
 Lani.regEl = (elementName, element, options) => {

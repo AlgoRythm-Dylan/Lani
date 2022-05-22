@@ -10,3 +10,22 @@
 <body class="l-body">
     <lani-table table-title="oh, wow!"></lani-table>
 </body>
+<script>
+    async function main(){
+        let dataSource = new Lani.DataSource();
+        let data = await (await fetch("/pkmn-tcgo.json")).json();
+        await dataSource.insertAll(Lani.ungroup(Lani.group(data)));
+
+        let dataManager = new Lani.DataManager();
+        dataManager.dataSource = dataSource;
+        dataManager.groups = ["Type", "Stage"];
+        dataManager.pagination.enabled = true;
+        let grouped = await dataManager.getGrouped();
+        console.log("Grouped:");
+        console.table(grouped);
+        console.log("De-grouped:");
+        console.table(Lani.ungroup(grouped));
+    }
+
+    window.addEventListener("load", main);
+</script>

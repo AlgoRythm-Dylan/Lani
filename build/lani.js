@@ -100,6 +100,9 @@ Lani.Element = class extends HTMLElement {
         let template = await Lani.loadTemplate(src, querySelector);
         this.shadow.appendChild(template.content.cloneNode(true));
     }
+    ready(detail){
+        this.dispatchEvent(new CustomEvent("ready", { detail } ));
+    }
 }
 
 Lani.regEl = (elementName, element, options) => {
@@ -187,8 +190,12 @@ Lani.DataSource = class {
 
 Lani.FetchedDataSource = class extends Lani.DataSource {
     constructor(){
+        super();
         this.url = null;
         this.fetchOptions = {};
+    }
+    async getAll(){
+        return await (await fetch(this.url, this.fetchOptions)).json();
     }
 }
 
@@ -293,11 +300,11 @@ Lani.findGroupDepth = groupedData => {
 Lani.ungroup = (groupedData) => {
     let data = [];
     if(Array.isArray(groupedData)){
-        data.push(groupedData.slice());
+        data.push(...groupedData.slice());
     }
     else{
-        Object.values(data).forEach(value => {
-            data.push(Lani.ungroup(value));
+        Object.values(groupedData).forEach(value => {
+            data.push(...Lani.ungroup(value));
         });
     }
     return data;
@@ -324,7 +331,7 @@ Lani.DataManager = class {
         // will only return data from the current page.
         // Pagination happens after filtering, grouping,
         // and sorting
-        this.pagination = new Pagination();
+        this.pagination = new Lani.Pagination();
     }
     // Returns an arary of gorups, to be used analytically
     // rather than simply displayed. Not all columns may be
