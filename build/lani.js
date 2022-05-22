@@ -790,7 +790,7 @@ Lani.iconResolver = new Lani.FontAwesomeIconResolver();
 
 Lani.IconElement = class extends Lani.Element {
     constructor(){
-        super();
+        super(false); // No shadow for this one
     }
     setIcon(iconName){
         if(iconName.indexOf(",") !== -1)
