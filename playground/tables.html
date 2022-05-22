@@ -6,19 +6,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Mukta&family=Square+Peg&display=swap" rel="stylesheet"> 
     <script src="lani/lani.js"></script>
     <link href="lani/lani.css" type="text/css" rel="stylesheet"></link>
+    <link href="fontawesome/solid.min.css" type="text/css" rel="stylesheet"></link>
+    <link href="fontawesome/fontawesome.min.css" type="text/css" rel="stylesheet"></link>
 </head>
 <body class="l-body">
     <lani-table table-title="oh, wow!"></lani-table>
+    <i class="fa-solid fa-angle-up"></i>
+    <lani-icon icon="angle-up"></lani-icon>
 </body>
 <script>
     async function main(){
         let dataSource = new Lani.DataSource();
-        let data = await (await fetch("/pkmn-tcgo.json")).json();
-        await dataSource.insertAll(Lani.ungroup(Lani.group(data)));
+        let data = await (await fetch("/tcgo-pkmn.json")).json();
+        await dataSource.insertAll(Lani.ungroup(Lani.group(data, ["Type", "Stage"])));
 
         let dataManager = new Lani.DataManager();
         dataManager.dataSource = dataSource;
-        dataManager.groups = ["Type", "Stage"];
         dataManager.pagination.enabled = true;
         let grouped = await dataManager.getGrouped();
         console.log("Grouped:");
@@ -27,5 +30,5 @@
         console.table(Lani.ungroup(grouped));
     }
 
-    window.addEventListener("load", main);
+    //window.addEventListener("load", main);
 </script>

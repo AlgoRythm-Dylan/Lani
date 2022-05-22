@@ -67,9 +67,20 @@ Lani.loadTemplate = async (src, querySelector) => {
 //      - adoptedCallback
 //      - attributeChangedCallback
 Lani.Element = class extends HTMLElement {
-    constructor(shadowMode = 'closed'){
+    constructor(useShadow = true, shadowOptions = {}){
         super();
-        this.shadow = this.attachShadow({mode: shadowMode});
+        this.usesShadow = useShadow;
+        if(typeof shadowOptions.mode === "undefined")
+            shadowOptions.mode = "closed";
+        if(useShadow)
+            this.shadow = this.attachShadow(shadowOptions);
+        else
+            this.shadow = this;
+        // The above decision could be considered controvercial
+        // because the outcome is misleading. Having this.shadow
+        // be a valid element when there should be none could cause
+        // confusion, but I think the fact that the variable can
+        // always be used to attach elements to is important
         this.importLaniLibs();
     }
     styles(styleLinkArray){
@@ -88,6 +99,9 @@ Lani.Element = class extends HTMLElement {
         this.styles([styleLink]);
     }
     importLaniLibs(){
+        // Lani CSS is only available to shadow-enabled elements
+        if(!this.usesShadow)
+            return;
         this.styles([
             Lani.contentRoot + "/lani.css"
         ]);
@@ -101,7 +115,7 @@ Lani.Element = class extends HTMLElement {
         this.shadow.appendChild(template.content.cloneNode(true));
     }
     ready(detail){
-        this.dispatchEvent(new CustomEvent("ready", { detail } ));
+        this.dispatchEvent(new CustomEvent("lani-ready", { detail } ));
     }
 }
 
@@ -119,6 +133,15 @@ Lani.Direction = {
 
 */
 Lani.installedModules.push("lani-data");
+
+Lani.DataSourceFeatures = {
+    Count: 0,
+
+    Select: 1,
+    Update: 2,
+    Delete: 3,
+    Insert: 4
+};
 
 // A data source has the responsibility
 // of providing data
@@ -141,6 +164,8 @@ Lani.installedModules.push("lani-data");
 Lani.DataSource = class {
     constructor(data=[]){
         this.data = data;
+        this.supportedFeatures = [];
+        this.supportsAllFeatures = true;
     }
     async getAll(){
         return this.data;
@@ -186,11 +211,17 @@ Lani.DataSource = class {
     async removeAll(){
         this.data = [];
     }
+    supports(feature){
+        return this.supportsAllFeatures || this.supportedFeatures.includes(feature);
+    }
 }
 
 Lani.FetchedDataSource = class extends Lani.DataSource {
     constructor(){
         super();
+
+        this.supportsAllFeatures = false;
+
         this.url = null;
         this.fetchOptions = {};
     }
@@ -228,6 +259,21 @@ Lani.Pagination = class {
     reset(){
         this.scroll = 0;
         this.page = 1;
+    }
+    getIndices(maxCount = null, inclusive = true){
+        let indices = {
+            start: this.scroll + ((this.page - 1) * this.itemsPerPage),
+            end: this.scroll + (this.page * this.itemsPerPage)
+        };
+        if(inclusive)
+            indices.end--;
+        if(maxCount !== null){
+            if(indices.end > maxCount)
+                indices.end = maxCount;
+            if(indices.start > maxCount)
+                indices.start = maxCount;
+        }
+        return indices;
     }
     async pages(){
         if(this.dataSource === null)
@@ -338,7 +384,16 @@ Lani.DataManager = class {
     // grouped. The bottom-most group will contain the
     // remaining un-grouped data in a "table" format - an array
     async getGrouped(){
-        return Lani.group(await this.dataSource.getAll(), this.groups);
+        if(!this.pagination.enabled)
+            return Lani.group(await this.dataSource.getAll(), this.groups);
+        else{
+            let count = null;
+            if(this.dataSource.supports(Lani.DataSourceFeatures.Count))
+                count = await this.dataSource.count();
+            let indices = this.pagination.getIndices(count, false);
+            let data = await (await this.dataSource.getRange(indices.start, indices.end - indices.end)).json();
+            return Lani.group(data, this.groups);
+        }
     }
     // Returns a flat array of objects, ready to just
     // be thrown 1:1 into a table. In this case,
@@ -686,6 +741,72 @@ Lani.gibberish = length => {
         words.push(Lani.GibberishText[Math.floor(Math.random() * Lani.GibberishText.length)]);
     return words.join(" ");
 }
+/*
+
+    Lani Icon module
+
+*/
+Lani.installedModules.push("lani-icons");
+
+Lani.IconResolver = class {
+    constructor(){ }
+    resolve(element, iconName, options={}){ }
+}
+
+Lani.FontAwesomeIconResolver = class extends Lani.IconResolver {
+    constructor(){
+        super();
+        this.defaultStyle = "fa-solid";
+        this.injectDefaultStyle = true;
+    }
+    resolve(element, iconName, options={}){
+        // This tries to remove all font-awesome classes,
+        // but it should be noted that it is not foolproof
+        element.className = element.className
+                                .split(" ")
+                                .map(item => item.startsWith("fa-") ? "" : item)
+                                .join(" ")
+        if(iconName.length == 0){
+            // This catches both empty strings and arrays
+            return;
+        }
+        let style = this.defaultStyle;
+        if(typeof options.style === "string")
+            style = options.style;
+        if(this.injectDefaultStyle)
+            element.className += this.defaultStyle + " ";
+        if(Array.isArray(iconName)){
+            element.className += iconName
+                                    .map(item => `fa-${item}`)
+                                    .join(" ")
+        }
+        else{
+            element.className += `fa-${iconName}`;
+        }
+    }
+}
+
+Lani.iconResolver = new Lani.FontAwesomeIconResolver();
+
+Lani.IconElement = class extends Lani.Element {
+    constructor(){
+        super();
+    }
+    setIcon(iconName){
+        if(iconName.indexOf(",") !== -1)
+            iconName = iconName.split(",");
+        Lani.iconResolver.resolve(this, iconName);
+    }
+    static get observedAttributes() {
+        return ["icon"];
+    }
+    attributeChangedCallback(name, oldValue, newValue){
+        if(name == "icon")
+            this.setIcon(newValue);
+    }
+}
+
+Lani.regEl("lani-icon", Lani.IconElement);
 /*
 
     Animation module

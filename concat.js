@@ -8,6 +8,7 @@ const jsFiles = [
     './dialog.js',
     './context.js',
     './extras.js',
+    './icon.js',
     //'./caching.js',
     
     './animations.js',

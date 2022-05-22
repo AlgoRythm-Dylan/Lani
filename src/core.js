@@ -67,9 +67,20 @@ Lani.loadTemplate = async (src, querySelector) => {
 //      - adoptedCallback
 //      - attributeChangedCallback
 Lani.Element = class extends HTMLElement {
-    constructor(shadowMode = 'closed'){
+    constructor(useShadow = true, shadowOptions = {}){
         super();
-        this.shadow = this.attachShadow({mode: shadowMode});
+        this.usesShadow = useShadow;
+        if(typeof shadowOptions.mode === "undefined")
+            shadowOptions.mode = "closed";
+        if(useShadow)
+            this.shadow = this.attachShadow(shadowOptions);
+        else
+            this.shadow = this;
+        // The above decision could be considered controvercial
+        // because the outcome is misleading. Having this.shadow
+        // be a valid element when there should be none could cause
+        // confusion, but I think the fact that the variable can
+        // always be used to attach elements to is important
         this.importLaniLibs();
     }
     styles(styleLinkArray){
@@ -88,6 +99,9 @@ Lani.Element = class extends HTMLElement {
         this.styles([styleLink]);
     }
     importLaniLibs(){
+        // Lani CSS is only available to shadow-enabled elements
+        if(!this.usesShadow)
+            return;
         this.styles([
             Lani.contentRoot + "/lani.css"
         ]);
@@ -101,7 +115,7 @@ Lani.Element = class extends HTMLElement {
         this.shadow.appendChild(template.content.cloneNode(true));
     }
     ready(detail){
-        this.dispatchEvent(new CustomEvent("ready", { detail } ));
+        this.dispatchEvent(new CustomEvent("lani-ready", { detail } ));
     }
 }
 
