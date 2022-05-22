@@ -1,0 +1,40 @@
+<h1>Icons</h1>
+<p>
+    Lani uses icons to give visual cues to the
+    user where appropriate. By default, Lani uses
+    FontAwesome (version 6), but this is not
+    a required dependency (though, at least some
+    icon system is expected)
+</p>
+<p>
+    Lani internally uses the
+    <code>&lt;lani-icon&gt;</code>
+    web component to make the concept of an icon
+    more abstract so that some kind of icon service
+    (in this case, the 
+    <code>Lani.IconResolver</code>) can take this
+    element on the DOM and transform it into a
+    valid icon
+</p>
+<p>
+    The <code>&lt;lani-icon&gt;</code> element
+    expects a single attribute:
+    <code>icon</code>. This attribute will be used
+    to resolve the icon using the current icon resolver
+</p>
+<p>
+    You do not need to use the
+    <code>&lt;lani-icon&gt;</code> element when you
+    wish to use icons on your site. This element
+    was largely intended to be used so that Lani
+    didn't need to be tightly coupled to any one icon
+    library. <b>However</b>, as it provides a layer
+    of abstraction, it could be a great tool for
+    dependency management. If you want to upgrade your
+    icons to new versions with breaking changes, change
+    your icon provider, or make any other change to
+    all icons on your site, you only need to write
+    a new icon resolver - potentially making the work
+    <i>incredibly</i> easy, compared to completely
+    replacing each icon on your entire site.
+</p>
