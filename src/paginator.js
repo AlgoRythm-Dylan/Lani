@@ -7,6 +7,7 @@
 Lani.PaginatorElement = class extends Lani.Element {
     constructor(){
         super();
+        this.setup();
     }
     async setup(){
         await this.useTemplate(Lani.templatesPath(), "#lani-paginator");

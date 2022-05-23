@@ -6,13 +6,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Mukta&family=Square+Peg&display=swap" rel="stylesheet"> 
     <script src="lani/lani.js"></script>
     <link href="lani/lani.css" type="text/css" rel="stylesheet"></link>
+    <!--
+
+        Now this is some bullshit
+
+        the @font-face rule not doesn't work inside web components
+        because their sandbox is shit.
+
+        So for font-awesome-esque webfonts, you need to import
+        them at the global scope, outside of the component
+
+        EVEN IF you import them inside the web component (as Lani does)
+
+    -->
     <link href="fontawesome/solid.min.css" type="text/css" rel="stylesheet"></link>
     <link href="fontawesome/fontawesome.min.css" type="text/css" rel="stylesheet"></link>
 </head>
 <body class="l-body">
     <lani-table table-title="oh, wow!"></lani-table>
-    <i class="fa-solid fa-angle-up"></i>
-    <lani-icon icon="angle-up"></lani-icon>
+    <lani-paginator class="l-shadow"></lani-paginator>
 </body>
 <script>
     async function main(){

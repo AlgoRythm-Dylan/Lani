@@ -9,6 +9,7 @@ const jsFiles = [
     './context.js',
     './extras.js',
     './icon.js',
+    './paginator.js',
     //'./caching.js',
     
     './animations.js',

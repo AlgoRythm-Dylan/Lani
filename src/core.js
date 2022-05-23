@@ -7,6 +7,10 @@ const Lani = window.Lani || { };
 Lani.version = "0.1.0";
 Lani.installedModules = [];
 Lani.contentRoot = "/lani";
+Lani.shadowLinks = [
+    "/fontawesome/fontawesome.min.css",
+    "/fontawesome/solid.min.css"
+];
 Lani.templatesPath = () => Lani.contentRoot + "/templates.html";
 
 Lani.requireModule = moduleName => {
@@ -105,6 +109,7 @@ Lani.Element = class extends HTMLElement {
         this.styles([
             Lani.contentRoot + "/lani.css"
         ]);
+        this.styles(Lani.shadowLinks);
     }
     useDOMTemplate(id){
         let template = document.getElementById(id);

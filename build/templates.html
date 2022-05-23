@@ -25,7 +25,29 @@
     </template>
 
     <template id="lani-paginator">
-        
+        <style>
+            :host {
+                display: flex;
+                align-items: center;
+            }
+        </style>
+        <div class="l-body">
+            <div id="page-input">
+                <p>
+                    Displaying page
+                    <span id="page-display">x</span> of
+                    <span id="page-count-display">y</span>
+                </p>
+            </div>
+            <div id="page-controls">
+                <button>
+                    <lani-icon icon="backward"></lani-icon>
+                </button>
+                <button>
+                    <lani-icon icon="forward"></lani-icon>
+                </button>
+            </div>
+        </div>
     </template>
 
     <template id="lani-table-core">
