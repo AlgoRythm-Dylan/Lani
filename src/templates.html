@@ -73,4 +73,30 @@
         <div id="body" class="l-body"></div>
         <div id="footer" class="l-body"></div>
     </template>
+
+    <template id="lani-dialog-layer">
+        <style>
+            :host {
+                position: fixed;
+                top: 0px;
+                left: 0px;
+                height: 100%;
+                width: 100%;
+                background: black;
+            }
+        </style>
+    </template>
+
+    <template id="lani-dialog">
+        <div id="container">
+            <div id="status-bar">
+                <p id="title">Webpage Dialog</p>
+                <button id="minimize-button"></button>
+                <button id="maximize-button"></button>
+                <button id="close-button"></button>
+            </div>
+            <div id="content"></div>
+        </div>
+    </template>
+
 </body>

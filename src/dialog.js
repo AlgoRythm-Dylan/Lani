@@ -5,7 +5,39 @@
 */
 Lani.installedModules.push("lani-dialogs");
 
-Lani.dialogLayer = null;
+Lani.currentDialogLayer = null;
+
+Lani.DialogLayer = class extends Lani.Element {
+    constructor(){
+        this.dialogs = [];
+    }
+    async setup(){
+        await this.useTemplate(Lani.templatesPath(), "#lani-dialog-layer");
+    }
+}
+
+Lani.Dialog = class extends Lani.Element{
+    constructor(){
+        super();
+    }
+    async setup(){
+        await this.useTemplate(Lani.templatesPath(), "#lani-dialog");
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*Lani.dialogLayer = null;
 Lani.dialogOpen = false;
 Lani.dialog = null;
 
@@ -147,13 +179,10 @@ Lani.Dialog = class {
     resize(width, height){
 
     }
-    /**
-     * Used to display the dialog for the first time
-     */
     show(){
 
     }
     restore(){
 
     }
-}
+}*/
