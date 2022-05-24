@@ -119,8 +119,11 @@ Lani.Element = class extends HTMLElement {
         let template = await Lani.loadTemplate(src, querySelector);
         this.shadow.appendChild(template.content.cloneNode(true));
     }
-    ready(detail){
-        this.dispatchEvent(new CustomEvent("lani-ready", { detail } ));
+    emit(eventName, detail={}){
+        this.dispatchEvent(new CustomEvent(eventName, detail));
+    }
+    ready(detail={}){
+        this.emit("lani::ready", detail);
     }
 }
 

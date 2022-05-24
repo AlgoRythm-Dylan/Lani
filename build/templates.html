@@ -26,25 +26,40 @@
 
     <template id="lani-paginator">
         <style>
-            :host {
+            :host, :host > div {
                 display: flex;
+                flex-direction: row;
                 align-items: center;
+            }
+            :host > div {
+                flex: 1;
+                padding: var(--lani-margin);
+            }
+            div#page-controls {
+                margin-left: auto;
             }
         </style>
         <div class="l-body">
             <div id="page-input">
-                <p>
+                <p class="l-no-spacing">
                     Displaying page
                     <span id="page-display">x</span> of
                     <span id="page-count-display">y</span>
                 </p>
             </div>
             <div id="page-controls">
-                <button>
+                <button id="back-all">
+                    <lani-icon icon="backward-fast"></lani-icon>
+                </button>
+                <button id="back">
                     <lani-icon icon="backward"></lani-icon>
                 </button>
-                <button>
+                <input id="page-input" />
+                <button id="forwards">
                     <lani-icon icon="forward"></lani-icon>
+                </button>
+                <button id="forwards-all">
+                    <lani-icon icon="forward-fast"></lani-icon>
                 </button>
             </div>
         </div>

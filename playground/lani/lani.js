@@ -119,8 +119,11 @@ Lani.Element = class extends HTMLElement {
         let template = await Lani.loadTemplate(src, querySelector);
         this.shadow.appendChild(template.content.cloneNode(true));
     }
-    ready(detail){
-        this.dispatchEvent(new CustomEvent("lani-ready", { detail } ));
+    emit(eventName, detail={}){
+        this.dispatchEvent(new CustomEvent(eventName, detail));
+    }
+    ready(detail={}){
+        this.emit("lani::ready", detail);
     }
 }
 
@@ -821,6 +824,7 @@ Lani.regEl("lani-icon", Lani.IconElement);
 Lani.PaginatorElement = class extends Lani.Element {
     constructor(){
         super();
+
         this.setup();
     }
     async setup(){
@@ -828,6 +832,20 @@ Lani.PaginatorElement = class extends Lani.Element {
 
         this.ready();
     }
+
+    nextPage(){
+        this.emit("lani::next-page");
+    }
+    lastPage(){
+        this.emit("lani::last-page");
+    }
+    previousPage(){
+        this.emit("lani::previous-page");
+    }
+    firstPage(){
+        this.emit("lani::first-page");
+    }
+
 }
 
 Lani.regEl("lani-paginator", Lani.PaginatorElement);

@@ -49,6 +49,11 @@
 
     /* Extras */
     --lani-selection-bg: rgba(80, 175, 255, 0.5);
+
+    /* Margin */
+    --lani-margin-strong: 10px;
+    --lani-margin: 5px;
+    --lani-margin-subtle: 3px;
 }
 
 /*
@@ -147,4 +152,25 @@
 }
 .l-dusk {
     background: var(--lani-dusk);
+}
+
+/*
+    margin
+*/
+.l-margin-strong {
+    margin: var(--lani-margin-strong);
+}
+.l-margin {
+    margin: var(--lani-margin);
+}
+.l-margin-subtle {
+    margin: var(--lani-margin-subtle);
+}
+
+/*
+    utility
+*/
+.l-no-spacing {
+    margin: 0px;
+    padding: 0px;
 }
