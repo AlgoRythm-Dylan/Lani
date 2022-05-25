@@ -1034,5 +1034,131 @@
         "Score": 60,
         "Tags": "Fusion Strike",
         "Type": "Normal"
+    },
+    {
+        "Card Name": "Azumarill",
+        "Description": "3 pokemon and/or supporter from discard to hand per turn",
+        "Variant": null,
+        "Stage": "1",
+        "Score": 50,
+        "Tags": null,
+        "Type": "Water"
+    },
+    {
+        "Card Name": "Infernape",
+        "Description": "Energy cannon that does 80x for top 5 cards",
+        "Variant": null,
+        "Stage": "2",
+        "Score": 80,
+        "Tags": null,
+        "Type": "Fire"
+    },
+    {
+        "Card Name": "Manaphy",
+        "Description": "Shuffle 5 water energy from discard into deck",
+        "Variant": null,
+        "Stage": "Basic",
+        "Score": 40,
+        "Tags": null,
+        "Type": "Fire"
+    },
+    {
+        "Card Name": "Magnezone",
+        "Description": "Attach as many steel energies as you want during your turn",
+        "Variant": null,
+        "Stage": "2",
+        "Score": 40,
+        "Tags": null,
+        "Type": "Steel"
+    },
+    {
+        "Card Name": "Purugly",
+        "Description": "Do 60 damage and make opponent discard cards until 3 in hand",
+        "Variant": null,
+        "Stage": "1",
+        "Score": 45,
+        "Tags": null,
+        "Type": "Normal"
+    },
+    {
+        "Card Name": "Cherrim",
+        "Description": "All grass type pokemon have no weakness",
+        "Variant": null,
+        "Stage": "1",
+        "Score": 50,
+        "Tags": null,
+        "Type": "Grass"
+    },
+    {
+        "Card Name": "Silvally GX",
+        "Description": "Energy recycle plus big damage plus all basics have no retreat cost",
+        "Variant": "GX",
+        "Stage": "1",
+        "Score": 70,
+        "Tags": null,
+        "Type": "Normal"
+    },
+    {
+        "Card Name": "Missing Clover",
+        "Description": "If you have and play 4 of these cards, take a prize card",
+        "Variant": "Item",
+        "Stage": null,
+        "Score": 95,
+        "Tags": null,
+        "Type": null
+    },
+    {
+        "Card Name": "Cyrus",
+        "Description": "Opponent keeps only 2 benched pokemon. Everything else goes back into their deck",
+        "Variant": "Item",
+        "Stage": null,
+        "Score": 80,
+        "Tags": null,
+        "Type": null
+    },
+    {
+        "Card Name": "Togekiss VMAX",
+        "Description": "Do 120 damage and get 2 of any card from your deck per turn. Only costs 2 energy",
+        "Variant": "VMAX",
+        "Stage": "VMAX",
+        "Score": 85,
+        "Tags": null,
+        "Type": "Normal"
+    },
+    {
+        "Card Name": "Elektross",
+        "Description": "Do 60 damage if the opponent puts energy on their defending pokemon",
+        "Variant": null,
+        "Stage": "2",
+        "Score": 60,
+        "Tags": null,
+        "Type": "Electric"
+    },
+    {
+        "Card Name": "Wobbuffet",
+        "Description": "Do damage equal to the damage on one of your benched",
+        "Variant": null,
+        "Stage": "Basic",
+        "Score": 75,
+        "Tags": "Single Strike",
+        "Type": "Psychic"
+    },
+    {
+        "Card Name": "Yveltal",
+        "Description": "It just knocks out the opponent pokemon. No Conditions required.",
+        "Variant": null,
+        "Stage": "Basic",
+        "Score": 100,
+        "Tags": null,
+        "Type": "Dark"
+    },
+    {
+        "Card Name": "Kyogre",
+        "Description": "Wack energy requirement, but does 80 damage to ALL of opponent's pokemon",
+        "Variant": null,
+        "Stage": "Basic",
+        "Score": 80,
+        "Tags": null,
+        "Type": "Water"
     }
 ]
