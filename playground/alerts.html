@@ -6,6 +6,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Mukta&family=Square+Peg&display=swap" rel="stylesheet"> 
     <script src="lani/lani.js"></script>
     <link href="lani/lani.css" type="text/css" rel="stylesheet"></link>
+    <link href="fontawesome/solid.min.css" type="text/css" rel="stylesheet"></link>
+    <link href="fontawesome/fontawesome.min.css" type="text/css" rel="stylesheet"></link>
     <style>
         * {
             font-family: 'Mukta';
@@ -16,9 +18,14 @@
             margin: 0px;
         }
     </style>
-    <link href="fontawesome/solid.min.css" type="text/css" rel="stylesheet"></link>
-    <link href="fontawesome/fontawesome.min.css" type="text/css" rel="stylesheet"></link>
 </head>
 <body class="l-body">
 
 </body>
+<script>
+    async function main(){
+        await Lani.alert("Content", "Title");
+    }
+
+    window.addEventListener("load", main);
+</script>

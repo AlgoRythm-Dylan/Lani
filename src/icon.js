@@ -21,7 +21,7 @@ Lani.FontAwesomeIconResolver = class extends Lani.IconResolver {
         // but it should be noted that it is not foolproof
         element.className = element.className
                                 .split(" ")
-                                .map(item => item.startsWith("fa-") ? "" : item)
+                                .filter(item => !item.startsWith("fa-"))
                                 .join(" ")
         if(iconName.length == 0){
             // This catches both empty strings and arrays

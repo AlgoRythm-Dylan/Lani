@@ -5,7 +5,7 @@ Lani.TableElement = class extends Lani.Element {
         this.setup();
     }
     async setup(){
-        await this.useTemplate(Lani.templatesPath(), "#lani-table-core");
+        await this.useTemplate(Lani.templatesPath(), "#lani-table-core", false);
 
         this.table = new Lani.Table();
 
@@ -18,6 +18,8 @@ Lani.TableElement = class extends Lani.Element {
         let title = this.getAttribute("table-title");
         if(title)
             this.table.title = title;
+
+        this.ready();
     }
     // declare the watched attributes
     static get observedAttributes() {

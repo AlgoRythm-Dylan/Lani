@@ -54,6 +54,11 @@
     --lani-margin-strong: 10px;
     --lani-margin: 5px;
     --lani-margin-subtle: 3px;
+
+    /* Blur */
+    --lani-blur-strong: 12px;
+    --lani-blur: 8px;
+    --lani-blur-subtle: 3px;
 }
 
 /*
@@ -165,6 +170,19 @@
 }
 .l-margin-subtle {
     margin: var(--lani-margin-subtle);
+}
+
+/*
+    background filter
+*/
+.l-background-blur-strong {
+    backdrop-filter: blur(var(--lani-blur-strong));
+}
+.l-background-blur {
+    backdrop-filter: blur(var(--lani-blur));
+}
+.l-background-blur-subtle {
+    backdrop-filter: blur(var(--lani-blur-subtle));
 }
 
 /*

@@ -65,6 +65,10 @@ Lani.loadTemplate = async (src, querySelector) => {
     return cached.querySelector(querySelector);
 }
 
+Lani.ElementEvents = {
+    Ready: "lani::ready"
+};
+
 // Lifecycle callbacks:
 //      - connectedCallback
 //      - disconnectedCallback
@@ -87,7 +91,7 @@ Lani.Element = class extends HTMLElement {
         // always be used to attach elements to is important
         this.importLaniLibs();
     }
-    styles(styleLinkArray){
+    linkStyles(styleLinkArray){
         styleLinkArray.forEach(link => {
             Lani.create("link", {
                 parentElement: this.shadow,
@@ -99,32 +103,43 @@ Lani.Element = class extends HTMLElement {
             });
         });
     }
-    style(styleLink){
-        this.styles([styleLink]);
+    linkStyle(styleLink){
+        this.linkStyles([styleLink]);
     }
     importLaniLibs(){
         // Lani CSS is only available to shadow-enabled elements
         if(!this.usesShadow)
             return;
-        this.styles([
+        this.linkStyles([
             Lani.contentRoot + "/lani.css"
         ]);
-        this.styles(Lani.shadowLinks);
+        this.linkStyles(Lani.shadowLinks);
     }
-    useDOMTemplate(id){
+    useDOMTemplate(id, emitReady=true){
         let template = document.getElementById(id);
         this.shadow.appendChild(template.content.cloneNode(true));
+        if(emitReady)
+            this.ready();
     }
-    async useTemplate(src, querySelector){
+    async useTemplate(src, querySelector, emitReady=true){
         let template = await Lani.loadTemplate(src, querySelector);
         this.shadow.appendChild(template.content.cloneNode(true));
+        if(emitReady)
+            this.ready();
     }
     emit(eventName, detail={}){
         this.dispatchEvent(new CustomEvent(eventName, detail));
     }
     ready(detail={}){
-        this.emit("lani::ready", detail);
+        this.emit(Lani.ElementEvents.Ready, detail);
     }
+}
+
+Lani.waitForElement = elementName => {
+    return new Promise((resolve) => {
+        let el = document.createElement(elementName);
+        el.addEventListener(Lani.ElementEvents.Ready, () => resolve(el));
+    });
 }
 
 Lani.regEl = (elementName, element, options) => {
@@ -132,9 +147,38 @@ Lani.regEl = (elementName, element, options) => {
 }
 
 Lani.Direction = {
-    Left: 0,
-    Right: 1
+    Left: "left",
+    Right: "right"
 };
+
+Lani.Position = {
+    Start: "start",
+    Middle: "middle",
+    End: "end"
+};
+
+Lani.positionElement = (element,
+                        horizontalPosition,
+                        verticalPosition,
+                        horizontalOffset = 0,
+                        verticalOffset = 0) => {
+    if(horizontalPosition){
+        if(horizontalPosition == Lani.Position.Start)
+            element.style.left = "0px";
+        else if(horizontalPosition == Lani.Position.Middle)
+            element.style.left = `${horizontalOffset + ((element.parentNode.offsetWidth / 2) - (element.offsetWidth / 2))}px`;
+        else if(horizontalPosition == Lani.Position.End)
+            element.style.left = `${horizontalOffset + (element.parentNode.offsetWidth - element.offsetWidth)}px`;
+    }
+    if(verticalPosition){
+        if(verticalPosition == Lani.Position.Start)
+            element.style.top = "0px";
+        else if(verticalPosition == Lani.Position.Middle)
+            element.style.top = `${verticalOffset + ((element.parentNode.offsetHeight / 2) - (element.offsetHeight / 2))}px`;
+        else if(verticalPosition == Lani.Position.End)
+            element.style.top = `${verticalOffset + (element.parentNode.offsetHeight - element.offsetHeight)}px`;
+    }
+}
 /*
 
     Data container / operations module
@@ -425,7 +469,96 @@ Lani.DataManager = class {
 */
 Lani.installedModules.push("lani-dialogs");
 
-Lani.dialogLayer = null;
+Lani.currentDialogLayer = null;
+
+Lani.DialogLayer = class extends Lani.Element {
+    constructor(){
+        super();
+        this.dialogs = [];
+        this.nextLayer = 1;
+        this.focusStack = [];
+
+        this.setup();
+    }
+    async setup(){
+        await this.useTemplate(Lani.templatesPath(), "#lani-dialog-layer");
+    }
+    show(dialog){
+        this.dialogs.push(dialog);
+        this.appendChild(dialog);
+
+        dialog.doPosition();
+    }
+}
+
+Lani.Dialog = class extends Lani.Element{
+    #dialogTitle
+    #content
+    constructor(){
+        super();
+        this.#dialogTitle = null;
+        this.#content = null;
+
+        // Alignment
+        this.verticalAlignment = Lani.Position.Middle;
+        this.horizontalAlignment = Lani.Position.Middle;
+
+        // Movement
+        this.movementOffsetLeft = 0;
+        this.movementOffsetRight = 0;
+        this.allowMovePastBorders = true;
+
+        this.resizeObserver = new ResizeObserver(() => {
+            this.doPosition();
+        });
+        this.resizeObserver.observe(this);
+
+        this.setup();
+    }
+    async setup(){
+        await this.useTemplate(Lani.templatesPath(), "#lani-dialog");
+    }
+    set dialogTitle(title){
+        this.#dialogTitle = title;
+        this.shadow.getElementById("title").innerHTML = this.#dialogTitle;
+    }
+    set content(content){
+        this.#content = content;
+    }
+    doPosition(){
+        Lani.positionElement(this,
+            this.horizontalAlignment,
+            this.verticalAlignment,
+            this.movementOffsetLeft,
+            this.movementOffsetRight);
+    }
+}
+
+Lani.showDialog = async dialog => {
+    if(Lani.currentDialogLayer === null){
+        Lani.currentDialogLayer = await Lani.waitForElement("lani-dialog-layer");
+        document.body.appendChild(Lani.currentDialogLayer);
+    }
+    Lani.currentDialogLayer.show(dialog);
+}
+
+Lani.alert = async (message, title) => {
+    let dialog = await Lani.waitForElement("lani-dialog");
+    dialog.content = message;
+    dialog.dialogTitle = title;
+    await Lani.showDialog(dialog);
+}
+
+Lani.regEl("lani-dialog-layer", Lani.DialogLayer);
+Lani.regEl("lani-dialog", Lani.Dialog);
+
+
+
+
+
+
+
+/*Lani.dialogLayer = null;
 Lani.dialogOpen = false;
 Lani.dialog = null;
 
@@ -567,16 +700,13 @@ Lani.Dialog = class {
     resize(width, height){
 
     }
-    /**
-     * Used to display the dialog for the first time
-     */
     show(){
 
     }
     restore(){
 
     }
-}
+}*/
 /*
 
     Dialog module
@@ -772,7 +902,7 @@ Lani.FontAwesomeIconResolver = class extends Lani.IconResolver {
         // but it should be noted that it is not foolproof
         element.className = element.className
                                 .split(" ")
-                                .map(item => item.startsWith("fa-") ? "" : item)
+                                .filter(item => !item.startsWith("fa-"))
                                 .join(" ")
         if(iconName.length == 0){
             // This catches both empty strings and arrays
@@ -1371,7 +1501,7 @@ Lani.TableElement = class extends Lani.Element {
         this.setup();
     }
     async setup(){
-        await this.useTemplate(Lani.templatesPath(), "#lani-table-core");
+        await this.useTemplate(Lani.templatesPath(), "#lani-table-core", false);
 
         this.table = new Lani.Table();
 
@@ -1384,6 +1514,8 @@ Lani.TableElement = class extends Lani.Element {
         let title = this.getAttribute("table-title");
         if(title)
             this.table.title = title;
+
+        this.ready();
     }
     // declare the watched attributes
     static get observedAttributes() {

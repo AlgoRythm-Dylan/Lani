@@ -65,6 +65,10 @@ Lani.loadTemplate = async (src, querySelector) => {
     return cached.querySelector(querySelector);
 }
 
+Lani.ElementEvents = {
+    Ready: "lani::ready"
+};
+
 // Lifecycle callbacks:
 //      - connectedCallback
 //      - disconnectedCallback
@@ -87,7 +91,7 @@ Lani.Element = class extends HTMLElement {
         // always be used to attach elements to is important
         this.importLaniLibs();
     }
-    styles(styleLinkArray){
+    linkStyles(styleLinkArray){
         styleLinkArray.forEach(link => {
             Lani.create("link", {
                 parentElement: this.shadow,
@@ -99,32 +103,43 @@ Lani.Element = class extends HTMLElement {
             });
         });
     }
-    style(styleLink){
-        this.styles([styleLink]);
+    linkStyle(styleLink){
+        this.linkStyles([styleLink]);
     }
     importLaniLibs(){
         // Lani CSS is only available to shadow-enabled elements
         if(!this.usesShadow)
             return;
-        this.styles([
+        this.linkStyles([
             Lani.contentRoot + "/lani.css"
         ]);
-        this.styles(Lani.shadowLinks);
+        this.linkStyles(Lani.shadowLinks);
     }
-    useDOMTemplate(id){
+    useDOMTemplate(id, emitReady=true){
         let template = document.getElementById(id);
         this.shadow.appendChild(template.content.cloneNode(true));
+        if(emitReady)
+            this.ready();
     }
-    async useTemplate(src, querySelector){
+    async useTemplate(src, querySelector, emitReady=true){
         let template = await Lani.loadTemplate(src, querySelector);
         this.shadow.appendChild(template.content.cloneNode(true));
+        if(emitReady)
+            this.ready();
     }
     emit(eventName, detail={}){
         this.dispatchEvent(new CustomEvent(eventName, detail));
     }
     ready(detail={}){
-        this.emit("lani::ready", detail);
+        this.emit(Lani.ElementEvents.Ready, detail);
     }
+}
+
+Lani.waitForElement = elementName => {
+    return new Promise((resolve) => {
+        let el = document.createElement(elementName);
+        el.addEventListener(Lani.ElementEvents.Ready, () => resolve(el));
+    });
 }
 
 Lani.regEl = (elementName, element, options) => {
@@ -132,6 +147,35 @@ Lani.regEl = (elementName, element, options) => {
 }
 
 Lani.Direction = {
-    Left: 0,
-    Right: 1
+    Left: "left",
+    Right: "right"
 };
+
+Lani.Position = {
+    Start: "start",
+    Middle: "middle",
+    End: "end"
+};
+
+Lani.positionElement = (element,
+                        horizontalPosition,
+                        verticalPosition,
+                        horizontalOffset = 0,
+                        verticalOffset = 0) => {
+    if(horizontalPosition){
+        if(horizontalPosition == Lani.Position.Start)
+            element.style.left = "0px";
+        else if(horizontalPosition == Lani.Position.Middle)
+            element.style.left = `${horizontalOffset + ((element.parentNode.offsetWidth / 2) - (element.offsetWidth / 2))}px`;
+        else if(horizontalPosition == Lani.Position.End)
+            element.style.left = `${horizontalOffset + (element.parentNode.offsetWidth - element.offsetWidth)}px`;
+    }
+    if(verticalPosition){
+        if(verticalPosition == Lani.Position.Start)
+            element.style.top = "0px";
+        else if(verticalPosition == Lani.Position.Middle)
+            element.style.top = `${verticalOffset + ((element.parentNode.offsetHeight / 2) - (element.offsetHeight / 2))}px`;
+        else if(verticalPosition == Lani.Position.End)
+            element.style.top = `${verticalOffset + (element.parentNode.offsetHeight - element.offsetHeight)}px`;
+    }
+}

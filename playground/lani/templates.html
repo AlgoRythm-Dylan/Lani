@@ -73,4 +73,59 @@
         <div id="body" class="l-body"></div>
         <div id="footer" class="l-body"></div>
     </template>
+
+    <template id="lani-dialog-layer">
+        <style>
+            :host {
+                position: fixed;
+                top: 0px;
+                left: 0px;
+                height: 100%;
+                width: 100%;
+                background: var(--lani-dialog-background);
+                backdrop-filter: blur(var(--lani-blur));
+                display: block;
+            }
+        </style>
+        <slot></slot>
+    </template>
+
+    <template id="lani-dialog">
+        <style>
+            :host {
+                box-shadow: var(--lani-shadow);
+                border-radius: var(--lani-rounded);
+                background: white;
+                display: flex;
+                position: absolute;
+            }
+        </style>
+        <div id="container" class="l-dialog-container">
+            <div id="status-bar" class="l-dialog-status">
+                <p id="title" class="l-dialog-title">Webpage Dialog</p>
+                <div class="l-dialog-controls-container">
+                    <button id="minimize-button" class="l-dialog-minimize">
+                        <lani-icon icon="window-minimize"></lani-icon>
+                    </button>
+                    <button id="maximize-button" class="l-dialog-expand">
+                        <lani-icon icon="expand"></lani-icon>
+                    </button>
+                    <button id="close-button" class="l-dialog-close">
+                        <lani-icon icon="xmark"></lani-icon>
+                    </button>
+                </div>
+            </div>
+            <div id="content" class="l-dialog-content">
+                <slot>
+                    
+                </slot>
+            </div>
+        </div>
+        <div id="buttons-container" class="l-dialog-buttons-container">
+            <slot name="buttons">
+
+            </slot>
+        </div>
+    </template>
+
 </body>

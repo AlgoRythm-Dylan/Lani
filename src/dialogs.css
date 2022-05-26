@@ -1,0 +1,39 @@
+/*
+
+    "Dialog" module
+
+*/
+:root, :host {
+
+    --lani-dialog-background: rgba(30, 30, 30, 0.4);
+
+    --lani-dialog-close-background: rgb(195, 45, 45);
+    --lani-dialog-close-background-hover: rgb(240, 95, 95);
+    --lani-close-font-size: 20px;
+    --lani-close-foreground: white;
+}
+
+.l-dialog-status {
+    display: flex;
+    align-items: center;
+}
+.l-dialog-controls-container {
+    margin-left: auto;
+}
+.l-dialog-title {
+    margin: var(--lani-margin);
+}
+
+.l-dialog-close {
+    background: var(--lani-dialog-close-background);
+    cursor: pointer;
+    height: 40px;
+    width: 40px;
+    border: none;
+    border-radius: 50%;
+    font-size: var(--lani-close-font-size);
+    color: var(--lani-close-foreground);
+}
+.l-dialog-close:hover {
+    background: var(--lani-dialog-close-background-hover);
+}

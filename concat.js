@@ -26,6 +26,7 @@ const jsFiles = [
 const cssOutputs = ['./build/lani.css', './docs/lani/lani.css', './playground/lani/lani.css'];
 const cssFiles = [
     './core.css',
+    './dialogs.css',
     './tables/tables.css'
 ];
 
