@@ -43,9 +43,9 @@
     --lani-scale-down-subtle: 0.8;
 
     /* Animation speeds */
-    --lani-speed-slow: 1.25;
-    --lani-speed: 0.75;
-    --lani-speed-fast: 0.25;
+    --lani-speed-slow: 1.25s;
+    --lani-speed: 0.75s;
+    --lani-speed-fast: 0.25s;
 
     /* Extras */
     --lani-selection-bg: rgba(80, 175, 255, 0.5);
@@ -59,6 +59,11 @@
     --lani-blur-strong: 12px;
     --lani-blur: 8px;
     --lani-blur-subtle: 3px;
+
+    /* Panel colors */
+    --lani-background-primary: rgb(237, 237, 237);
+    --lani-background-secondary: rgb(255, 255, 255);
+
 }
 
 /*
@@ -192,6 +197,16 @@
     margin: 0px;
     padding: 0px;
 }
+
+/*
+    panel colors
+*/
+.l-background-primary {
+    background: var(--lani-background-primary);
+}
+.l-background-secondary {
+    background: var(--lani-background-secondary);
+}
 /*
 
     "Dialog" module
@@ -205,11 +220,15 @@
     --lani-dialog-close-background-hover: rgb(240, 95, 95);
     --lani-close-font-size: 20px;
     --lani-close-foreground: white;
+
+    --lani-dialog-close-size: 40px;
+    --lani-dialog-title-button-size: 30px;
 }
 
 .l-dialog-status {
     display: flex;
     align-items: center;
+    margin: var(--lani-margin);
 }
 .l-dialog-controls-container {
     margin-left: auto;
@@ -221,14 +240,22 @@
 .l-dialog-close {
     background: var(--lani-dialog-close-background);
     cursor: pointer;
-    height: 40px;
-    width: 40px;
+    height: var(--lani-dialog-close-size);
+    width: var(--lani-dialog-close-size);
     border: none;
     border-radius: 50%;
     font-size: var(--lani-close-font-size);
     color: var(--lani-close-foreground);
+    transition: background-color var(--lani-speed);
 }
 .l-dialog-close:hover {
     background: var(--lani-dialog-close-background-hover);
+}
+.l-dialog-expand, .l-dialog-minimize {
+    border: none;
+    border-radius: 50%;
+    height: var(--lani-dialog-title-button-size);
+    width: var(--lani-dialog-title-button-size);
+    cursor: pointer;
 }
 

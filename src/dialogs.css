@@ -11,11 +11,15 @@
     --lani-dialog-close-background-hover: rgb(240, 95, 95);
     --lani-close-font-size: 20px;
     --lani-close-foreground: white;
+
+    --lani-dialog-close-size: 40px;
+    --lani-dialog-title-button-size: 30px;
 }
 
 .l-dialog-status {
     display: flex;
     align-items: center;
+    margin: var(--lani-margin);
 }
 .l-dialog-controls-container {
     margin-left: auto;
@@ -27,13 +31,21 @@
 .l-dialog-close {
     background: var(--lani-dialog-close-background);
     cursor: pointer;
-    height: 40px;
-    width: 40px;
+    height: var(--lani-dialog-close-size);
+    width: var(--lani-dialog-close-size);
     border: none;
     border-radius: 50%;
     font-size: var(--lani-close-font-size);
     color: var(--lani-close-foreground);
+    transition: background-color var(--lani-speed);
 }
 .l-dialog-close:hover {
     background: var(--lani-dialog-close-background-hover);
+}
+.l-dialog-expand, .l-dialog-minimize {
+    border: none;
+    border-radius: 50%;
+    height: var(--lani-dialog-title-button-size);
+    width: var(--lani-dialog-title-button-size);
+    cursor: pointer;
 }

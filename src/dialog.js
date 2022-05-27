@@ -82,6 +82,8 @@ Lani.alert = async (message, title) => {
     let dialog = await Lani.waitForElement("lani-dialog");
     dialog.content = message;
     dialog.dialogTitle = title;
+    dialog.style.minWidth = "250px";
+    dialog.style.minHeight = "150px";
     await Lani.showDialog(dialog);
 }
 
