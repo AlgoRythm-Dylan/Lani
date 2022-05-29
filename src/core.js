@@ -40,8 +40,10 @@ Lani.create = (elementName, options) => {
     if(options.attrs)
         for(const [key, value] of Object.entries(options.attrs))
             el.setAttribute(key, value);
-    if(options.parentElement)
-        options.parentElement.appendChild(el);
+    if(options.parent)
+        options.parent.appendChild(el);
+    if(options.slot)
+        el.setAttribute("slot", options.slot);
     return el;
 }
 
@@ -94,7 +96,7 @@ Lani.Element = class extends HTMLElement {
     linkStyles(styleLinkArray){
         styleLinkArray.forEach(link => {
             Lani.create("link", {
-                parentElement: this.shadow,
+                parent: this.shadow,
                 attrs: {
                     href: link,
                     rel: "stylesheet",

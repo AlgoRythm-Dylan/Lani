@@ -54,6 +54,14 @@
     --lani-margin-strong: 10px;
     --lani-margin: 5px;
     --lani-margin-subtle: 3px;
+    /* 
+        Note: in this case, the term "margin" is used
+        in a more general manner. It would be accurate
+        to also call it "spacing", "padding", etc.
+
+        CSS has a specific meaning for "margin", but
+        this variable does not.
+    */
 
     /* Blur */
     --lani-blur-strong: 12px;
@@ -63,6 +71,15 @@
     /* Panel colors */
     --lani-background-primary: rgb(237, 237, 237);
     --lani-background-secondary: rgb(255, 255, 255);
+
+    /* Borders */
+    --lani-border-strong: solid black 1px;
+    --lani-border: solid black 1px;
+    --lani-border-subtle: solid black 1px;
+
+    --lani-border-accent-strong: solid black 1px;
+    --lani-border-accent: solid black 1px;
+    --lani-border-accent-subtle: solid black 1px;
 
 }
 
@@ -207,6 +224,16 @@
 .l-background-secondary {
     background: var(--lani-background-secondary);
 }
+
+/*
+    button
+*/
+.l-button, .l-body button {
+    padding: var(--lani-margin);
+    margin: var(--lani-margin);
+    border: var(--lani-border);
+    border-radius: var(--lani-rounded);
+}
 /*
 
     "Dialog" module
@@ -218,13 +245,19 @@
 
     --lani-dialog-close-background: rgb(195, 45, 45);
     --lani-dialog-close-background-hover: rgb(240, 95, 95);
-    --lani-close-font-size: 20px;
+    --lani-close-font-size: 16px;
     --lani-close-foreground: white;
 
-    --lani-dialog-close-size: 40px;
-    --lani-dialog-title-button-size: 30px;
+    --lani-dialog-close-size: 30px;
+    --lani-dialog-title-button-size: 25px;
+    --lani-dialog-title-button-font-size: 8px;
 }
 
+.l-dialog-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
 .l-dialog-status {
     display: flex;
     align-items: center;
@@ -237,25 +270,44 @@
     margin: var(--lani-margin);
 }
 
+.l-dialog-close, .l-dialog-expand, .l-dialog-minimize {
+    border: none;
+    margin: 2px;
+    border-radius: 50%;
+}
 .l-dialog-close {
     background: var(--lani-dialog-close-background);
     cursor: pointer;
     height: var(--lani-dialog-close-size);
     width: var(--lani-dialog-close-size);
-    border: none;
-    border-radius: 50%;
     font-size: var(--lani-close-font-size);
-    color: var(--lani-close-foreground);
     transition: background-color var(--lani-speed);
+}
+.l-dialog-close > lani-icon {
+    color: var(--lani-close-foreground) !important;
 }
 .l-dialog-close:hover {
     background: var(--lani-dialog-close-background-hover);
 }
 .l-dialog-expand, .l-dialog-minimize {
-    border: none;
-    border-radius: 50%;
     height: var(--lani-dialog-title-button-size);
     width: var(--lani-dialog-title-button-size);
     cursor: pointer;
+    font-size: var(--lani-dialog-title-button-font-size);
+}
+
+.l-dialog-content {
+    flex: 1;
+    margin-top: 0px;
+}
+
+.l-dialog-buttons-container {
+    margin-top: 0px;
+}
+.l-dialog-buttons-container > button:first-child {
+    margin-left: 0px !important;
+}
+.l-dialog-buttons-container > button:first-child {
+    margin-right: 0px !important;
 }
 
