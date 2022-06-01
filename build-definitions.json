@@ -1,0 +1,39 @@
+[
+    {
+        "name": "Lani CSS",
+        "enabled": true,
+        "mode": "concat",
+        "inputs": ["./src/core.css"],
+        "outputs": ["./build/lani.css", "./docs/lani/lani.css", "./playground/lani/lani.css"]
+    },
+    {
+        "name": "Lani JS",
+        "enabled": true,
+        "mode": "concat",
+        "inputs": [
+            "./src/core.js",
+            "./src/data.js",
+            "./src/dialog.js",
+            "./src/context.js",
+            "./src/extras.js",
+            "./src/icon.js",
+            "./src/paginator.js",
+
+            "./src/animations.js",
+            "./src/animations/bubbles.js",
+            "./src/animations/dot-grid.js",
+            "./src/animations/tree.js",
+
+            "./src/tables/core.js",
+            "./src/tables/element.js"
+        ],
+        "outputs": ["./build/lani.js", "./docs/lani/lani.js", "./playground/lani/lani.js"]
+    },
+    {
+        "name": "Lani Templates",
+        "enabled": true,
+        "mode": "copy",
+        "inputs": ["./src/templates.html"],
+        "outputs": ["./build/templates.html", "./docs/lani/templates.html", "./playground/lani/templates.html"]
+    }
+]
