@@ -129,6 +129,10 @@ Lani.Element = class extends HTMLElement {
         if(emitReady)
             this.ready();
     }
+    getBoolAttr(attrName){
+        let attr = this.getAttribute(attrName);
+        return attr && attr.toLowerCase() === "true";
+    }
     emit(eventName, detail={}){
         this.dispatchEvent(new CustomEvent(eventName, detail));
     }

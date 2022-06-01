@@ -91,8 +91,9 @@
     </template>
 
     <template id="lani-dialog">
-        <div id="container" class="l-rounded l-background-secondary">
-            <div id="status-bar">
+        <div id="container" class="l-body l-rounded l-background-secondary">
+
+            <div id="status-bar" class="l-no-select">
                 <p id="title">Webpage Dialog</p>
                 <div id="controls-container">
                     <button id="minimize-button">
@@ -117,6 +118,14 @@
 
             </slot>
         </div>
+        <div id="resize-top-left" class="l-dialog-resize-handle"></div>
+        <div id="resize-top" class="l-dialog-resize-handle"></div>
+        <div id="resize-top-right" class="l-dialog-resize-handle"></div>
+        <div id="resize-right" class="l-dialog-resize-handle"></div>
+        <div id="resize-bottom-right" class="l-dialog-resize-handle"></div>
+        <div id="resize-bottom" class="l-dialog-resize-handle"></div>
+        <div id="resize-bottom-left" class="l-dialog-resize-handle"></div>
+        <div id="resize-left" class="l-dialog-resize-handle"></div>
     </template>
 
 </body>

@@ -5,16 +5,17 @@
 */
 :root, :host {
 
-    --lani-dialog-background: rgba(30, 30, 30, 0.4);
-
     --lani-dialog-close-background: rgb(195, 45, 45);
     --lani-dialog-close-background-hover: rgb(240, 95, 95);
-    --lani-close-font-size: 16px;
     --lani-close-foreground: white;
 
-    --lani-dialog-close-size: 30px;
-    --lani-dialog-title-button-size: 25px;
-    --lani-dialog-title-button-font-size: 8px;
+    --lani-dialog-title-button-size: 30px;
+    --lani-dialog-title-button-font-size: 10px;
+
+    --lani-dialog-resize-handle-size: 7px;
+    --lani-dialog-resize-handle-corner-size: 13px;
+    --lani-dialog-resize-handle-hover: rgba(120, 120, 120, 0.75);
+
 }
 
 :host {
@@ -30,37 +31,116 @@ div#container {
     display: flex;
     flex-direction: column;
     flex: 1;
+    position: relative;
 }
+
+div.l-dialog-resize-handle {
+    position: absolute;
+    transition: background-color var(--lani-speed);
+}
+div.l-dialog-resize-handle:hover {
+    background-color: var(--lani-dialog-resize-handle-hover);
+}
+
+div#resize-top-left {
+    height: var(--lani-dialog-resize-handle-corner-size);
+    width: var(--lani-dialog-resize-handle-corner-size);
+    top: calc(-1 * var(--lani-dialog-resize-handle-corner-size) / 2);
+    left: calc(-1 * var(--lani-dialog-resize-handle-corner-size) / 2);
+    cursor: nw-resize;
+    border-top-left-radius: var(--lani-rounded);
+}
+div#resize-top-right {
+    height: var(--lani-dialog-resize-handle-corner-size);
+    width: var(--lani-dialog-resize-handle-corner-size);
+    top: calc(-1 * var(--lani-dialog-resize-handle-corner-size) / 2);
+    right: calc(-1 * var(--lani-dialog-resize-handle-corner-size) / 2);
+    cursor: ne-resize;
+    border-top-right-radius: var(--lani-rounded);
+}
+div#resize-bottom-left {
+    height: var(--lani-dialog-resize-handle-corner-size);
+    width: var(--lani-dialog-resize-handle-corner-size);
+    bottom: calc(-1 * var(--lani-dialog-resize-handle-corner-size) / 2);
+    left: calc(-1 * var(--lani-dialog-resize-handle-corner-size) / 2);
+    cursor: sw-resize;
+    border-bottom-left-radius: var(--lani-rounded);
+}
+div#resize-bottom-right {
+    height: var(--lani-dialog-resize-handle-corner-size);
+    width: var(--lani-dialog-resize-handle-corner-size);
+    bottom: calc(-1 * var(--lani-dialog-resize-handle-corner-size) / 2);
+    right: calc(-1 * var(--lani-dialog-resize-handle-corner-size) / 2);
+    cursor: se-resize;
+    border-bottom-right-radius: var(--lani-rounded);
+}
+
+div#resize-top {
+    height: var(--lani-dialog-resize-handle-size);
+    width: calc(100% - var(--lani-dialog-resize-handle-corner-size));
+    top: calc(-1 * var(--lani-dialog-resize-handle-size) / 2);
+    left: calc(var(--lani-dialog-resize-handle-corner-size) / 2);
+    cursor: n-resize;
+}
+div#resize-right {
+    height: calc(100% - var(--lani-dialog-resize-handle-corner-size));
+    width: var(--lani-dialog-resize-handle-size);
+    top: calc(var(--lani-dialog-resize-handle-corner-size) / 2);
+    right: calc(-1 * var(--lani-dialog-resize-handle-size) / 2);
+    cursor: e-resize;
+}
+div#resize-bottom {
+    height: var(--lani-dialog-resize-handle-size);
+    width: calc(100% - var(--lani-dialog-resize-handle-corner-size));
+    bottom: calc(-1 * var(--lani-dialog-resize-handle-size) / 2);
+    left: calc(var(--lani-dialog-resize-handle-corner-size) / 2);
+    cursor: s-resize;
+}
+div#resize-left {
+    height: calc(100% - var(--lani-dialog-resize-handle-corner-size));
+    width: var(--lani-dialog-resize-handle-size);
+    top: calc(var(--lani-dialog-resize-handle-corner-size) / 2);
+    left: calc(-1 * var(--lani-dialog-resize-handle-size) / 2);
+    cursor: w-resize;
+}
+
 div#status-bar {
     display: flex;
     align-items: center;
     margin: var(--lani-margin);
+    cursor: move;
 }
 div#controls-container {
     margin-left: auto;
+    display: flex;
+    align-items: center;
 }
 p#title {
     margin: var(--lani-margin);
 }
 
-button#close-button, button#expand-button, button#minimize-button {
+button#close-button, button#maximize-button, button#minimize-button {
     border: none;
     margin: 2px;
+    margin-left: 0px;
     border-radius: 50%;
+    min-width: 0px;
 }
 button#close-button {
     background: var(--lani-dialog-close-background);
     cursor: pointer;
-    height: var(--lani-dialog-close-size);
-    width: var(--lani-dialog-close-size);
-    font-size: var(--lani-close-font-size);
+    height: var(--lani-dialog-title-button-size);
+    width: var(--lani-dialog-title-button-size);
+    font-size: var(--lani-dialog-title-button-font-size);
     transition: background-color var(--lani-speed);
+}
+button#close-button > lani-icon {
     color: var(--lani-close-foreground);
 }
 button#close-button:hover {
     background: var(--lani-dialog-close-background-hover);
 }
-button#expand-button, button#minimize-button {
+button#maximize-button, button#minimize-button {
     height: var(--lani-dialog-title-button-size);
     width: var(--lani-dialog-title-button-size);
     cursor: pointer;
@@ -70,14 +150,20 @@ button#expand-button, button#minimize-button {
 div#content {
     flex: 1;
     margin-top: 0px;
+    overflow: hidden;
 }
 
 div#buttons-container {
     margin-top: 0px;
 }
-div#buttons-container > button:first-child {
-    margin-left: 0px !important;
+slot[name="buttons"] {
+    display: flex;
 }
-div#buttons-container > button:first-child {
-    margin-right: 0px !important;
+slot[name="buttons"] > button:first-child {
+    margin-left: auto;
+}
+slot[name="buttons"] > * {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-right: 0px;
 }
