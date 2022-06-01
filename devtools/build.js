@@ -1,5 +1,6 @@
 const fsp = require("fs").promises;
 const uglify = require("uglify-js");
+const zlip = require("zlib");
 
 async function copy(definition){
     console.log("Starting build task...");
@@ -13,6 +14,7 @@ async function copy(definition){
         console.log(`Writing to "${output}"...`);
         await fsp.writeFile(output, input);
     }
+    await post(definition, input);
     console.log("Build task complete");
 }
 
@@ -30,8 +32,15 @@ async function concat(definition){
         console.log(`Writing to "${output}"...`);
         await fsp.writeFile(output, buffer);
     }
-    if(definition.post && definition.post.includes("minify-js")){
-        console.log("Doing post-processing: minify-js");
+    await post(definition, buffer);
+    console.log("Build task complete");
+}
+
+async function post(definition, buffer){
+    if(!definition.post)
+        return;
+    if(definition.post.includes("minify-js")){
+        console.log("Performing post-processing: minify-js");
         let minified = uglify.minify(buffer.toString("UTF-8"));
         if(minified.error){
             console.error(`Could not minify JS: ${minified.error}`);
@@ -47,7 +56,6 @@ async function concat(definition){
             }
         }
     }
-    console.log("Build task complete");
 }
 
 let handlers = {

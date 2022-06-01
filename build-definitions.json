@@ -27,7 +27,7 @@
             "./src/tables/core.js",
             "./src/tables/element.js"
         ],
-        "post": ["minimize-js", "compress", "minimize-compress-js"],
+        "post": ["minify-js"],
         "outputs": ["./build/lani.js", "./docs/lani/lani.js", "./playground/lani/lani.js"]
     },
     {
