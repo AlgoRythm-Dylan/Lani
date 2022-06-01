@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Front-end UI framework for web apps",
   "scripts": {
-    "concat": "node concat",
+    "concat": "node ./devtools/build ./build-definitions.json",
     "serve-playground": "node serve playground",
     "serve-docs": "node serve docs"
   },
