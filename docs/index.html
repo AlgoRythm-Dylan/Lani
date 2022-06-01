@@ -4,13 +4,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mukta&family=Square+Peg&display=swap" rel="stylesheet"> 
-    <script src="lani/lani.js"></script>
+    <script src="lani/lani.min.js"></script>
     <script>
         // Docs is hosted under "/Lani" folder on GitHub
-        if(window.location.hostname.toLowerCase().includes("github"))
+        if(window.location.hostname.toLowerCase().includes("github")){
             Lani.contentRoot = "/Lani/lani";
+            Lani.shadowLinks = [
+                "/Lani/fontawesome/fontawesome.min.css",
+                "/Lani/fontawesome/solid.min.css"
+            ];
+        }
     </script>
     <link href="lani/lani.css" type="text/css" rel="stylesheet"></link>
+    <link href="fontawesome/all.min.css" rel="stylesheet" type="text/css">
+    <link href="fontawesome/solid.min.css" rel="stylesheet" type="text/css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
     <style>
         * {
