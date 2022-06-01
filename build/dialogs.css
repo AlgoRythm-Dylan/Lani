@@ -17,60 +17,67 @@
     --lani-dialog-title-button-font-size: 8px;
 }
 
-.l-dialog-container {
+:host {
+    box-shadow: var(--lani-shadow);
+    border-radius: var(--lani-rounded);
+    background: white;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+}
+
+div#container {
     display: flex;
     flex-direction: column;
     flex: 1;
 }
-.l-dialog-status {
+div#status-bar {
     display: flex;
     align-items: center;
     margin: var(--lani-margin);
 }
-.l-dialog-controls-container {
+div#controls-container {
     margin-left: auto;
 }
-.l-dialog-title {
+p#title {
     margin: var(--lani-margin);
 }
 
-.l-dialog-close, .l-dialog-expand, .l-dialog-minimize {
+button#close-button, button#expand-button, button#minimize-button {
     border: none;
     margin: 2px;
     border-radius: 50%;
 }
-.l-dialog-close {
+button#close-button {
     background: var(--lani-dialog-close-background);
     cursor: pointer;
     height: var(--lani-dialog-close-size);
     width: var(--lani-dialog-close-size);
     font-size: var(--lani-close-font-size);
     transition: background-color var(--lani-speed);
+    color: var(--lani-close-foreground);
 }
-.l-dialog-close > lani-icon {
-    color: var(--lani-close-foreground) !important;
-}
-.l-dialog-close:hover {
+button#close-button:hover {
     background: var(--lani-dialog-close-background-hover);
 }
-.l-dialog-expand, .l-dialog-minimize {
+button#expand-button, button#minimize-button {
     height: var(--lani-dialog-title-button-size);
     width: var(--lani-dialog-title-button-size);
     cursor: pointer;
     font-size: var(--lani-dialog-title-button-font-size);
 }
 
-.l-dialog-content {
+div#content {
     flex: 1;
     margin-top: 0px;
 }
 
-.l-dialog-buttons-container {
+div#buttons-container {
     margin-top: 0px;
 }
-.l-dialog-buttons-container > button:first-child {
+div#buttons-container > button:first-child {
     margin-left: 0px !important;
 }
-.l-dialog-buttons-container > button:first-child {
+div#buttons-container > button:first-child {
     margin-right: 0px !important;
 }

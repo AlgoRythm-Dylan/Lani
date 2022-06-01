@@ -52,6 +52,7 @@ Lani.Dialog = class extends Lani.Element{
         this.setup();
     }
     async setup(){
+        this.linkStyle(Lani.contentRoot + "/dialogs.css");
         await this.useTemplate(Lani.templatesPath(), "#lani-dialog");
     }
     set dialogTitle(title){
