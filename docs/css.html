@@ -43,23 +43,5 @@
     <p>Where <span class="muted">[class]</span> is one of: <span class="l-text-accent">
         text, text-accent, rounded, shadow, grow
     </span></p>
-    <h1>Samples</h1>
-    
-    
-    
-    <lani-test>
-        <p>This is some content inside the custom element</p>
-    </lani-test>
-
 
 </body>
-<script>
-    class LaniTest extends Lani.Element {
-        constructor(){
-            super();
-            this.useTemplate("/lani/templates.html", "#lani-test-template");
-        }
-    }
-    Lani.regEl("lani-test", LaniTest);
-
-</script>
