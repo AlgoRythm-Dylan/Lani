@@ -12,19 +12,23 @@
         * {
             font-family: 'Mukta';
         }
-        html, body {
-            height: 100%;
-            width: 100%;
-            margin: 0px;
-        }
     </style>
 </head>
 <body class="l-body">
-
+    <p>Body:</p>
+    <input id="alert-body-input" value="This is an alert"/>
+    <p>Title:</p>
+    <input id="alert-title-input" value="Info"/>
+    <button id="show-alert-button">Go</button>
 </body>
 <script>
     async function main(){
-        await Lani.alert("You've been rate limited<br/>Please slow down and try again later", "Warning");
+        document.getElementById("show-alert-button").addEventListener("click", e => {
+            Lani.alert(
+                document.getElementById("alert-body-input").value,
+                document.getElementById("alert-title-input").value
+            )
+        });
     }
 
     window.addEventListener("load", main);
