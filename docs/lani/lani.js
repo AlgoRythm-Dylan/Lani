@@ -143,6 +143,12 @@ Lani.Element = class extends HTMLElement {
     }
 }
 
+Lani.DataElement = class extends Lani.Element {
+    constructor(){
+        super();
+    }
+}
+
 Lani.waitForElement = elementName => {
     return new Promise((resolve) => {
         let el = document.createElement(elementName);
@@ -600,7 +606,6 @@ Lani.Dialog = class extends Lani.Element{
             let eventKiller = leaveEvent => {
                 window.removeEventListener("mousemove", dragListener);
                 window.removeEventListener("mouseup", eventKiller);
-                window.removeEventListener("mouseleave", eventKiller);
             }
             window.addEventListener("mousemove", dragListener);
             window.addEventListener("mouseup", eventKiller);
@@ -671,7 +676,6 @@ Lani.Dialog = class extends Lani.Element{
             let eventKiller = leaveEvent => {
                 window.removeEventListener("mousemove", dragListener);
                 window.removeEventListener("mouseup", eventKiller);
-                window.removeEventListener("mouseleave", eventKiller);
             }
             window.addEventListener("mousemove", dragListener);
             window.addEventListener("mouseup", eventKiller);
