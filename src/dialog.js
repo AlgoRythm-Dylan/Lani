@@ -123,7 +123,6 @@ Lani.Dialog = class extends Lani.Element{
             let eventKiller = leaveEvent => {
                 window.removeEventListener("mousemove", dragListener);
                 window.removeEventListener("mouseup", eventKiller);
-                window.removeEventListener("mouseleave", eventKiller);
             }
             window.addEventListener("mousemove", dragListener);
             window.addEventListener("mouseup", eventKiller);
@@ -194,7 +193,6 @@ Lani.Dialog = class extends Lani.Element{
             let eventKiller = leaveEvent => {
                 window.removeEventListener("mousemove", dragListener);
                 window.removeEventListener("mouseup", eventKiller);
-                window.removeEventListener("mouseleave", eventKiller);
             }
             window.addEventListener("mousemove", dragListener);
             window.addEventListener("mouseup", eventKiller);
