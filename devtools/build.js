@@ -2,6 +2,8 @@ const fsp = require("fs").promises;
 const uglify = require("uglify-js");
 const zlip = require("zlib");
 
+const DEFAULT_ENV = "dev";
+
 async function copy(definition){
     console.log("Starting build task...");
     if(definition.inputs.length !== 1){
@@ -75,6 +77,12 @@ async function main(){
         return;
     }
 
+    let env;
+    if(process.argv.length > 3)
+        env = process.argv[3];
+    else
+        env = DEFAULT_ENV;
+
     for(let definition of defs){
         if(definition.enabled !== true){
             console.log(`Skipping disabled definition "${definition.name}"`);
@@ -84,6 +92,10 @@ async function main(){
         let handler = handlers[definition.mode];
         if(!handler){
             console.error(`Cannot find handler for build type "${definition.mode}". Skipping build`);
+            continue;
+        }
+        if(!definition.envs.includes(env)){
+            console.log(`Skipping build definition "${definition.name}" because it does not match the current environment`);
             continue;
         }
         await handler(definition);

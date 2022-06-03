@@ -143,12 +143,6 @@ Lani.Element = class extends HTMLElement {
     }
 }
 
-Lani.DataElement = class extends Lani.Element {
-    constructor(){
-        super();
-    }
-}
-
 Lani.waitForElement = elementName => {
     return new Promise((resolve) => {
         let el = document.createElement(elementName);

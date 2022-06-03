@@ -5,13 +5,6 @@
 */
 Lani.installedModules.push("lani-tables");
 
-Lani.tables = [];
-Lani.getTable = id => {
-    for(let i = 0; i < Lani.tables.length; i++)
-        if(Lani.tables[i].id == id)
-            return Lani.tables[i];
-}
-
 Lani.TableColumnFormatting = class {
     constructor() {
         this.width = null;

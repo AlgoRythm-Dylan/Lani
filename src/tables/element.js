@@ -1,36 +1,26 @@
-Lani.TableElement = class extends Lani.Element {
+Lani.TableElement = class extends Lani.DataElement {
+    #title
     constructor(){
         super();
-        this.table = null;
+
         this.setup();
     }
     async setup(){
-        await this.useTemplate(Lani.templatesPath(), "#lani-table-core", false);
+        await this.useTemplate(Lani.templatesPath(), "#lani-table", false);
+        this.linkStyle(Lani.contentRoot + "/tables.css");
 
-        this.table = new Lani.Table();
-
-        this.table.DOMHost = this.shadow;
-
-        this.table.id = this.id;
-        if(this.id){
-            Lani.tables.push(table);
-        }
         let title = this.getAttribute("table-title");
         if(title)
-            this.table.title = title;
+            this.title = title;
 
         this.ready();
     }
-    // declare the watched attributes
-    static get observedAttributes() {
-        return ["table-title"];
+    get title(){
+        return this.#title;
     }
-    attributeChangedCallback(name, oldValue, newValue){
-        // Table has not loaded yet
-        if(!this.table)
-            return;
-        if(name == "table-title")
-            this.table.title = newValue;
+    set title(title){
+        this.#title = title;
+        this.shadow.getElementById("title").innerHTML = title;
     }
 };
 

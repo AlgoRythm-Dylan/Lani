@@ -281,3 +281,29 @@ Lani.DataManager = class {
             return await this.getGrouped();
     }
 }
+
+/*
+    A group of related DataElements which
+    will recieve information and updates from
+    each other
+*/
+Lani.DataDisplayGrouping = class {
+    constructor(){
+        this.elements = [];
+    }
+    connect(element){
+        this.elements.push(element);
+    }
+    disconnect(element){
+        this.elements = this.elements.filter(item => item !== element);
+    }
+}
+
+/*
+    Data elements get information about
+*/
+Lani.DataElement = class extends Lani.Element {
+    constructor(){
+        super();
+    }
+}

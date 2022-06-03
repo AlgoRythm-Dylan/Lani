@@ -4,6 +4,7 @@
   "description": "Front-end UI framework for web apps",
   "scripts": {
     "build": "node ./devtools/build ./build-definitions.json",
+    "build-prod": "node ./devtools/build ./build-definitions.json prod",
     "serve-playground": "node serve playground",
     "serve-docs": "node serve docs"
   },

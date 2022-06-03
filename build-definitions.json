@@ -4,7 +4,8 @@
         "enabled": true,
         "mode": "concat",
         "inputs": ["./src/core.css"],
-        "outputs": ["./build/lani.css", "./docs/lani/lani.css", "./playground/lani/lani.css"]
+        "outputs": ["./build/lani.css", "./docs/lani/lani.css", "./playground/lani/lani.css"],
+        "envs": ["prod", "dev"]
     },
     {
         "name": "Lani JS",
@@ -24,24 +25,34 @@
             "./src/animations/dot-grid.js",
             "./src/animations/tree.js",
 
-            "./src/tables/core.js",
             "./src/tables/element.js"
         ],
         "post": ["minify-js"],
-        "outputs": ["./build/lani.js", "./docs/lani/lani.js", "./playground/lani/lani.js"]
+        "outputs": ["./build/lani.js", "./docs/lani/lani.js", "./playground/lani/lani.js"],
+        "envs": ["prod", "dev"]
     },
     {
         "name": "Lani Templates",
         "enabled": true,
         "mode": "copy",
         "inputs": ["./src/templates.html"],
-        "outputs": ["./build/templates.html", "./docs/lani/templates.html", "./playground/lani/templates.html"]
+        "outputs": ["./build/templates.html", "./docs/lani/templates.html", "./playground/lani/templates.html"],
+        "envs": ["prod", "dev"]
     },
     {
         "name": "Lani Dialog CSS",
         "enabled": true,
         "mode": "copy",
         "inputs": ["./src/dialogs.css"],
-        "outputs": ["./build/dialogs.css", "./docs/lani/dialogs.css", "./playground/lani/dialogs.css"]
+        "outputs": ["./build/dialogs.css", "./docs/lani/dialogs.css", "./playground/lani/dialogs.css"],
+        "envs": ["prod", "dev"]
+    },
+    {
+        "name": "Lani Tables CSS",
+        "enabled": true,
+        "mode": "copy",
+        "inputs": ["./src/tables/tables.css"],
+        "outputs": ["./build/tables.css", "./docs/lani/tables.css", "./playground/lani/tables.css"],
+        "envs": ["prod", "dev"]
     }
 ]

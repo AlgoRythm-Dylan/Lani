@@ -143,12 +143,6 @@ Lani.Element = class extends HTMLElement {
     }
 }
 
-Lani.DataElement = class extends Lani.Element {
-    constructor(){
-        super();
-    }
-}
-
 Lani.waitForElement = elementName => {
     return new Promise((resolve) => {
         let el = document.createElement(elementName);
@@ -479,6 +473,32 @@ Lani.DataManager = class {
             return await this.getArray();
         else
             return await this.getGrouped();
+    }
+}
+
+/*
+    A group of related DataElements which
+    will recieve information and updates from
+    each other
+*/
+Lani.DataDisplayGrouping = class {
+    constructor(){
+        this.elements = [];
+    }
+    connect(element){
+        this.elements.push(element);
+    }
+    disconnect(element){
+        this.elements = this.elements.filter(item => item !== element);
+    }
+}
+
+/*
+    Data elements get information about
+*/
+Lani.DataElement = class extends Lani.Element {
+    constructor(){
+        super();
     }
 }
 /*
@@ -1530,165 +1550,29 @@ Lani.TreeElement = class extends Lani.Element {
 }
 
 Lani.regEl("lani-tree", Lani.TreeElement);
-/*
-
-    Lani tables module
-
-*/
-Lani.installedModules.push("lani-tables");
-
-Lani.tables = [];
-Lani.getTable = id => {
-    for(let i = 0; i < Lani.tables.length; i++)
-        if(Lani.tables[i].id == id)
-            return Lani.tables[i];
-}
-
-Lani.TableColumnFormatting = class {
-    constructor() {
-        this.width = null;
-        this.caseMutation = null;
-        this.titleCaseMutation = null;
-        this.trimData = false;
-        this.textTransform = null;
-        this.nullText = null;
-    }
-}
-
-Lani.Table = class {
-    // Title needs to be private so we can employ
-    // a setter function (so we can also update the DOM)
-    // transparently to the user
+Lani.TableElement = class extends Lani.DataElement {
     #title
-    constructor() {
-
-        // General options
-        this.#title = null;
-        this.showTitle = true;
-        this.showHeaders = true;
-        this.id = null;
-        this.hasStickyHeaders = false;
-        this.stickyHeadersBelow = null;
-        this.stickyTopOffset = 0;
-        this.showFilterButton = true;
-        this.showSortButton = true;
-
-        // Search
-        this.showSearch = true;
-        this.searchQuery = null;
-        this.searchColumns = null;
-        this.regexSearch = false;
-        this.matchCaseSearch = false;
-        this.updateSearchWhileTyping = true;
-        this.showAdvancedSearchOptions = false;
-        this.updateSearchWhileTypingTreshold = 100;
-
-        // Data fetching
-        /*this.dataMode = Lani.TableDataMode.Static;
-        this.dataSource = null;
-        this.fetchOptions = null;*/
-
-        // Nesting
-        this.parentTable = null;
-        this.parentTableIndent = 10;
-
-        // Column rules
-        this.columns = null;
-        this.dontRender = [];
-
-        // Data
-        this.sourceData = null;
-        this.data = null;
-        this.filters = [];
-        this.sorts = [];
-        this.noDataFoundMessage = "<div class='l-table-ndf-parent'>" +
-            "<i class='fa-solid fa-glasses l-subtle-icon'></i>" +
-            "<div><h2>No Results</h2>" + 
-            "<p>Try changing your search or filters</p></div></div>"
-
-        // DOM
-        /*this.parent = null;
-        this.container = null;
-        this.controlsContainerElement = null;
-        this.searchInputElement = null;
-        this.titleElement = null;
-        this.tableContainer = null;
-        this.tableElement = null;
-        this.tableHeaderElement = null;
-        this.tableBodyElement = null;
-        this.paginationContainer = null;*/
-        this.DOMHost = null;
-
-        // Formatting
-        this.defaultRowHeight = null;
-        this.defaultColumnWidth = null;
-        this.columnFormatting = new Lani.TableColumnFormatting();
-        this.conditionalFormattingRules = [];
-
-        // Events
-        /*this.onRefresh = null;
-        this.onPageChange = null;
-        this.onRowClick = null;
-        this.onCellClick = null;
-        this.onUpdate = null;
-        this.onDisplayChange = null;*/
-
-    }
-
-    // Private methods
-    #shouldRenderTitle(){
-        return !(!this.showTitle || !this.title || this.title.length === 0);
-    }
-    #shouldRenderPagination(){
-        return this.paginationCustomizedByUser || 
-            (this.paginationOptions.enabled && (this.paginationOptions.alwaysShow || 
-                (this.data.length > this.paginationOptions.rowsPerPage)));
-    }
-
-    // DOM interactions & settings
-    set title(title){
-        this.#title = title;
-        this.DOMHost.getElementById("title").innerHTML = title;
-    }
-
-    get title(){
-        return this.#title;
-    }
-
-}
-Lani.TableElement = class extends Lani.Element {
     constructor(){
         super();
-        this.table = null;
+
         this.setup();
     }
     async setup(){
-        await this.useTemplate(Lani.templatesPath(), "#lani-table-core", false);
+        await this.useTemplate(Lani.templatesPath(), "#lani-table", false);
+        this.linkStyle(Lani.contentRoot + "/tables.css");
 
-        this.table = new Lani.Table();
-
-        this.table.DOMHost = this.shadow;
-
-        this.table.id = this.id;
-        if(this.id){
-            Lani.tables.push(table);
-        }
         let title = this.getAttribute("table-title");
         if(title)
-            this.table.title = title;
+            this.title = title;
 
         this.ready();
     }
-    // declare the watched attributes
-    static get observedAttributes() {
-        return ["table-title"];
+    get title(){
+        return this.#title;
     }
-    attributeChangedCallback(name, oldValue, newValue){
-        // Table has not loaded yet
-        if(!this.table)
-            return;
-        if(name == "table-title")
-            this.table.title = newValue;
+    set title(title){
+        this.#title = title;
+        this.shadow.getElementById("title").innerHTML = title;
     }
 };
 
