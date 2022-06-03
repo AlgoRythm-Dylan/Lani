@@ -117,6 +117,7 @@ div#controls-container {
 }
 p#title {
     margin: var(--lani-margin);
+    pointer-events: none;
 }
 
 button#close-button, button#maximize-button, button#minimize-button {

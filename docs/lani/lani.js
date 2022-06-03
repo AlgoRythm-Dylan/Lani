@@ -160,7 +160,8 @@ Lani.Direction = {
 Lani.Position = {
     Start: "start",
     Middle: "middle",
-    End: "end"
+    End: "end",
+    Absolute: "abs"
 };
 
 Lani.positionElement = (element,
@@ -175,6 +176,8 @@ Lani.positionElement = (element,
             element.style.left = `${horizontalOffset + ((element.parentNode.offsetWidth / 2) - (element.offsetWidth / 2))}px`;
         else if(horizontalPosition == Lani.Position.End)
             element.style.left = `${horizontalOffset + (element.parentNode.offsetWidth - element.offsetWidth)}px`;
+        else if(horizontalPosition == Lani.Position.Absolute)
+            element.style.left = `${horizontalOffset}px`;
     }
     if(verticalPosition){
         if(verticalPosition == Lani.Position.Start)
@@ -183,6 +186,8 @@ Lani.positionElement = (element,
             element.style.top = `${verticalOffset + ((element.parentNode.offsetHeight / 2) - (element.offsetHeight / 2))}px`;
         else if(verticalPosition == Lani.Position.End)
             element.style.top = `${verticalOffset + (element.parentNode.offsetHeight - element.offsetHeight)}px`;
+        else if(verticalPosition == Lani.Position.Absolute)
+            element.style.top = `${verticalOffset}px`;
     }
 }
 /*
@@ -484,6 +489,13 @@ Lani.DialogLayer = class extends Lani.Element {
         this.nextLayer = 1;
         this.focusStack = [];
 
+        this.resizeObserver = new ResizeObserver(() => {
+            for(let dialog of this.dialogs){
+                dialog.doPosition();
+            }
+        });
+        this.resizeObserver.observe(this);
+
         this.setup();
     }
     async setup(){
@@ -537,8 +549,8 @@ Lani.Dialog = class extends Lani.Element{
 
         // Movement
         this.movementOffsetLeft = 0;
-        this.movementOffsetRight = 0;
-        this.allowMovePastBorders = true;
+        this.movementOffsetTop = 0;
+        this.allowMovePastBorders = false;
 
         this.resizeObserver = new ResizeObserver(() => {
             this.doPosition();
@@ -568,6 +580,31 @@ Lani.Dialog = class extends Lani.Element{
             this.toggleMaximize();
         });
 
+        let statusBar = this.shadow.getElementById("status-bar");
+
+        statusBar.addEventListener("mousedown", mouseEvent => {
+            // Filter out click, minimize, close, etc. button clicks
+            if(mouseEvent.target !== statusBar || this.#isMaximized)
+                return;
+            
+            let distanceFromZeroX = mouseEvent.clientX - this.offsetLeft;
+            let distanceFromZeroY = mouseEvent.clientY - this.offsetTop;
+
+            let dragListener = dragEvent => {
+                let x = dragEvent.clientX - distanceFromZeroX;
+                let y = dragEvent.clientY - distanceFromZeroY;
+                this.moveTo(x, y);
+            }
+            let eventKiller = leaveEvent => {
+                window.removeEventListener("mousemove", dragListener);
+                window.removeEventListener("mouseup", eventKiller);
+                window.removeEventListener("mouseleave", eventKiller);
+            }
+            window.addEventListener("mousemove", dragListener);
+            window.addEventListener("mouseup", eventKiller);
+
+        });
+
     }
     set dialogTitle(title){
         this.#dialogTitle = title;
@@ -586,7 +623,7 @@ Lani.Dialog = class extends Lani.Element{
                 this.horizontalAlignment,
                 this.verticalAlignment,
                 this.movementOffsetLeft,
-                this.movementOffsetRight);
+                this.movementOffsetTop);
         }
     }
     addButton(text, action){
@@ -611,12 +648,36 @@ Lani.Dialog = class extends Lani.Element{
         return button;
     }
     moveTo(x, y){
+        if(this.horizontalAlignment !== Lani.Position.Absolute){
+            this.horizontalAlignment = Lani.Position.Absolute;
+        }
+        if(this.verticalAlignment !== Lani.Position.Absolute){
+            this.verticalAlignment = Lani.Position.Absolute;
+        }
 
+        if(!this.allowMovePastBorders){
+            if(x < 0)
+                x = 0;
+            if(y < 0)
+                y = 0;
+            if(x + this.offsetWidth >= this.parentNode.offsetWidth)
+                x = Math.max(0, this.parentNode.offsetWidth - this.offsetWidth);
+            if(y + this.offsetHeight >= this.parentNode.offsetHeight)
+                y = Math.max(0, this.parentNode.offsetHeight - this.offsetHeight);
+        }
+
+        this.movementOffsetLeft = x;
+        this.movementOffsetTop = y;
+        this.doPosition();
     }
     moveBy(x, y){
         this.movementOffsetLeft += x;
-        this.movementOffsetRight += y;
+        this.movementOffsetTop += y;
         this.doPosition();        
+    }
+    makeSizeFixed(){
+        this.style.width = `${this.offsetWidth}px`;
+        this.style.height = `${this.offsetHeight}px`;
     }
     toggleMaximize(){
         if(this.#isMaximized){

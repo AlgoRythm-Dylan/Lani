@@ -160,7 +160,8 @@ Lani.Direction = {
 Lani.Position = {
     Start: "start",
     Middle: "middle",
-    End: "end"
+    End: "end",
+    Absolute: "abs"
 };
 
 Lani.positionElement = (element,
@@ -175,6 +176,8 @@ Lani.positionElement = (element,
             element.style.left = `${horizontalOffset + ((element.parentNode.offsetWidth / 2) - (element.offsetWidth / 2))}px`;
         else if(horizontalPosition == Lani.Position.End)
             element.style.left = `${horizontalOffset + (element.parentNode.offsetWidth - element.offsetWidth)}px`;
+        else if(horizontalPosition == Lani.Position.Absolute)
+            element.style.left = `${horizontalOffset}px`;
     }
     if(verticalPosition){
         if(verticalPosition == Lani.Position.Start)
@@ -183,5 +186,7 @@ Lani.positionElement = (element,
             element.style.top = `${verticalOffset + ((element.parentNode.offsetHeight / 2) - (element.offsetHeight / 2))}px`;
         else if(verticalPosition == Lani.Position.End)
             element.style.top = `${verticalOffset + (element.parentNode.offsetHeight - element.offsetHeight)}px`;
+        else if(verticalPosition == Lani.Position.Absolute)
+            element.style.top = `${verticalOffset}px`;
     }
 }
