@@ -36,7 +36,7 @@
         "extends": "Lani JS",
         "overrideProperties": ["envs"],
         "inputs": [
-            "./src/test/lani.test.js"
+            "./src/tests/lani.test.js"
         ],
         "envs": ["dev"]
     },

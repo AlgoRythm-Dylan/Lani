@@ -68,6 +68,15 @@ let handlers = {
 function extendDefinition(definition, definitions){
     console.log(`Build definition "${definition.name}" extends "${definition.extends}"...`);
     let parentDefinition = definitions.filter(def => def.name == definition.extends);
+    if(parentDefinition.length === 1){
+        parentDefinition = parentDefinition[0];
+    }
+    else if(parentDefinition.length > 1){
+        throw `Parent definition ("${definition.extends}") for build "${definition.name}" is ambiguous (more than one with the same name)`;
+    }
+    else {
+        throw `Could not find parent definition "${definition.extends}" for build "${definition.name}"`;
+    }
     if(parentDefinition.extends)
         parentDefinition = extendDefinition(parentDefinition, definitions);
     // Just so that this can be guaranteed to be at least an empty array
@@ -89,7 +98,6 @@ function extendDefinition(definition, definitions){
             }
         }
     }
-    console.log(definition);
     return definition;
 }
 
@@ -113,7 +121,13 @@ async function main(){
 
     for(let definition of defs){
         if(typeof definition.extends !== "undefined"){
-            definition = extendDefinition(definition, defs);
+            try{
+                definition = extendDefinition(definition, defs);
+            }
+            catch(ex){
+                console.error(ex);
+                continue;
+            }
         }
         if(definition.enabled !== true){
             console.log(`Skipping disabled definition "${definition.name}"`);
