@@ -607,19 +607,67 @@ Lani.Dialog = class extends Lani.Element{
 
         });
 
-        let resizeNW = this.shadow.getElementById("resize-top-left");
-        resizeNW.addEventListener("mousedown", mouseEvent => {
+        this.#resizeHandle("resize-top-left", dragEvent => {
+            let x = dragEvent.clientX - this.offsetLeft;
+            let y = dragEvent.clientY - this.offsetTop;
+            this.resize(this.offsetWidth - x, this.offsetHeight - y);
+            this.moveBy(x, y);
+        });
+
+        this.#resizeHandle("resize-top", dragEvent => {
+            let y = dragEvent.clientY - this.offsetTop;
+            this.resize(null, this.offsetHeight - y);
+            this.moveBy(null, y);
+        });
+
+        this.#resizeHandle("resize-top-right", dragEvent => {
+            let x = dragEvent.clientX - this.offsetLeft;
+            let y = dragEvent.clientY - this.offsetTop;
+            this.resize(x, this.offsetHeight - y);
+            this.moveBy(null, y);
+        });
+
+        this.#resizeHandle("resize-right", dragEvent => {
+            let x = dragEvent.clientX - this.offsetLeft;
+            this.resize(x, null);
+        });
+
+        this.#resizeHandle("resize-bottom-right", dragEvent => {
+            let x = dragEvent.clientX - this.offsetLeft;
+            let y = dragEvent.clientY - this.offsetTop;
+            this.resize(x, y);
+        });
+
+        this.#resizeHandle("resize-bottom", dragEvent => {
+            let y = dragEvent.clientY - this.offsetTop;
+            this.resize(null, y);
+        });
+
+        this.#resizeHandle("resize-bottom-left", dragEvent => {
+            let x = dragEvent.clientX - this.offsetLeft;
+            let y = dragEvent.clientY - this.offsetTop;
+            this.resize(this.offsetWidth - x, y);
+            this.moveBy(x, null);
+        });
+
+        this.#resizeHandle("resize-left", dragEvent => {
+            let x = dragEvent.clientX - this.offsetLeft;
+            this.resize(this.offsetWidth - x, null);
+            this.moveBy(x, null);
+        });
+
+    }
+    #resizeHandle(element, evCallback){
+        let el = this.shadow.getElementById(element);
+        el.addEventListener("mousedown", mouseEvent => {
             if(this.#isMaximized)
                 return;
 
-            let dragListener = dragEvent => {
-                dragEvent.preventDefault();
-                dragEvent.stopPropagation();
-                let x = dragEvent.clientX - this.offsetLeft;
-                let y = dragEvent.clientY - this.offsetTop;
-                this.resize(this.offsetWidth - x, this.offsetHeight - y);
-                this.moveBy(x, y);
-            }
+            let dragListener = e => {
+                e.preventDefault();
+                e.stopPropagation();
+                evCallback(e);
+            };
             let eventKiller = leaveEvent => {
                 window.removeEventListener("mousemove", dragListener);
                 window.removeEventListener("mouseup", eventKiller);
@@ -628,154 +676,6 @@ Lani.Dialog = class extends Lani.Element{
             window.addEventListener("mousemove", dragListener);
             window.addEventListener("mouseup", eventKiller);
         });
-
-        let resizeN = this.shadow.getElementById("resize-top");
-        resizeN.addEventListener("mousedown", mouseEvent => {
-            if(this.#isMaximized)
-                return;
-
-            let dragListener = dragEvent => {
-                dragEvent.preventDefault();
-                dragEvent.stopPropagation();
-                let y = dragEvent.clientY - this.offsetTop;
-                this.resize(null, this.offsetHeight - y);
-                this.moveBy(null, y);
-            }
-            let eventKiller = leaveEvent => {
-                window.removeEventListener("mousemove", dragListener);
-                window.removeEventListener("mouseup", eventKiller);
-                window.removeEventListener("mouseleave", eventKiller);
-            }
-            window.addEventListener("mousemove", dragListener);
-            window.addEventListener("mouseup", eventKiller);
-        });
-
-        let resizeNE = this.shadow.getElementById("resize-top-right");
-        resizeNE.addEventListener("mousedown", mouseEvent => {
-            if(this.#isMaximized)
-                return;
-
-            let dragListener = dragEvent => {
-                dragEvent.preventDefault();
-                dragEvent.stopPropagation();
-                let x = dragEvent.clientX - this.offsetLeft;
-                let y = dragEvent.clientY - this.offsetTop;
-                this.resize(x, this.offsetHeight - y);
-                this.moveBy(null, y);
-            }
-            let eventKiller = leaveEvent => {
-                window.removeEventListener("mousemove", dragListener);
-                window.removeEventListener("mouseup", eventKiller);
-                window.removeEventListener("mouseleave", eventKiller);
-            }
-            window.addEventListener("mousemove", dragListener);
-            window.addEventListener("mouseup", eventKiller);
-        });
-
-        let resizeE = this.shadow.getElementById("resize-right");
-        resizeE.addEventListener("mousedown", mouseEvent => {
-            if(this.#isMaximized)
-                return;
-
-            let dragListener = dragEvent => {
-                dragEvent.preventDefault();
-                dragEvent.stopPropagation();
-                let x = dragEvent.clientX - this.offsetLeft;
-                this.resize(x, null);
-            }
-            let eventKiller = leaveEvent => {
-                window.removeEventListener("mousemove", dragListener);
-                window.removeEventListener("mouseup", eventKiller);
-                window.removeEventListener("mouseleave", eventKiller);
-            }
-            window.addEventListener("mousemove", dragListener);
-            window.addEventListener("mouseup", eventKiller);
-        });
-
-        let resizeSE = this.shadow.getElementById("resize-bottom-right");
-        resizeSE.addEventListener("mousedown", mouseEvent => {
-            if(this.#isMaximized)
-                return;
-
-            let dragListener = dragEvent => {
-                dragEvent.preventDefault();
-                dragEvent.stopPropagation();
-                let x = dragEvent.clientX - this.offsetLeft;
-                let y = dragEvent.clientY - this.offsetTop;
-                this.resize(x, y);
-            }
-            let eventKiller = leaveEvent => {
-                window.removeEventListener("mousemove", dragListener);
-                window.removeEventListener("mouseup", eventKiller);
-                window.removeEventListener("mouseleave", eventKiller);
-            }
-            window.addEventListener("mousemove", dragListener);
-            window.addEventListener("mouseup", eventKiller);
-        });
-
-        let resizeS = this.shadow.getElementById("resize-bottom");
-        resizeS.addEventListener("mousedown", mouseEvent => {
-            if(this.#isMaximized)
-                return;
-
-            let dragListener = dragEvent => {
-                dragEvent.preventDefault();
-                dragEvent.stopPropagation();
-                let y = dragEvent.clientY - this.offsetTop;
-                this.resize(null, y);
-            }
-            let eventKiller = leaveEvent => {
-                window.removeEventListener("mousemove", dragListener);
-                window.removeEventListener("mouseup", eventKiller);
-                window.removeEventListener("mouseleave", eventKiller);
-            }
-            window.addEventListener("mousemove", dragListener);
-            window.addEventListener("mouseup", eventKiller);
-        });
-
-        let resizeSW = this.shadow.getElementById("resize-bottom-left");
-        resizeSW.addEventListener("mousedown", mouseEvent => {
-            if(this.#isMaximized)
-                return;
-
-            let dragListener = dragEvent => {
-                dragEvent.preventDefault();
-                dragEvent.stopPropagation();
-                let x = dragEvent.clientX - this.offsetLeft;
-                let y = dragEvent.clientY - this.offsetTop;
-                this.resize(this.offsetWidth - x, y);
-                this.moveBy(x, null);
-            }
-            let eventKiller = leaveEvent => {
-                window.removeEventListener("mousemove", dragListener);
-                window.removeEventListener("mouseup", eventKiller);
-                window.removeEventListener("mouseleave", eventKiller);
-            }
-            window.addEventListener("mousemove", dragListener);
-            window.addEventListener("mouseup", eventKiller);
-        });
-
-        let resizeW = this.shadow.getElementById("resize-left");
-        resizeW.addEventListener("mousedown", mouseEvent => {
-            if(this.#isMaximized)
-                return;
-
-            let dragListener = dragEvent => {
-                dragEvent.preventDefault();
-                dragEvent.stopPropagation();
-                let x = dragEvent.clientX - this.offsetLeft;
-                this.resize(this.offsetWidth - x, null);
-                this.moveBy(x, null);
-            }
-            let eventKiller = leaveEvent => {
-                window.removeEventListener("mousemove", dragListener);
-                window.removeEventListener("mouseup", eventKiller);
-                window.removeEventListener("mouseleave", eventKiller);
-            }
-            window.addEventListener("mousemove", dragListener);
-            window.addEventListener("mouseup", eventKiller);
-        });
-
     }
     set dialogTitle(title){
         this.#dialogTitle = title;
