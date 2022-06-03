@@ -29,7 +29,16 @@
         ],
         "post": ["minify-js"],
         "outputs": ["./build/lani.js", "./docs/lani/lani.js", "./playground/lani/lani.js"],
-        "envs": ["prod", "dev"]
+        "envs": ["prod"]
+    },
+    {
+        "name": "Lani JS - With Tests",
+        "extends": "Lani JS",
+        "overrideProperties": ["envs"],
+        "inputs": [
+            "./src/test/lani.test.js"
+        ],
+        "envs": ["dev"]
     },
     {
         "name": "Lani Templates",

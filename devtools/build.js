@@ -65,6 +65,34 @@ let handlers = {
     "concat": concat
 };
 
+function extendDefinition(definition, definitions){
+    console.log(`Build definition "${definition.name}" extends "${definition.extends}"...`);
+    let parentDefinition = definitions.filter(def => def.name == definition.extends);
+    if(parentDefinition.extends)
+        parentDefinition = extendDefinition(parentDefinition, definitions);
+    // Just so that this can be guaranteed to be at least an empty array
+    if(!definition.overrideProperties)
+        definition.overrideProperties = [];
+    for(const [key, value] of Object.entries(parentDefinition)){
+        if(definition.overrideProperties.includes(key))
+            continue;
+        if(typeof definition[key] === "undefined")
+            definition[key] = value;
+        else{
+            if(Array.isArray(value)){
+                definition[key] = value.concat(value, definition[key])
+            }
+            else{
+                // Unless overridden, parent takes precedence
+                if(key !== "name")
+                    definition[key] = value;
+            }
+        }
+    }
+    console.log(definition);
+    return definition;
+}
+
 async function main(){
     console.log("Starting build...");
     let defs;
@@ -84,6 +112,9 @@ async function main(){
         env = DEFAULT_ENV;
 
     for(let definition of defs){
+        if(typeof definition.extends !== "undefined"){
+            definition = extendDefinition(definition, defs);
+        }
         if(definition.enabled !== true){
             console.log(`Skipping disabled definition "${definition.name}"`);
             continue;
