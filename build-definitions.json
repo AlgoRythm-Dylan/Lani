@@ -25,6 +25,7 @@
             "./src/animations/dot-grid.js",
             "./src/animations/tree.js",
 
+            "./src/tables/core.js",
             "./src/tables/element.js"
         ],
         "post": ["minify-js"],

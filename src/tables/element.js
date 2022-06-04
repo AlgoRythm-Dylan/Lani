@@ -3,6 +3,9 @@ Lani.TableElement = class extends Lani.DataElement {
     constructor(){
         super();
 
+        // Formatting
+        this.renderHeaders = true;
+
         this.setup();
     }
     async setup(){
@@ -15,6 +18,7 @@ Lani.TableElement = class extends Lani.DataElement {
 
         this.ready();
     }
+    // Title items 
     get title(){
         return this.#title;
     }
@@ -22,6 +26,11 @@ Lani.TableElement = class extends Lani.DataElement {
         this.#title = title;
         this.shadow.getElementById("title").innerHTML = title;
     }
+    // Table headers
+    #renderHeaders(){
+        if(!this.renderHeaders)
+            return;
+    } 
 };
 
 Lani.regEl("lani-table", Lani.TableElement);

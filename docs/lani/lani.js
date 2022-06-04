@@ -1550,10 +1550,48 @@ Lani.TreeElement = class extends Lani.Element {
 }
 
 Lani.regEl("lani-tree", Lani.TreeElement);
+/*
+
+    Lani tables module
+
+*/
+Lani.installedModules.push("lani-tables");
+
+Lani.TableColumnFormatting = class {
+    constructor() {
+        this.width = null;
+        this.caseMutation = null;
+        this.titleCaseMutation = null;
+        this.trimData = false;
+        this.textTransform = null;
+        this.nullText = null;
+    }
+}
+
+Lani.TableColumnBase = class {
+    constructor(name){
+        this.formatting = new Lani.TableColumnFormatting();
+        this.name = name;
+    }
+    render(row, cell){ }
+}
+
+Lani.TableColumn = class extends Lani.TableColumnBase {
+    constructor(name, sourceName){
+        super(name);
+        this.sourceName = sourceName;
+    }
+    render(row, cell){
+        cell.innerHTML = row[this.sourceName];
+    }
+}
 Lani.TableElement = class extends Lani.DataElement {
     #title
     constructor(){
         super();
+
+        // Formatting
+        this.renderHeaders = true;
 
         this.setup();
     }
@@ -1567,6 +1605,7 @@ Lani.TableElement = class extends Lani.DataElement {
 
         this.ready();
     }
+    // Title items 
     get title(){
         return this.#title;
     }
@@ -1574,6 +1613,11 @@ Lani.TableElement = class extends Lani.DataElement {
         this.#title = title;
         this.shadow.getElementById("title").innerHTML = title;
     }
+    // Table headers
+    #renderHeaders(){
+        if(!this.renderHeaders)
+            return;
+    } 
 };
 
 Lani.regEl("lani-table", Lani.TableElement);
