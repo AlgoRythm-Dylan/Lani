@@ -89,7 +89,7 @@ function extendDefinition(definition, definitions){
             definition[key] = value;
         else{
             if(Array.isArray(value)){
-                definition[key] = value.concat(value, definition[key])
+                definition[key] = value.concat(definition[key])
             }
             else{
                 // Unless overridden, parent takes precedence
