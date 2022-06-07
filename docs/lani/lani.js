@@ -1585,6 +1585,19 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
         cell.innerHTML = row[this.sourceName];
     }
 }
+/*
+
+    Default table body renderer
+
+*/
+Lani.TableBodyRenderer = class {
+    constructor(table){
+        this.table = table;
+    }
+    render(){
+
+    }
+}
 Lani.TableElement = class extends Lani.DataElement {
     #title
     constructor(){

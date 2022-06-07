@@ -1585,6 +1585,30 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
         cell.innerHTML = row[this.sourceName];
     }
 }
+/*
+
+    Default table body renderer
+
+*/
+Lani.TableBodyRenderer = class {
+    constructor(table){
+        this.table = table;
+    }
+    render(data){
+        let body = Lani.create("tbody");
+        for(let item of data){
+            let row = Lani.create("tr", { parent: body });
+            for(let column of this.table.columns){
+                let cell = Lani.create("td", { parent: row });
+                column.render(item, cell);
+            }
+        }
+        return body;
+    }
+    measureColumns(body){
+
+    }
+}
 Lani.TableElement = class extends Lani.DataElement {
     #title
     constructor(){
@@ -1592,6 +1616,9 @@ Lani.TableElement = class extends Lani.DataElement {
 
         // Formatting
         this.renderHeaders = true;
+        this.bodyRenderer = new Lani.TableBodyRenderer(this);
+        this.dataSource = null;
+        this.dataManager = new Lani.DataManager();
 
         this.setup();
     }
@@ -1602,6 +1629,11 @@ Lani.TableElement = class extends Lani.DataElement {
         let title = this.getAttribute("table-title");
         if(title)
             this.title = title;
+
+        let download = this.getAttribute("download-data");
+        if(download){
+            this.downloadData(download);
+        }
 
         this.ready();
     }
@@ -1617,7 +1649,18 @@ Lani.TableElement = class extends Lani.DataElement {
     #renderHeaders(){
         if(!this.renderHeaders)
             return;
-    } 
+    }
+
+    // Data ops
+    // Download data. For now, expects JSON
+    async downloadData(source){
+        let data = await (await fetch(source)).json();
+        this.setDataSource(Lani.DataSource(data));
+    }
+    setDataSource(dataSource){
+        this.dataSource = dataSource;
+        this.dataManager.dataSource = this.dataSource;
+    }
 };
 
 Lani.regEl("lani-table", Lani.TableElement);

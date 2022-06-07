@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<head>
+    <title>Lani Templates</title>
+</head>
+<body>
+
+    <template id="lani-animation-basic">
+        <style>
+            :host {
+                display: flex;
+                position: relative;
+            }
+            canvas#screen, div#content {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+        <canvas id="screen"></canvas>
+        <div id="content">
+            <slot></slot>
+        </div>
+    </template>
+
+    <template id="lani-paginator">
+        <style>
+            :host, :host > div {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+            }
+            :host > div {
+                flex: 1;
+                padding: var(--lani-margin);
+            }
+            div#page-controls {
+                margin-left: auto;
+            }
+        </style>
+        <div class="l-body">
+            <div id="page-input">
+                <p class="l-no-spacing">
+                    Displaying page
+                    <span id="page-display">x</span> of
+                    <span id="page-count-display">y</span>
+                </p>
+            </div>
+            <div id="page-controls">
+                <button id="back-all">
+                    <lani-icon icon="backward-fast"></lani-icon>
+                </button>
+                <button id="back">
+                    <lani-icon icon="backward"></lani-icon>
+                </button>
+                <input id="page-input" />
+                <button id="forwards">
+                    <lani-icon icon="forward"></lani-icon>
+                </button>
+                <button id="forwards-all">
+                    <lani-icon icon="forward-fast"></lani-icon>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <template id="lani-table">
+        <div id="header" class="l-body">
+            <p id="title"></p>
+            <div id="search-container">
+                <input id="search" placeholder="Search">
+            </div>
+        </div>
+        <div id="body" class="l-body"></div>
+        <div id="footer" class="l-body"></div>
+    </template>
+
+    <template id="lani-dialog-layer">
+        <style>
+            :host {
+                position: fixed;
+                top: 0px;
+                left: 0px;
+                height: 100%;
+                width: 100%;
+                background: var(--lani-dialog-background);
+                backdrop-filter: blur(var(--lani-blur));
+                display: block;
+            }
+        </style>
+        <slot></slot>
+    </template>
+
+    <template id="lani-dialog">
+        <div id="container" class="l-body l-rounded l-background-secondary">
+
+            <div id="status-bar" class="l-no-select">
+                <p id="title">Webpage Dialog</p>
+                <div id="controls-container">
+                    <button id="minimize-button">
+                        <lani-icon icon="window-minimize"></lani-icon>
+                    </button>
+                    <button id="maximize-button" class="l-background-primary">
+                        <lani-icon icon="expand"></lani-icon>
+                    </button>
+                    <button id="close-button" class="l-background-primary">
+                        <lani-icon icon="xmark"></lani-icon>
+                    </button>
+                </div>
+            </div>
+            <div id="content" class="l-body l-margin l-rounded l-background-primary">
+                <slot>
+                    
+                </slot>
+            </div>
+        </div>
+        <div id="buttons-container" class="l-body l-margin">
+            <slot name="buttons" id="buttons-slot">
+
+            </slot>
+        </div>
+        <div id="resize-top-left" class="l-dialog-resize-handle"></div>
+        <div id="resize-top" class="l-dialog-resize-handle"></div>
+        <div id="resize-top-right" class="l-dialog-resize-handle"></div>
+        <div id="resize-right" class="l-dialog-resize-handle"></div>
+        <div id="resize-bottom-right" class="l-dialog-resize-handle"></div>
+        <div id="resize-bottom" class="l-dialog-resize-handle"></div>
+        <div id="resize-bottom-left" class="l-dialog-resize-handle"></div>
+        <div id="resize-left" class="l-dialog-resize-handle"></div>
+    </template>
+
+</body>

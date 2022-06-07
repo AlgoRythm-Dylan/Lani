@@ -4,8 +4,8 @@
         "enabled": true,
         "mode": "concat",
         "inputs": ["./src/core.css"],
-        "outputs": ["./build/lani.css", "./docs/lani/lani.css", "./playground/lani/lani.css"],
-        "envs": ["prod", "dev"]
+        "outputs": ["./build/lani.css", "./docs/lani/lani.css"],
+        "envs": ["prod"]
     },
     {
         "name": "Lani JS",
@@ -26,43 +26,75 @@
             "./src/animations/tree.js",
 
             "./src/tables/core.js",
+            "./src/tables/bodyRenderer.js",
             "./src/tables/element.js"
         ],
         "post": ["minify-js"],
-        "outputs": ["./build/lani.js", "./docs/lani/lani.js", "./playground/lani/lani.js"],
+        "outputs": ["./build/lani.js", "./docs/lani/lani.js"],
         "envs": ["prod"]
-    },
-    {
-        "name": "Lani JS - With Tests",
-        "extends": "Lani JS",
-        "overrideProperties": ["envs"],
-        "inputs": [
-            "./src/tests/lani.test.js"
-        ],
-        "envs": ["dev"]
     },
     {
         "name": "Lani Templates",
         "enabled": true,
         "mode": "copy",
         "inputs": ["./src/templates.html"],
-        "outputs": ["./build/templates.html", "./docs/lani/templates.html", "./playground/lani/templates.html"],
-        "envs": ["prod", "dev"]
+        "outputs": ["./build/templates.html", "./docs/lani/templates.html"],
+        "envs": ["prod"]
     },
     {
         "name": "Lani Dialog CSS",
         "enabled": true,
         "mode": "copy",
         "inputs": ["./src/dialogs.css"],
-        "outputs": ["./build/dialogs.css", "./docs/lani/dialogs.css", "./playground/lani/dialogs.css"],
-        "envs": ["prod", "dev"]
+        "outputs": ["./build/dialogs.css", "./docs/lani/dialogs.css"],
+        "envs": ["prod"]
     },
     {
         "name": "Lani Tables CSS",
         "enabled": true,
         "mode": "copy",
         "inputs": ["./src/tables/tables.css"],
-        "outputs": ["./build/tables.css", "./docs/lani/tables.css", "./playground/lani/tables.css"],
-        "envs": ["prod", "dev"]
+        "outputs": ["./build/tables.css", "./docs/lani/tables.css"],
+        "envs": ["prod"]
+    },
+
+
+    {
+        "name": "Lani CSS - dev",
+        "extends": "Lani CSS",
+        "overrideProperties": ["envs", "outputs"],
+        "envs": ["dev"],
+        "outputs": ["./playground/lani/lani.css"]
+    },
+    {
+        "name": "Lani JS - dev",
+        "extends": "Lani JS",
+        "overrideProperties": ["envs", "outputs"],
+        "inputs": [
+            "./src/tests/lani.test.js"
+        ],
+        "envs": ["dev"],
+        "outputs": ["./playground/lani/lani.js"]
+    },
+    {
+        "name": "Lani Templates - dev",
+        "extends": "Lani Templates",
+        "overrideProperties": ["envs", "outputs"],
+        "outputs": ["./playground/templates.html"],
+        "envs": ["dev"]
+    },
+    {
+        "name": "Lani Dialog CSS - dev",
+        "extends": "Lani Dialog CSS",
+        "overrideProperties": ["envs", "outputs"],
+        "outputs": ["./playground/dialogs.css"],
+        "envs": ["dev"]
+    },
+    {
+        "name": "Lani Tables CSS - dev",
+        "extends": "Lani Tables CSS",
+        "overrideProperties": ["envs", "outputs"],
+        "outputs": ["./playground/tables.css"],
+        "envs": ["dev"]
     }
 ]
