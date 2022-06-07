@@ -14,11 +14,12 @@
         "inputs": [
             "./src/core.js",
             "./src/data.js",
-            "./src/dialog.js",
             "./src/context.js",
             "./src/extras.js",
-            "./src/icon.js",
-            "./src/paginator.js",
+
+            "./src/elements/dialog.js",
+            "./src/elements/icon.js",
+            "./src/elements/paginator.js",
 
             "./src/animations.js",
             "./src/animations/bubbles.js",
@@ -45,7 +46,7 @@
         "name": "Lani Dialog CSS",
         "enabled": true,
         "mode": "copy",
-        "inputs": ["./src/dialogs.css"],
+        "inputs": ["./src/elements/dialogs.css"],
         "outputs": ["./build/dialogs.css", "./docs/lani/dialogs.css"],
         "envs": ["prod"]
     },
