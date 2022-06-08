@@ -5,8 +5,8 @@
   "scripts": {
     "build": "node ./devtools/build ./build-definitions.json",
     "build-prod": "node ./devtools/build ./build-definitions.json prod",
-    "serve-playground": "node serve playground",
-    "serve-docs": "node serve docs"
+    "serve-playground": "node ./devtools/serve ../playground",
+    "serve-docs": "node ./devtools/serve ../docs"
   },
   "dependencies": {
     "express": "^4.18.1",
