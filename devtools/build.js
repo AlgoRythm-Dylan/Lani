@@ -119,6 +119,12 @@ async function main(){
     else
         env = DEFAULT_ENV;
 
+    let counts = {
+        success: 0,
+        failure: 0,
+        skipped: 0
+    };
+
     for(let definition of defs){
         if(typeof definition.extends !== "undefined"){
             try{
@@ -126,25 +132,52 @@ async function main(){
             }
             catch(ex){
                 console.error(ex);
+                counts.failure++;
                 continue;
             }
         }
         if(definition.enabled !== true){
             console.log(`Skipping disabled definition "${definition.name}"`);
+            counts.skipped++;
             continue;
         }
         console.log(`Executing build definition "${definition.name}"`);
         let handler = handlers[definition.mode];
         if(!handler){
             console.error(`Cannot find handler for build type "${definition.mode}". Skipping build`);
+            counts.failure++;
             continue;
         }
         if(!definition.envs.includes(env)){
             console.log(`Skipping build definition "${definition.name}" because it does not match the current environment`);
+            counts.skipped++;
             continue;
         }
-        await handler(definition);
+        try{
+            await handler(definition);
+            counts.success++;
+        }
+        catch(ex){
+            console.error($`Error executing build handler: ${ex}`);
+            counts.failure++;
+        }
     }
+
+    let total = Object.values(counts)
+                      .reduce((previousValue, currentValue) => previousValue + currentValue, 0);
+
+    console.log("\n\n=== BUILD COMPLETE ===");
+
+    let summaryString = "";
+    for(let [key, value] of Object.entries(counts)){
+        if(key.startsWith("__"))
+            continue;
+        if(summaryString.length !== 0)
+            summaryString += ", ";
+        summaryString += `${key}: ${value}`;
+    }
+
+    console.log(`${summaryString} (total: ${total})\n`);
 }
 
 main();
