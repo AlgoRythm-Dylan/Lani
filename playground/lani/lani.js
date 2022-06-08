@@ -131,6 +131,9 @@ Lani.Element = class extends HTMLElement {
         if(emitReady)
             this.ready();
     }
+    async useDefaultTemplate(id, emitReady=true){
+        await this.useTemplate(Lani.templatesPath(), `#${id}`, emitReady);
+    }
     getBoolAttr(attrName){
         let attr = this.getAttribute(attrName);
         return attr && attr.toLowerCase() === "true";
@@ -500,6 +503,178 @@ Lani.DataElement = class extends Lani.Element {
     constructor(){
         super();
     }
+}
+/*
+
+    Dialog module
+
+*/
+Lani.installedModules.push("lani-context");
+
+
+Lani.customContextMenu = (element, contextMenuItems, activateCallback, compact = false) => {
+
+    let iconMode = false;
+    for (let i = 0; i < contextMenuItems.length; i++) {
+        if (contextMenuItems[i].icon !== null) {
+            iconMode = true;
+            break;
+        }
+    }
+
+
+    element.addEventListener("contextmenu", event => {
+        event.preventDefault();
+        let contextElement = new Lani.ContextElement();
+
+        let parent = document.createElement("div");
+        parent.className = "l-context-element";
+        contextElement.containerElement = parent;
+
+        for (let i = 0; i < contextMenuItems.length; i++) {
+            let menuItem = contextMenuItems[i];
+            if (menuItem.isSeparator) {
+                let menuItemElement = document.createElement("div");
+                menuItemElement.className = "l-context-element-item-separator";
+                parent.appendChild(menuItemElement);
+            }
+            else {
+                let menuItemElement = document.createElement("p");
+
+                if(compact)
+                    menuItemElement.className = "l-context-element-item-compact";
+                else
+                    menuItemElement.className = "l-context-element-item";
+                let text = menuItem.text;
+                if (iconMode) {
+                    if (menuItem.icon !== null) {
+                        text = `<i class="${menuItem.icon} l-context-element-item-icon"></i>${text}`
+                    }
+                    else {
+                        text = `<div class="l-context-element-item-icon"></div>${text}`
+                    }
+                }
+                menuItemElement.innerHTML = text;
+
+                menuItemElement.addEventListener("click", e => {
+                    if (menuItem.onAction)
+                        menuItem.onAction();
+                    contextElement.close();
+                });
+
+                parent.appendChild(menuItemElement);
+            }
+
+        }
+
+        if (activateCallback)
+            activateCallback(contextElement.containerElement, contextElement);
+
+        parent.style.top = `${event.layerY}px`;
+        parent.style.left = `${event.layerX}px`;
+        document.body.appendChild(parent);
+
+        contextElement.addListeners();
+        return contextElement;
+
+    });
+}
+
+Lani.ContextElement = class {
+    constructor(container = null) {
+        this.containerElement = container;
+        this.relatedElements = [];
+        this.autoClose = true;
+
+        this.mousedownListener = e => this.handleWindowEvent(e);
+        this.scrollListener = e => this.handleWindowEvent(e);
+        this.blurListener = e => this.handleWindowEvent(e);
+
+        // Events
+        this.onClickAway = null;
+        this.onClose = null;
+    }
+    addListeners() {
+        window.addEventListener("mousedown", this.mousedownListener);
+        window.addEventListener("scroll", this.scrollListener);
+        window.addEventListener("blur", this.blurListener);
+    }
+    removeListeners() {
+        window.removeEventListener("mousedown", this.mousedownListener);
+        window.removeEventListener("scroll", this.scrollListener);
+        window.removeEventListener("blur", this.blurListener);
+    }
+    handleWindowEvent(event) {
+        let target = event.target;
+        if (target === this.containerElement) return;
+        let parent = target;
+        while ((parent = parent.parentNode)) {
+            if (parent === this.containerElement ||
+                this.relatedElements.indexOf(parent) !== -1)
+                return;
+        }
+        if (this.onClickAway)
+            this.onClickAway();
+        if (this.autoClose)
+            this.close();
+
+    }
+    close() {
+        let continueClose = null;
+        if (this.onClose)
+            continueClose = this.onClose();
+        if (typeof cancel !== "undefined" && continueClose === false)
+            return;
+        this.removeListeners();
+        if(this.containerElement)
+            this.containerElement.remove();
+    }
+}
+
+Lani.ContextMenuItem = class {
+    constructor(text, onAction=null, icon=null) {
+        this.text = text;
+        this.icon = icon;
+        this.isSeparator = false;
+
+        this.onAction = onAction;
+    }
+}
+
+Lani.ContextMenuSeparator = class extends Lani.ContextMenuItem {
+    constructor() {
+        super();
+        this.isSeparator = true;
+    }
+}
+/*
+
+    Lani "extras" module
+
+*/
+Lani.installedModules.push("lani-extras");
+
+Lani.GibberishLength = {
+    Short: 2,
+    Medium: 15,
+    Long: 100,
+    VeryLong: 200
+};
+Lani.GibberishText = [
+    'apple', 'mint', 'Florida', 'soda', 'leather', 'the',
+    'a', 'to', 'bubblegum', 'bravery', 'environment', 'tea',
+    'water', 'cake', 'chicken', 'wave', 'ice', 'lamp',
+    'sheep', 'whereas', 'windy', 'tall', 'tree', 'lock',
+    'finished', 'image', 'daytime', 'of', 'work', 'cow',
+    'door', 'coin', 'by', 'blue', 'half', 'red', 'stone',
+    'inside', 'loud', 'frozen', 'happy', 'scared', 'burnt',
+    'bread', 'slide', 'increase', 'taste'
+];
+Lani.gibberish = length => {
+    let words = [];
+    for(let i = 0; i < length; i++)
+        words.push(Lani.GibberishText[Math.floor(Math.random() * Lani.GibberishText.length)]);
+    return words.join(" ");
 }
 /*
 
@@ -889,178 +1064,6 @@ Lani.alert = async (message, title="Webpage Dialog") => {
 
 Lani.regEl("lani-dialog-layer", Lani.DialogLayer);
 Lani.regEl("lani-dialog", Lani.Dialog);
-/*
-
-    Dialog module
-
-*/
-Lani.installedModules.push("lani-context");
-
-
-Lani.customContextMenu = (element, contextMenuItems, activateCallback, compact = false) => {
-
-    let iconMode = false;
-    for (let i = 0; i < contextMenuItems.length; i++) {
-        if (contextMenuItems[i].icon !== null) {
-            iconMode = true;
-            break;
-        }
-    }
-
-
-    element.addEventListener("contextmenu", event => {
-        event.preventDefault();
-        let contextElement = new Lani.ContextElement();
-
-        let parent = document.createElement("div");
-        parent.className = "l-context-element";
-        contextElement.containerElement = parent;
-
-        for (let i = 0; i < contextMenuItems.length; i++) {
-            let menuItem = contextMenuItems[i];
-            if (menuItem.isSeparator) {
-                let menuItemElement = document.createElement("div");
-                menuItemElement.className = "l-context-element-item-separator";
-                parent.appendChild(menuItemElement);
-            }
-            else {
-                let menuItemElement = document.createElement("p");
-
-                if(compact)
-                    menuItemElement.className = "l-context-element-item-compact";
-                else
-                    menuItemElement.className = "l-context-element-item";
-                let text = menuItem.text;
-                if (iconMode) {
-                    if (menuItem.icon !== null) {
-                        text = `<i class="${menuItem.icon} l-context-element-item-icon"></i>${text}`
-                    }
-                    else {
-                        text = `<div class="l-context-element-item-icon"></div>${text}`
-                    }
-                }
-                menuItemElement.innerHTML = text;
-
-                menuItemElement.addEventListener("click", e => {
-                    if (menuItem.onAction)
-                        menuItem.onAction();
-                    contextElement.close();
-                });
-
-                parent.appendChild(menuItemElement);
-            }
-
-        }
-
-        if (activateCallback)
-            activateCallback(contextElement.containerElement, contextElement);
-
-        parent.style.top = `${event.layerY}px`;
-        parent.style.left = `${event.layerX}px`;
-        document.body.appendChild(parent);
-
-        contextElement.addListeners();
-        return contextElement;
-
-    });
-}
-
-Lani.ContextElement = class {
-    constructor(container = null) {
-        this.containerElement = container;
-        this.relatedElements = [];
-        this.autoClose = true;
-
-        this.mousedownListener = e => this.handleWindowEvent(e);
-        this.scrollListener = e => this.handleWindowEvent(e);
-        this.blurListener = e => this.handleWindowEvent(e);
-
-        // Events
-        this.onClickAway = null;
-        this.onClose = null;
-    }
-    addListeners() {
-        window.addEventListener("mousedown", this.mousedownListener);
-        window.addEventListener("scroll", this.scrollListener);
-        window.addEventListener("blur", this.blurListener);
-    }
-    removeListeners() {
-        window.removeEventListener("mousedown", this.mousedownListener);
-        window.removeEventListener("scroll", this.scrollListener);
-        window.removeEventListener("blur", this.blurListener);
-    }
-    handleWindowEvent(event) {
-        let target = event.target;
-        if (target === this.containerElement) return;
-        let parent = target;
-        while ((parent = parent.parentNode)) {
-            if (parent === this.containerElement ||
-                this.relatedElements.indexOf(parent) !== -1)
-                return;
-        }
-        if (this.onClickAway)
-            this.onClickAway();
-        if (this.autoClose)
-            this.close();
-
-    }
-    close() {
-        let continueClose = null;
-        if (this.onClose)
-            continueClose = this.onClose();
-        if (typeof cancel !== "undefined" && continueClose === false)
-            return;
-        this.removeListeners();
-        if(this.containerElement)
-            this.containerElement.remove();
-    }
-}
-
-Lani.ContextMenuItem = class {
-    constructor(text, onAction=null, icon=null) {
-        this.text = text;
-        this.icon = icon;
-        this.isSeparator = false;
-
-        this.onAction = onAction;
-    }
-}
-
-Lani.ContextMenuSeparator = class extends Lani.ContextMenuItem {
-    constructor() {
-        super();
-        this.isSeparator = true;
-    }
-}
-/*
-
-    Lani "extras" module
-
-*/
-Lani.installedModules.push("lani-extras");
-
-Lani.GibberishLength = {
-    Short: 2,
-    Medium: 15,
-    Long: 100,
-    VeryLong: 200
-};
-Lani.GibberishText = [
-    'apple', 'mint', 'Florida', 'soda', 'leather', 'the',
-    'a', 'to', 'bubblegum', 'bravery', 'environment', 'tea',
-    'water', 'cake', 'chicken', 'wave', 'ice', 'lamp',
-    'sheep', 'whereas', 'windy', 'tall', 'tree', 'lock',
-    'finished', 'image', 'daytime', 'of', 'work', 'cow',
-    'door', 'coin', 'by', 'blue', 'half', 'red', 'stone',
-    'inside', 'loud', 'frozen', 'happy', 'scared', 'burnt',
-    'bread', 'slide', 'increase', 'taste'
-];
-Lani.gibberish = length => {
-    let words = [];
-    for(let i = 0; i < length; i++)
-        words.push(Lani.GibberishText[Math.floor(Math.random() * Lani.GibberishText.length)]);
-    return words.join(" ");
-}
 /*
 
     Lani Icon module
@@ -1637,6 +1640,7 @@ Lani.TableElement = class extends Lani.DataElement {
 
         this.ready();
     }
+
     // Title items 
     get title(){
         return this.#title;
@@ -1645,10 +1649,16 @@ Lani.TableElement = class extends Lani.DataElement {
         this.#title = title;
         this.shadow.getElementById("title").innerHTML = title;
     }
+
     // Table headers
     #renderHeaders(){
         if(!this.renderHeaders)
             return;
+    }
+
+    // Table body
+    #renderBody(){
+        let body = this.bodyRenderer.render(this.dataManager.getAll());
     }
 
     // Data ops
@@ -1699,3 +1709,48 @@ Lani.PerformanceTest = class {
         return this.end - this.start;
     }
 }
+/*
+
+    Kinda a dev tool, ish
+
+    to play around with SVG
+
+*/
+
+const L_DEFAULT_SVG = `<!-- Reference: https://developer.mozilla.org/en-US/docs/Web/SVG/Element -->
+
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+     <circle cx="50" cy="50" r="5" fill="red" />
+</svg>`;
+
+Lani.SVGWriterElement = class extends Lani.Element {
+    constructor(){
+        super();
+
+        this.writer = null;
+        this.output = null;
+
+        this.setup();
+    }
+    async setup(){
+        await this.useDefaultTemplate("lani-svg-writer");
+
+        this.writer = this.shadow.getElementById("writer");
+        this.output = this.shadow.getElementById("output-container");
+
+        this.writer.addEventListener("keydown", e => {
+            if(e.key === "Enter" && e.ctrlKey){
+                e.preventDefault();
+                this.render();
+            }
+        });
+
+        this.writer.value = L_DEFAULT_SVG;
+        this.render();
+    }
+    render(){
+        this.output.innerHTML = this.writer.value;
+    }
+}
+
+Lani.regEl("lani-svg-writer", Lani.SVGWriterElement);

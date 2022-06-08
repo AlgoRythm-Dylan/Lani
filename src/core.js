@@ -131,6 +131,9 @@ Lani.Element = class extends HTMLElement {
         if(emitReady)
             this.ready();
     }
+    async useDefaultTemplate(id, emitReady=true){
+        await this.useTemplate(Lani.templatesPath(), `#${id}`, emitReady);
+    }
     getBoolAttr(attrName){
         let attr = this.getAttribute(attrName);
         return attr && attr.toLowerCase() === "true";

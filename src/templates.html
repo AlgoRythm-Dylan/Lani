@@ -130,4 +130,26 @@
         <div id="resize-left" class="l-dialog-resize-handle"></div>
     </template>
 
+    <template id="lani-svg-writer">
+        <style>
+            :host {
+                display: flex;
+            }
+            textarea#writer {
+                flex: 1;
+                font-family: monospace;
+                resize: none;
+            }
+            div#output-container {
+                flex: 1;
+            }
+        </style>
+        <textarea id="writer" autocomplete="off" spellcheck="false">
+
+        </textarea>
+        <div id="output-container">
+
+        </div>
+    </template>
+
 </body>
