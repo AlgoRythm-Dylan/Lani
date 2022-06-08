@@ -1,6 +1,5 @@
 const fsp = require("fs").promises;
 const uglify = require("uglify-js");
-const zlip = require("zlib");
 
 const DEFAULT_ENV = "dev";
 
