@@ -17,14 +17,17 @@
             "./src/context.js",
             "./src/extras.js",
 
-            "./src/elements/dialog.js",
-            "./src/elements/icon.js",
-            "./src/elements/paginator.js",
-
             "./src/animations.js",
             "./src/animations/bubbles.js",
             "./src/animations/dot-grid.js",
             "./src/animations/tree.js",
+
+            "./src/svg.js",
+
+            "./src/elements/dialog.js",
+            "./src/elements/icon.js",
+            "./src/elements/paginator.js",
+            "./src/elements/arc.js",
 
             "./src/tables/core.js",
             "./src/tables/bodyRenderer.js",

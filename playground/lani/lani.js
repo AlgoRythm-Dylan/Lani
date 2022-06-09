@@ -678,6 +678,416 @@ Lani.gibberish = length => {
 }
 /*
 
+    Animation module
+
+*/
+Lani.installedModules.push("lani-animations");
+
+Lani.animations = [];
+Lani.previousTime = null;
+Lani.windowBlurred = false;
+
+Lani.randomSign = () => {
+    let rnd = Math.random();
+    if (rnd < 0.5) return -1;
+    else return 1;
+}
+
+Lani.animationWindowBlurHandler = e => {
+    Lani.previousTime = null;
+    Lani.windowBlurred = true;
+}
+Lani.animationWindowFocusHandler = e => {
+    Lani.windowBlurred = false;
+}
+Lani.animationLoadHandler = e => {
+    Lani.startAnimationLoop();
+}
+
+Lani.animate = time => {
+    if (!Lani.windowBlurred) {
+        let deltaTime = 0;
+        if (Lani.previousTime !== null)
+            deltaTime = time - Lani.previousTime;
+        if (deltaTime > 1000) deltaTime = 1000;
+        Lani.previousTime = time;
+        Lani.animations.forEach(animation => animation.animate(deltaTime));
+    }
+    requestAnimationFrame(Lani.animate);
+}
+
+Lani.animationLoopStarted = false;
+
+Lani.startAnimationLoop = () => {
+    if(!Lani.animationLoopStarted){
+        requestAnimationFrame(Lani.animate);
+        Lani.animationLoopStarted = true;
+    }
+}
+
+Lani.fillCircle = (ctx, x, y, radius) => {
+    if (radius <= 0) return;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.fill();
+}
+
+Lani.drawLine = (ctx, x1, y1, x2, y2, thickness=null) => {
+    if(thickness)
+        ctx.lineWidth = thickness;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+}
+
+Lani.rads = degs => degs * (Math.PI / 180);
+Lani.xOnCircle = (radius, angleDeg) => radius * Math.sin(Lani.rads(angleDeg));
+Lani.yOnCircle = (radius, angleDeg) => radius * Math.cos(Lani.rads(angleDeg));
+
+Lani.pointOnCircle = (radius, angleDeg) => {
+    return {
+        x: Lani.xOnCircle(radius, angleDeg),
+        y: Lani.yOnCircle(radius, angleDeg)
+    };
+}
+
+Lani.goldenRatio = 1.618;
+
+
+Lani.Animation = class {
+    constructor(canvas) {
+        this.canvas = canvas;
+        if(this.canvas)
+            this.ctx = this.canvas.getContext("2d");
+    }
+    canvasSize() {
+        if (this.canvas.width != this.canvas.offsetWidth ||
+            this.canvas.height != this.canvas.offsetHeight) {
+            this.canvas.width = this.canvas.offsetWidth;
+            this.canvas.height = this.canvas.offsetHeight;
+        }
+    }
+    clear() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    animate(deltaTime) { }
+}
+
+Lani.AnimationEntity = class {
+    constructor(sizeMultiplier=1.0, speedMultiplier=1.0) {
+        this.sizeMultiplier = sizeMultiplier;
+        this.speedMultiplier = speedMultiplier;
+        this.reset();
+    }
+    reset(){
+        this.size = 1.0;
+        this.x = 0.0;
+        this.y = 0.0;
+        this.velX = 0.0;
+        this.velY = 0.0;
+        this.rotationDeg = 0;  
+        this.birth = performance.now();
+    }
+    randomize(){
+        this.size = ((Math.random() / 2) + .5) * this.sizeMultiplier;
+        this.x = Math.random();
+        this.y = Math.random();
+        this.velX = this.randomVelocity() * Lani.randomSign();
+        this.velY = this.randomVelocity() * Lani.randomSign();
+    }
+    randomVelocity() {
+        return (0.0025 + (Math.random() / 250)) * this.speedMultiplier;
+    }
+}
+
+window.addEventListener("load", Lani.animationLoadHandler);
+window.addEventListener("blur", Lani.animationWindowBlurHandler);
+window.addEventListener("focus", Lani.animationWindowFocusHandler);
+/*
+
+    Lani "Bubbles" animation
+
+*/
+Lani.requireModule("lani-animations");
+
+Lani.BubbleAnimation = class extends Lani.Animation {
+    constructor(canvas, amount, sizeMultiplier, speedMultiplier) {
+        super(canvas);
+        if (amount === null) amount = 5;
+        if (sizeMultiplier === null) sizeMultiplier = 1.0;
+        if (speedMultiplier === null) speedMultiplier = 1.0;
+        this.sizeMultiplier = sizeMultiplier;
+        this.speedMultiplier = speedMultiplier;
+        this.bubbles = [];
+        for (let i = 0; i < amount; i++) {
+            let entity = new Lani.AnimationEntity(this.sizeMultiplier, this.speedMultiplier);
+            entity.randomize();
+            this.bubbles.push(entity);
+        }
+    }
+    animate(deltaTime) {
+        let width = this.canvas.offsetWidth;
+        let height = this.canvas.offsetHeight;
+        this.canvasSize();
+        let ctx = this.ctx;
+        this.clear();
+        ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+        this.bubbles.forEach(bubble => {
+            // Update position
+            if (bubble.x >= 1 && bubble.velX > 0)
+                bubble.velX = -bubble.randomVelocity();
+            if (bubble.x <= 0 && bubble.velX < 0)
+                bubble.velX = bubble.randomVelocity();
+
+            if (bubble.y >= 1 && bubble.velY > 0)
+                bubble.velY = -bubble.randomVelocity();
+            if (bubble.y <= 0 && bubble.velY < 0)
+                bubble.velY = bubble.randomVelocity();
+
+            bubble.x += bubble.velX * (deltaTime / 250);
+            bubble.y += bubble.velY * (deltaTime / 250);
+
+            // Draw
+            let resolvedX, resolvedY, resolvedSize;
+            resolvedSize = 80 * bubble.size;
+            resolvedX = width * bubble.x;
+            resolvedY = height * bubble.y;
+            Lani.fillCircle(ctx, resolvedX, resolvedY, resolvedSize);
+        });
+    }
+}
+
+Lani.BubblesElement = class extends Lani.Element {
+    constructor(){
+        super();
+        this.animation = null;
+    }
+    async setup(){
+        await this.useTemplate(Lani.templatesPath(), "#lani-animation-basic");
+
+        let amount = this.getAttribute("count");
+        if (amount && amount != "")
+            amount = parseInt(amount);
+        else
+            amount = null;
+        let sizeMultiplier = this.getAttribute("size");
+        if (sizeMultiplier && sizeMultiplier != "")
+            sizeMultiplier = parseFloat(sizeMultiplier);
+        else
+            sizeMultiplier = null;
+        let speedMultiplier = this.getAttribute("speed");
+        if (speedMultiplier && speedMultiplier != "")
+            speedMultiplier = parseFloat(speedMultiplier);
+        else
+            speedMultiplier = null;
+
+        this.animation = new Lani.BubbleAnimation(
+            this.shadow.getElementById("screen"),
+            amount,
+            sizeMultiplier,
+            speedMultiplier
+        );
+
+        Lani.animations.push(this.animation);
+
+    }
+    connectedCallback(){
+        this.setup();
+    }
+}
+
+Lani.regEl("lani-bubbles", Lani.BubblesElement);
+/*
+
+    Lani "Dot Grid" animation
+
+*/
+Lani.requireModule("lani-animations");
+
+Lani.DotGridAnimation = class extends Lani.Animation {
+    constructor(canvas, dotsDensity, dotSize) {
+        if (dotsDensity === null) dotsDensity = 25;
+        if (dotSize === null) dotSize = 4;
+        super(canvas);
+        this.location = 0.0;
+        this.dotsDensity = dotsDensity;
+        this.dotRadius = dotSize;
+    }
+    animate(deltaTime) {
+        let width = this.canvas.width;
+        let height = this.canvas.height;
+        this.canvasSize();
+        this.location += (deltaTime / 250);
+        // Draw dots
+        let ctx = this.ctx;
+        this.clear();
+        ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+        let cols = Math.floor(width / this.dotsDensity);
+        let rows = Math.floor(height / this.dotsDensity);
+        for (let i = 0; i < cols; i++) {
+            for (let j = 0; j < rows; j++) {
+                let sizeBoost = Math.sin((this.location - i) / 3) * 4;
+                let dotSize = Math.max(1, sizeBoost + this.dotRadius)
+                Lani.fillCircle(ctx, Math.floor((this.dotsDensity / 2) + i * this.dotsDensity),
+                    Math.floor((this.dotsDensity / 2) + j * this.dotsDensity), dotSize);
+            }
+        }
+    }
+}
+
+Lani.DotGridElement = class extends Lani.Element {
+    constructor(){
+        super();
+        this.animation = null;
+    }
+    async setup(){
+        await this.useTemplate(Lani.templatesPath(), "#lani-animation-basic");
+
+        let dotsDensity = this.getAttribute("density");
+        if (dotsDensity && dotsDensity != "")
+            dotsDensity = parseInt(dotsDensity);
+        else
+            dotsDensity = null;
+        let dotSize = this.getAttribute("size");
+        if (dotSize && dotSize != "")
+            dotSize = parseFloat(dotSize);
+        else
+            dotSize = null;
+        
+
+        let animation = new Lani.DotGridAnimation(
+            this.shadow.getElementById("screen"),
+            dotsDensity,
+            dotSize
+        );
+
+        Lani.animations.push(animation);
+
+    }
+    connectedCallback(){
+        this.setup();
+    }
+}
+
+Lani.regEl("lani-dots", Lani.DotGridElement);
+/*
+
+    Lani "tree" animation
+
+    Inspiration:
+        https://openprocessing.org/sketch/1279382
+        https://openprocessing.org/sketch/1520641
+        https://openprocessing.org/sketch/1025683
+
+*/
+Lani.requireModule("lani-animations");
+
+Lani.TreeBranch = class extends Lani.AnimationEntity {
+    constructor(){
+        super();
+        this.length = 0.25;
+        this.thickness = 1;
+        this.children = [];
+        this.parent = null;
+        this.branchSpread = 25;
+        this.branchLengthRatio = 1.5;
+
+        this.angleRandomness = 35;
+        this.lengthRandomness = 0.6;
+    }
+    randomAngleDeviation(){
+        return (this.angleRandomness / 2) - (Math.random() * this.angleRandomness);
+    }
+    randomLengthDeviation(){
+        return (this.lengthRandomness / 2) - (Math.random() * this.lengthRandomness);
+    }
+    generateChildren(depth=10){
+        if(depth <= 0)
+            return;
+        this.thickness = depth;
+        let leftBranch = new Lani.TreeBranch();
+        let rightBranch = new Lani.TreeBranch();
+        leftBranch.rotationDeg = this.rotationDeg - this.branchSpread + this.randomAngleDeviation();
+        leftBranch.length = (this.length / (this.branchLengthRatio + this.randomLengthDeviation()));
+        rightBranch.rotationDeg = this.rotationDeg + this.branchSpread + this.randomAngleDeviation();
+        rightBranch.length = (this.length / (this.branchLengthRatio + this.randomLengthDeviation()));
+        this.children.push(leftBranch);
+        this.children.push(rightBranch);
+        depth--;
+        this.children.forEach(child => child.generateChildren(depth));
+    }
+    render(ctx, x1, y1, vRes){
+        let point = Lani.pointOnCircle(vRes * this.length, this.rotationDeg);
+        let x2 = x1 + point.x;
+        let y2 = y1 + point.y;
+        ctx.lineWidth = this.thickness;
+        Lani.drawLine(ctx, x1, vRes - y1, x2, vRes - y2);
+        this.children.forEach(child => child.render(ctx, x2, y2, vRes));
+    }
+}
+
+Lani.TreeAnimation = class extends Lani.Animation {
+    constructor(canvas) {
+        super(canvas);
+        this.root = new Lani.TreeBranch();
+        this.root.generateChildren();
+    }
+    animate(deltaTime) {
+        let width = this.canvas.offsetWidth;
+        let height = this.canvas.offsetHeight;
+        this.canvasSize();
+        let ctx = this.ctx;
+        this.clear();
+        ctx.strokeStyle = "rgb(255, 255, 255)";
+        this.root.render(ctx, width / 2, 0, height);
+    }
+}
+
+Lani.TreeElement = class extends Lani.Element {
+    constructor(){
+        super();
+        this.animation = null;
+    }
+    async setup(){
+        await this.useTemplate(Lani.templatesPath(), "#lani-animation-basic");
+
+        this.animation = new Lani.TreeAnimation(
+            this.shadow.getElementById("screen")
+        );
+
+        Lani.animations.push(this.animation);
+
+    }
+    connectedCallback(){
+        this.setup();
+    }
+}
+
+Lani.regEl("lani-tree", Lani.TreeElement);
+/*
+
+    Lani SVG rendering module
+
+*/
+Lani.requireModule("lani-animations");
+Lani.installedModules.push("lani-svg");
+
+Lani.svg = {};
+
+// Returns a path string for canvas-like arc
+Lani.svg.arc = (centerX, centerY, radius, startAngle, endAngle) => {
+    return `M${centerX - (radius / 2)},${centerY - (radius / 2)}`
+}
+
+// Relative values just have lowercase function letters
+Lani.svg.relative = str => str.toLowerCase();
+
+// And the opposite is true for absolute! (though by default everything is abs.)
+Lani.svg.absolute = str => str.toUpperCase();
+
+/*
+
     Dialog module
 
 */
@@ -1166,393 +1576,33 @@ Lani.PaginatorElement = class extends Lani.Element {
 Lani.regEl("lani-paginator", Lani.PaginatorElement);
 /*
 
-    Animation module
+    Lani "Arc" data element
 
 */
-Lani.installedModules.push("lani-animations");
+Lani.requireModule("lani-svg");
 
-Lani.animations = [];
-Lani.previousTime = null;
-Lani.windowBlurred = false;
-
-Lani.randomSign = () => {
-    let rnd = Math.random();
-    if (rnd < 0.5) return -1;
-    else return 1;
-}
-
-Lani.animationWindowBlurHandler = e => {
-    Lani.previousTime = null;
-    Lani.windowBlurred = true;
-}
-Lani.animationWindowFocusHandler = e => {
-    Lani.windowBlurred = false;
-}
-Lani.animationLoadHandler = e => {
-    Lani.startAnimationLoop();
-}
-
-Lani.animate = time => {
-    if (!Lani.windowBlurred) {
-        let deltaTime = 0;
-        if (Lani.previousTime !== null)
-            deltaTime = time - Lani.previousTime;
-        if (deltaTime > 1000) deltaTime = 1000;
-        Lani.previousTime = time;
-        Lani.animations.forEach(animation => animation.animate(deltaTime));
-    }
-    requestAnimationFrame(Lani.animate);
-}
-
-Lani.animationLoopStarted = false;
-
-Lani.startAnimationLoop = () => {
-    if(!Lani.animationLoopStarted){
-        requestAnimationFrame(Lani.animate);
-        Lani.animationLoopStarted = true;
-    }
-}
-
-Lani.fillCircle = (ctx, x, y, radius) => {
-    if (radius <= 0) return;
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI);
-    ctx.fill();
-}
-
-Lani.drawLine = (ctx, x1, y1, x2, y2, thickness=null) => {
-    if(thickness)
-        ctx.lineWidth = thickness;
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-}
-
-Lani.rads = degs => degs * (Math.PI / 180);
-Lani.xOnCircle = (radius, angleDeg) => radius * Math.sin(Lani.rads(angleDeg));
-Lani.yOnCircle = (radius, angleDeg) => radius * Math.cos(Lani.rads(angleDeg));
-
-Lani.pointOnCircle = (radius, angleDeg) => {
-    return {
-        x: Lani.xOnCircle(radius, angleDeg),
-        y: Lani.yOnCircle(radius, angleDeg)
-    };
-}
-
-Lani.goldenRatio = 1.618;
-
-
-Lani.Animation = class {
-    constructor(canvas) {
-        this.canvas = canvas;
-        if(this.canvas)
-            this.ctx = this.canvas.getContext("2d");
-    }
-    canvasSize() {
-        if (this.canvas.width != this.canvas.offsetWidth ||
-            this.canvas.height != this.canvas.offsetHeight) {
-            this.canvas.width = this.canvas.offsetWidth;
-            this.canvas.height = this.canvas.offsetHeight;
-        }
-    }
-    clear() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    }
-    animate(deltaTime) { }
-}
-
-Lani.AnimationEntity = class {
-    constructor(sizeMultiplier=1.0, speedMultiplier=1.0) {
-        this.sizeMultiplier = sizeMultiplier;
-        this.speedMultiplier = speedMultiplier;
-        this.reset();
-    }
-    reset(){
-        this.size = 1.0;
-        this.x = 0.0;
-        this.y = 0.0;
-        this.velX = 0.0;
-        this.velY = 0.0;
-        this.rotationDeg = 0;  
-        this.birth = performance.now();
-    }
-    randomize(){
-        this.size = ((Math.random() / 2) + .5) * this.sizeMultiplier;
-        this.x = Math.random();
-        this.y = Math.random();
-        this.velX = this.randomVelocity() * Lani.randomSign();
-        this.velY = this.randomVelocity() * Lani.randomSign();
-    }
-    randomVelocity() {
-        return (0.0025 + (Math.random() / 250)) * this.speedMultiplier;
-    }
-}
-
-window.addEventListener("load", Lani.animationLoadHandler);
-window.addEventListener("blur", Lani.animationWindowBlurHandler);
-window.addEventListener("focus", Lani.animationWindowFocusHandler);
-/*
-
-    Lani "Bubbles" animation
-
-*/
-Lani.requireModule("lani-animations");
-
-Lani.BubbleAnimation = class extends Lani.Animation {
-    constructor(canvas, amount, sizeMultiplier, speedMultiplier) {
-        super(canvas);
-        if (amount === null) amount = 5;
-        if (sizeMultiplier === null) sizeMultiplier = 1.0;
-        if (speedMultiplier === null) speedMultiplier = 1.0;
-        this.sizeMultiplier = sizeMultiplier;
-        this.speedMultiplier = speedMultiplier;
-        this.bubbles = [];
-        for (let i = 0; i < amount; i++) {
-            let entity = new Lani.AnimationEntity(this.sizeMultiplier, this.speedMultiplier);
-            entity.randomize();
-            this.bubbles.push(entity);
-        }
-    }
-    animate(deltaTime) {
-        let width = this.canvas.offsetWidth;
-        let height = this.canvas.offsetHeight;
-        this.canvasSize();
-        let ctx = this.ctx;
-        this.clear();
-        ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
-        this.bubbles.forEach(bubble => {
-            // Update position
-            if (bubble.x >= 1 && bubble.velX > 0)
-                bubble.velX = -bubble.randomVelocity();
-            if (bubble.x <= 0 && bubble.velX < 0)
-                bubble.velX = bubble.randomVelocity();
-
-            if (bubble.y >= 1 && bubble.velY > 0)
-                bubble.velY = -bubble.randomVelocity();
-            if (bubble.y <= 0 && bubble.velY < 0)
-                bubble.velY = bubble.randomVelocity();
-
-            bubble.x += bubble.velX * (deltaTime / 250);
-            bubble.y += bubble.velY * (deltaTime / 250);
-
-            // Draw
-            let resolvedX, resolvedY, resolvedSize;
-            resolvedSize = 80 * bubble.size;
-            resolvedX = width * bubble.x;
-            resolvedY = height * bubble.y;
-            Lani.fillCircle(ctx, resolvedX, resolvedY, resolvedSize);
-        });
-    }
-}
-
-Lani.BubblesElement = class extends Lani.Element {
+Lani.ArcElement = class extends Lani.DataElement {
     constructor(){
         super();
-        this.animation = null;
+
+        this.setup();
+
+        this.svg = null;
+        this.arc = null;
     }
     async setup(){
-        await this.useTemplate(Lani.templatesPath(), "#lani-animation-basic");
+        await this.useDefaultTemplate("lani-arc");
 
-        let amount = this.getAttribute("count");
-        if (amount && amount != "")
-            amount = parseInt(amount);
-        else
-            amount = null;
-        let sizeMultiplier = this.getAttribute("size");
-        if (sizeMultiplier && sizeMultiplier != "")
-            sizeMultiplier = parseFloat(sizeMultiplier);
-        else
-            sizeMultiplier = null;
-        let speedMultiplier = this.getAttribute("speed");
-        if (speedMultiplier && speedMultiplier != "")
-            speedMultiplier = parseFloat(speedMultiplier);
-        else
-            speedMultiplier = null;
-
-        this.animation = new Lani.BubbleAnimation(
-            this.shadow.getElementById("screen"),
-            amount,
-            sizeMultiplier,
-            speedMultiplier
-        );
-
-        Lani.animations.push(this.animation);
-
+        this.svg = this.shadow.querySelector("svg");
+        this.displayArc = Lani.create("arc", { parent: svg } );
+        this.progressArc = Lani.create("arc", { parent: svg } );
     }
-    connectedCallback(){
-        this.setup();
+    updateValue(percentage){
+
     }
 }
 
-Lani.regEl("lani-bubbles", Lani.BubblesElement);
-/*
-
-    Lani "Dot Grid" animation
-
-*/
-Lani.requireModule("lani-animations");
-
-Lani.DotGridAnimation = class extends Lani.Animation {
-    constructor(canvas, dotsDensity, dotSize) {
-        if (dotsDensity === null) dotsDensity = 25;
-        if (dotSize === null) dotSize = 4;
-        super(canvas);
-        this.location = 0.0;
-        this.dotsDensity = dotsDensity;
-        this.dotRadius = dotSize;
-    }
-    animate(deltaTime) {
-        let width = this.canvas.width;
-        let height = this.canvas.height;
-        this.canvasSize();
-        this.location += (deltaTime / 250);
-        // Draw dots
-        let ctx = this.ctx;
-        this.clear();
-        ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
-        let cols = Math.floor(width / this.dotsDensity);
-        let rows = Math.floor(height / this.dotsDensity);
-        for (let i = 0; i < cols; i++) {
-            for (let j = 0; j < rows; j++) {
-                let sizeBoost = Math.sin((this.location - i) / 3) * 4;
-                let dotSize = Math.max(1, sizeBoost + this.dotRadius)
-                Lani.fillCircle(ctx, Math.floor((this.dotsDensity / 2) + i * this.dotsDensity),
-                    Math.floor((this.dotsDensity / 2) + j * this.dotsDensity), dotSize);
-            }
-        }
-    }
-}
-
-Lani.DotGridElement = class extends Lani.Element {
-    constructor(){
-        super();
-        this.animation = null;
-    }
-    async setup(){
-        await this.useTemplate(Lani.templatesPath(), "#lani-animation-basic");
-
-        let dotsDensity = this.getAttribute("density");
-        if (dotsDensity && dotsDensity != "")
-            dotsDensity = parseInt(dotsDensity);
-        else
-            dotsDensity = null;
-        let dotSize = this.getAttribute("size");
-        if (dotSize && dotSize != "")
-            dotSize = parseFloat(dotSize);
-        else
-            dotSize = null;
-        
-
-        let animation = new Lani.DotGridAnimation(
-            this.shadow.getElementById("screen"),
-            dotsDensity,
-            dotSize
-        );
-
-        Lani.animations.push(animation);
-
-    }
-    connectedCallback(){
-        this.setup();
-    }
-}
-
-Lani.regEl("lani-dots", Lani.DotGridElement);
-/*
-
-    Lani "tree" animation
-
-    Inspiration:
-        https://openprocessing.org/sketch/1279382
-        https://openprocessing.org/sketch/1520641
-        https://openprocessing.org/sketch/1025683
-
-*/
-Lani.requireModule("lani-animations");
-
-Lani.TreeBranch = class extends Lani.AnimationEntity {
-    constructor(){
-        super();
-        this.length = 0.25;
-        this.thickness = 1;
-        this.children = [];
-        this.parent = null;
-        this.branchSpread = 25;
-        this.branchLengthRatio = 1.5;
-
-        this.angleRandomness = 35;
-        this.lengthRandomness = 0.6;
-    }
-    randomAngleDeviation(){
-        return (this.angleRandomness / 2) - (Math.random() * this.angleRandomness);
-    }
-    randomLengthDeviation(){
-        return (this.lengthRandomness / 2) - (Math.random() * this.lengthRandomness);
-    }
-    generateChildren(depth=10){
-        if(depth <= 0)
-            return;
-        this.thickness = depth;
-        let leftBranch = new Lani.TreeBranch();
-        let rightBranch = new Lani.TreeBranch();
-        leftBranch.rotationDeg = this.rotationDeg - this.branchSpread + this.randomAngleDeviation();
-        leftBranch.length = (this.length / (this.branchLengthRatio + this.randomLengthDeviation()));
-        rightBranch.rotationDeg = this.rotationDeg + this.branchSpread + this.randomAngleDeviation();
-        rightBranch.length = (this.length / (this.branchLengthRatio + this.randomLengthDeviation()));
-        this.children.push(leftBranch);
-        this.children.push(rightBranch);
-        depth--;
-        this.children.forEach(child => child.generateChildren(depth));
-    }
-    render(ctx, x1, y1, vRes){
-        let point = Lani.pointOnCircle(vRes * this.length, this.rotationDeg);
-        let x2 = x1 + point.x;
-        let y2 = y1 + point.y;
-        ctx.lineWidth = this.thickness;
-        Lani.drawLine(ctx, x1, vRes - y1, x2, vRes - y2);
-        this.children.forEach(child => child.render(ctx, x2, y2, vRes));
-    }
-}
-
-Lani.TreeAnimation = class extends Lani.Animation {
-    constructor(canvas) {
-        super(canvas);
-        this.root = new Lani.TreeBranch();
-        this.root.generateChildren();
-    }
-    animate(deltaTime) {
-        let width = this.canvas.offsetWidth;
-        let height = this.canvas.offsetHeight;
-        this.canvasSize();
-        let ctx = this.ctx;
-        this.clear();
-        ctx.strokeStyle = "rgb(255, 255, 255)";
-        this.root.render(ctx, width / 2, 0, height);
-    }
-}
-
-Lani.TreeElement = class extends Lani.Element {
-    constructor(){
-        super();
-        this.animation = null;
-    }
-    async setup(){
-        await this.useTemplate(Lani.templatesPath(), "#lani-animation-basic");
-
-        this.animation = new Lani.TreeAnimation(
-            this.shadow.getElementById("screen")
-        );
-
-        Lani.animations.push(this.animation);
-
-    }
-    connectedCallback(){
-        this.setup();
-    }
-}
-
-Lani.regEl("lani-tree", Lani.TreeElement);
+Lani.regEl("lani-arc", Lani.ArcElement);
 /*
 
     Lani tables module
