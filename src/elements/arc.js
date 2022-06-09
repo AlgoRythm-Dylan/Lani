@@ -12,14 +12,15 @@ Lani.ArcElement = class extends Lani.DataElement {
         this.setup();
 
         this.svg = null;
-        this.arc = null;
+        this.backgroundArc = null;
+        this.foregroundArc = null;
     }
     async setup(){
         await this.useDefaultTemplate("lani-arc");
 
         this.svg = this.shadow.querySelector("svg");
-        this.displayArc = Lani.create("arc", { parent: svg } );
-        this.progressArc = Lani.create("arc", { parent: svg } );
+        this.backgroundArc = this.shadow.getElementById("background-arc");
+        this.foregroundArc = this.shadow.getElementById("foreground-arc");
     }
     updateValue(percentage){
 
