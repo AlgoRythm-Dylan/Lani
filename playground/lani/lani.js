@@ -741,9 +741,9 @@ Lani.drawLine = (ctx, x1, y1, x2, y2, thickness=null) => {
     ctx.stroke();
 }
 
-Lani.rads = degs => degs * (Math.PI / 180);
-Lani.xOnCircle = (radius, angleDeg) => radius * Math.sin(Lani.rads(angleDeg));
-Lani.yOnCircle = (radius, angleDeg) => radius * Math.cos(Lani.rads(angleDeg));
+Lani.rads = degs => degs * Math.PI / 180;
+Lani.xOnCircle = (radius, angleDeg) => radius * Math.cos(Lani.rads(angleDeg));
+Lani.yOnCircle = (radius, angleDeg) => radius * Math.sin(Lani.rads(angleDeg));
 
 Lani.pointOnCircle = (radius, angleDeg) => {
     return {
@@ -751,6 +751,8 @@ Lani.pointOnCircle = (radius, angleDeg) => {
         y: Lani.yOnCircle(radius, angleDeg)
     };
 }
+
+Lani.circumference = radius => 2 * Math.PI * radius;
 
 Lani.goldenRatio = 1.618;
 
@@ -1077,7 +1079,12 @@ Lani.svg = {};
 
 // Returns a path string for canvas-like arc
 Lani.svg.arc = (centerX, centerY, radius, startAngle, endAngle) => {
-    return `M${centerX - (radius / 2)},${centerY - (radius / 2)}`
+    let arcSweep = 1;
+    let startPoint = Lani.pointOnCircle(radius, startAngle);
+    let endPoint = Lani.pointOnCircle(radius, endAngle);
+    return `M ${centerX + startPoint.x} ${centerY + startPoint.y} ` +
+           `A ${radius} ${radius} 0 0 ${arcSweep} ` +
+           `${centerX + endPoint.x} ${centerY + endPoint.y}`;
 }
 
 // Relative values just have lowercase function letters
@@ -1588,17 +1595,27 @@ Lani.ArcElement = class extends Lani.DataElement {
         this.setup();
 
         this.svg = null;
-        this.arc = null;
+        this.background = null;
+        this.foreground = null;
     }
     async setup(){
         await this.useDefaultTemplate("lani-arc");
 
         this.svg = this.shadow.querySelector("svg");
-        this.displayArc = Lani.create("arc", { parent: svg } );
-        this.progressArc = Lani.create("arc", { parent: svg } );
+        this.background = this.shadow.getElementById("background");
+        this.foreground = this.shadow.getElementById("foreground");
+
+        this.updateValue(50);
     }
     updateValue(percentage){
+        let circumference = Lani.circumference(parseFloat(this.background.getAttribute("r")))
 
+        this.background.setAttribute("stroke-dasharray", circumference);
+        this.foreground.setAttribute("stroke-dasharray", circumference);
+
+        this.background.style.strokeDashoffset = (circumference / 2) * (1 + (percentage / 100));
+        this.background.style.transform = `rotate(${-180 + (180 * (percentage / 100))}deg)`;
+        this.foreground.style.strokeDashoffset = (circumference / 2) * (1 + ((100 - percentage) / 100));
     }
 }
 

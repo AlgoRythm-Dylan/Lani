@@ -10,7 +10,12 @@ Lani.svg = {};
 
 // Returns a path string for canvas-like arc
 Lani.svg.arc = (centerX, centerY, radius, startAngle, endAngle) => {
-    return `M${centerX - (radius / 2)},${centerY - (radius / 2)}`
+    let arcSweep = 1;
+    let startPoint = Lani.pointOnCircle(radius, startAngle);
+    let endPoint = Lani.pointOnCircle(radius, endAngle);
+    return `M ${centerX + startPoint.x} ${centerY + startPoint.y} ` +
+           `A ${radius} ${radius} 0 0 ${arcSweep} ` +
+           `${centerX + endPoint.x} ${centerY + endPoint.y}`;
 }
 
 // Relative values just have lowercase function letters

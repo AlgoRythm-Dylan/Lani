@@ -63,9 +63,9 @@ Lani.drawLine = (ctx, x1, y1, x2, y2, thickness=null) => {
     ctx.stroke();
 }
 
-Lani.rads = degs => degs * (Math.PI / 180);
-Lani.xOnCircle = (radius, angleDeg) => radius * Math.sin(Lani.rads(angleDeg));
-Lani.yOnCircle = (radius, angleDeg) => radius * Math.cos(Lani.rads(angleDeg));
+Lani.rads = degs => degs * Math.PI / 180;
+Lani.xOnCircle = (radius, angleDeg) => radius * Math.cos(Lani.rads(angleDeg));
+Lani.yOnCircle = (radius, angleDeg) => radius * Math.sin(Lani.rads(angleDeg));
 
 Lani.pointOnCircle = (radius, angleDeg) => {
     return {
@@ -73,6 +73,8 @@ Lani.pointOnCircle = (radius, angleDeg) => {
         y: Lani.yOnCircle(radius, angleDeg)
     };
 }
+
+Lani.circumference = radius => 2 * Math.PI * radius;
 
 Lani.goldenRatio = 1.618;
 

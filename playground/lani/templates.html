@@ -135,8 +135,18 @@
             :host {
                 display: flex;
             }
+            .animated {
+                transition: stroke-dashoffset 0.5s, transform 0.5s;
+            }
+            .rotated {
+                transform-origin: center;
+                transform: rotate(-180deg);
+            }
         </style>
-        <svg viewBox="0 0 100 100"></svg>
+        <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" stroke-width="10" stroke="rgb(180, 180, 180)" id="background" fill="none" class="rotated animated"></circle>
+            <circle cx="50" cy="50" r="40" stroke-width="10" stroke="rgb(30, 250, 50)" id="foreground" fill="none" class="rotated animated"></circle>
+        </svg>
     </template>
 
     <template id="lani-svg-writer">
