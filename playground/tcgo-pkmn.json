@@ -1160,5 +1160,14 @@
         "Score": 80,
         "Tags": null,
         "Type": "Water"
+    },
+    {
+        "Card Name": "Conkeldurr",
+        "Description": "Does 90 damage and prevents any evolution pokemon from attacking next turn",
+        "Variant": null,
+        "Stage": "2",
+        "Score": 40,
+        "Tags": null,
+        "Type": "Fighting"
     }
 ]
