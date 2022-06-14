@@ -1169,5 +1169,14 @@
         "Score": 40,
         "Tags": null,
         "Type": "Fighting"
+    },
+    {
+        "Card Name": "Claydol",
+        "Description": "Brings opponent pokemon HP down to 60",
+        "Variant": null,
+        "Stage": "1",
+        "Score": 80,
+        "Tags": null,
+        "Type": "Fighting"
     }
 ]
