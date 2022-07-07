@@ -1178,5 +1178,23 @@
         "Score": 80,
         "Tags": null,
         "Type": "Fighting"
+    },
+    {
+        "Card Name": "Bronzong",
+        "Description": "Invulnerable to fire types",
+        "Variant": null,
+        "Stage": "1",
+        "Score": 80,
+        "Tags": null,
+        "Type": "Steel"
+    },
+    {
+        "Card Name": "Bisharp",
+        "Description": "Does 30 damage for each damage counter on your entire bench",
+        "Variant": null,
+        "Stage": "1",
+        "Score": 80,
+        "Tags": null,
+        "Type": "Steel"
     }
 ]
