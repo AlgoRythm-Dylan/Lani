@@ -12,10 +12,37 @@ Lani.DataRow = class {
     }
 }
 
+Lani.DataSetExporters = {};
+
+Lani.DataSetExporter = class {
+    constructor(dataSet, fileName="download"){
+        this.dataSet = dataSet;
+        this.fileName = fileName;
+    }
+    async export(){
+
+    }
+    finish(blob){
+        Lani.downloadBlob(blob, this.fileName);
+    }
+}
+
+Lani.CSVDataSetExporter = class extends Lani.DataSetExporter {
+    constructor(dataSet, fileName="download.csv"){
+        super(dataSet, fileName);
+    }
+    async export(){
+
+    }
+}
+
+Lani.DataSetExporters["text/csv"] = Lani.CSVDataSetExporter;
+
 Lani.DataSet = class {
     constructor(){
+        this.isGrouped = false;
+
         this.rows = [];
-        this.isGrouped = true;
     }
     // create from a raw array
     static from(arr){
@@ -25,10 +52,14 @@ Lani.DataSet = class {
         }
         return set;
     }
-    static explode(dataSet){
-
+    slice(start, end){
+        let set = new Lani.DataSet();
+        set.isGrouped = this.isGrouped;
+        set.rows = this.rows.slice(start, end)
     }
-
+    toArray(){
+        
+    }
     filter(filterList){
         for(let filter of filterList)
             for(let i = 0; i < this.rows.length; i++)
@@ -41,7 +72,6 @@ Lani.DataSet = class {
     sort(sortList){
 
     }
-
     at(i){
         return this.rows[i];
     }
@@ -50,6 +80,13 @@ Lani.DataSet = class {
     }
     get length(){
         return this.rows.length;
+    }
+    async export(fileName, fileType){
+        let exporterClass = Lani.DataSetExporters[fileType];
+        if(!exporter)
+            throw "No export generator found for file type " + fileType;
+        let exporter = new exporterClass(this, fileName);
+        await exporter.export();
     }
 }
 
@@ -112,7 +149,10 @@ Lani.Paginator = class {
     }
 }
 
-
+Lani.DataSourceReturnType = {
+    Array: "Array",
+    DataSet: "DataSet"
+};
 
 // Base / abstract data source class
 Lani.DataSource = class {
@@ -122,6 +162,9 @@ Lani.DataSource = class {
         this.sorts = [];
         this.paginator = new Lani.Paginator();
         this.paginator.enabled = false;
+
+        // Generally, DataSources are used by Lani
+        this.returnType = Lani.DataSourceReturnType.DataSet;
     }
     async update(){ }
     async get(){ }
@@ -141,7 +184,7 @@ Lani.InMemoryDataSource = class extends Lani.DataSource {
         if(this.paginator === null || !this.paginator.enabled)
             return this.product;
         let indices = this.paginator.indices;
-        return this.product.splice(indices.start, indices.end);
+        return this.product.slice(indices.start, indices.end);
     }
     setArray(array){
         this.array = array;
@@ -149,12 +192,11 @@ Lani.InMemoryDataSource = class extends Lani.DataSource {
     }
     async update(){
         this.product = Lani.DataSet.from(this.array);
-        if(this.filters.length > 0)
-            this.product.filter(this.filters);
-        if(this.groups.length)
-            this.product.group(this.groups);
-        if(this.sorts.length)
-            this.product.sort(this.sorts);
+        this.product.filter(this.filters);
+        this.product.group(this.groups);
+        this.product.sort(this.sorts);
+        if(this.returnType === Lani.DataSourceReturnType.Array)
+            this.product = this.product.toArray();
         this.paginator.length = this.product.length;
         return this.product;
     }

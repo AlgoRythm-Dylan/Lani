@@ -195,3 +195,10 @@ Lani.positionElement = (element,
             element.style.top = `${verticalOffset}px`;
     }
 }
+
+Lani.downloadBlob = (blob, fileName) => {
+    let a = Lani.c("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    a.click();
+}
