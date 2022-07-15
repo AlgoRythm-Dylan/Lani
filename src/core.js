@@ -27,7 +27,7 @@ Lani.removeClass = (element, className) => {
 
 // document.createElement, el.className = x, parent.appendChild(el)
 // but all in one, plus more!
-Lani.create = (elementName, options) => {
+Lani.create = (elementName, options={}) => {
     let el = document.createElement(elementName);
     if(options.className)
         el.className = options.className;

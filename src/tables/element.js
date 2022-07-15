@@ -7,7 +7,12 @@ Lani.TableElement = class extends Lani.DataElement {
         this.renderHeaders = true;
         this.bodyRenderer = new Lani.TableBodyRenderer(this);
         this.dataSource = null;
-        this.dataManager = new Lani.DataManager();
+
+        // Data discovery options
+        this.autoParseColumns = true;
+
+        // Columns
+        this.columns = [];
 
         this.setup();
     }
@@ -36,26 +41,17 @@ Lani.TableElement = class extends Lani.DataElement {
         this.shadow.getElementById("title").innerHTML = title;
     }
 
-    // Table headers
-    #renderHeaders(){
-        if(!this.renderHeaders)
-            return;
-    }
-
     // Table body
-    #renderBody(){
-        let body = this.bodyRenderer.render(this.dataManager.getAll());
+    async #renderBody(){
+        let body = this.bodyRenderer.render(await this.dataSource.get());
     }
 
     // Data ops
     // Download data. For now, expects JSON
     async downloadData(source){
         let data = await (await fetch(source)).json();
-        this.setDataSource(Lani.DataSource(data));
-    }
-    setDataSource(dataSource){
-        this.dataSource = dataSource;
-        this.dataManager.dataSource = this.dataSource;
+        this.dataSource = new Lani.InMemoryDataSource(data);
+        //this.#renderBody();
     }
 };
 

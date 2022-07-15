@@ -33,3 +33,6 @@ Lani.PerformanceTest = class {
         return this.end - this.start;
     }
 }
+
+Lani.UnitTests = [];
+Lani.PerformanceTests = [];

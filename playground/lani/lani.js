@@ -27,7 +27,7 @@ Lani.removeClass = (element, className) => {
 
 // document.createElement, el.className = x, parent.appendChild(el)
 // but all in one, plus more!
-Lani.create = (elementName, options) => {
+Lani.create = (elementName, options={}) => {
     let el = document.createElement(elementName);
     if(options.className)
         el.className = options.className;
@@ -195,6 +195,13 @@ Lani.positionElement = (element,
             element.style.top = `${verticalOffset}px`;
     }
 }
+
+Lani.downloadBlob = (blob, fileName) => {
+    let a = Lani.c("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    a.click();
+}
 /*
 
     Data container / operations module
@@ -202,166 +209,238 @@ Lani.positionElement = (element,
 */
 Lani.installedModules.push("lani-data");
 
-Lani.DataSourceFeatures = {
-    Count: 0,
+Lani.DataSetExporters = {};
 
-    Select: 1,
-    Update: 2,
-    Delete: 3,
-    Insert: 4
-};
+Lani.DataSetExporter = class {
+    constructor(dataSet, fileName="download"){
+        this.dataSet = dataSet;
+        this.fileName = fileName;
+    }
+    async export(){
 
-// A data source has the responsibility
-// of providing data
-
-// A data manager has the responsibility
-// of performing mutations on that data
-
-// A data source (especially one that is
-// fetching data from a large set of server
-// data) may also perform mutations such
-// as pagination, sorting, and filtering.
-
-
-// This the base DataSource class. Unline the 
-// `DataManager` class, this class is meant to
-// be extended and overridden based on where
-// your specific data is coming from. Since items
-// are likely to be implemented with network
-// calls, all methods are to be async
-Lani.DataSource = class {
-    constructor(data=[]){
-        this.data = data;
-        this.supportedFeatures = [];
-        this.supportsAllFeatures = true;
     }
-    async getAll(){
-        return this.data;
-    }
-    async get(delegate){
-        let matches = [];
-        for(let item of this.data)
-            if(delegate(item))
-                matches.push(item);
-        return matches;
-    }
-    async getIndex(index){
-        return this.data[index];
-    }
-    async getRange(startIndex, amount=1){
-        return this.data.slice(startIndex, startIndex + amount);
-    }
-    async setAll(data){
-        this.data = data;
-    }
-    async set(delegate, value){
-        for(let i = 0; i < this.data.length; i++)
-            if(delegate(this.data[i]))
-                this.data[i] = value;
-    }
-    async setIndex(index, value){
-        this.data[index] = value;
-    }
-    async count(){
-        return this.data.length;
-    }
-    async insert(value){
-        this.data.push(value);
-    }
-    async insertAll(values){
-        this.data.push(...values);
-    }
-    async remove(delegate){
-        for(let i = 0; i < this.data.length; i++)
-            if(delegate(data[i]))
-                this.data.splice(i--, 1);
-    }
-    async removeAll(){
-        this.data = [];
-    }
-    supports(feature){
-        return this.supportsAllFeatures || this.supportedFeatures.includes(feature);
+    finish(blob){
+        Lani.downloadBlob(blob, this.fileName);
     }
 }
 
-Lani.FetchedDataSource = class extends Lani.DataSource {
-    constructor(){
-        super();
-
-        this.supportsAllFeatures = false;
-
-        this.url = null;
-        this.fetchOptions = {};
+Lani.CSVDataSetExporter = class extends Lani.DataSetExporter {
+    constructor(dataSet, fileName="download.csv"){
+        super(dataSet, fileName);
     }
-    async getAll(){
-        return await (await fetch(this.url, this.fetchOptions)).json();
+    async export(){
+
     }
 }
 
-// Pagination is 1-based because a "page" is
-// a COUNT, not an INDEX. You can get index
-// ranges from this pagination class, which
-// do, in fact, start at 0, but
-// the "page" value will allways start at one
-// because nobody reads a book starting from
-// page 0.
+Lani.DataSetExporters["text/csv"] = Lani.CSVDataSetExporter;
 
-// If this bothers you heavily, you can also
-// use the "scroll" value, which allows you
-// to offset the current page by a certain
-// amount of records.
+Lani.DataRow = class {
+    constructor(data, key=null){
+        this.data = data;
+        this.key = key;
+    }
+}
 
-// This class is intended to be more of a 
-// "state" class, which describes the state
-// of the pagination of some object. However,
-// if given a valid data source, it can also
-// provide additional information
-Lani.Pagination = class {
+Lani.DataSet = class {
     constructor(){
-        this.enabled = true;
-        this.itemsPerPage = 10;
-        this.page = 1;
-        this.scroll = 0;
-        this.dataSource = null;
+        this.isGrouped = false;
+
+        this.rows = [];
     }
-    reset(){
-        this.scroll = 0;
-        this.page = 1;
-    }
-    getIndices(maxCount = null, inclusive = true){
-        let indices = {
-            start: this.scroll + ((this.page - 1) * this.itemsPerPage),
-            end: this.scroll + (this.page * this.itemsPerPage)
-        };
-        if(inclusive)
-            indices.end--;
-        if(maxCount !== null){
-            if(indices.end > maxCount)
-                indices.end = maxCount;
-            if(indices.start > maxCount)
-                indices.start = maxCount;
+    // create from a raw array
+    static from(arr){
+        let set = new Lani.DataSet();
+        for(let item of arr){
+            set.rows.push(new Lani.DataRow(item));
         }
-        return indices;
+        return set;
     }
-    async pages(){
-        if(this.dataSource === null)
-            return 1;
-        else
-            return await this.dataSource.count() / this.itemsPerPage;
+    slice(start, end){
+        let set = new Lani.DataSet();
+        set.isGrouped = this.isGrouped;
+        set.rows = this.rows.slice(start, end)
+    }
+    toArray(){
+        
+    }
+    filter(filterList){
+        for(let filter of filterList)
+            for(let i = 0; i < this.rows.length; i++)
+                if(!filter.meetsCondition(this.rows[i].data))
+                    this.removeAt(i--);
+    }
+    group(groupList){
+
+    }
+    sort(sortList){
+
+    }
+    at(i){
+        return this.rows[i];
+    }
+    removeAt(i){
+        this.rows.splice(i, 1);
+    }
+    get length(){
+        return this.rows.length;
+    }
+    async export(fileName, fileType){
+        let exporterClass = Lani.DataSetExporters[fileType];
+        if(!exporter)
+            throw "No export generator found for file type " + fileType;
+        let exporter = new exporterClass(this, fileName);
+        await exporter.export();
     }
 }
 
+/*
+
+    Lani DataSource mutations
+
+    1) Filters
+    2) Grouping
+    3) Sorting
+    4) Paging
+
+*/
+
+// Base filter class
 Lani.Filter = class {
     constructor(){
-
+        this.column = null;
+        this.value = null;
+    }
+    meetsCondition(data){
+        return data[this.column] === this.value;
     }
 }
+
+Lani.SortDirection = {
+    Asc: "Ascending",
+    Desc: "Descending"
+};
 
 Lani.Sort = class {
-    constructor(){
-
+    constructor(column, direction = null){
+        this.column = column;
+        this.direction = direction ?? Lani.SortDirection.Desc;
     }
 }
+
+Lani.Paginator = class {
+    constructor(){
+        this.page = 1; // You start at page 1 of a book
+        this.itemsPerPage = 10;
+        this.scroll = 0; // Scroll = skip
+
+        this.enabled = true;
+
+        this.count = null;
+    }
+    get indices(){
+        let start = this.scroll + ((this.page - 1) * this.itemsPerPage);
+        let end = this.scroll + (this.page * this.itemsPerPage);
+        if(this.count !== null)
+            if(end > this.count)
+                end = this.count;
+        return { start, end };
+    }
+    get pages(){
+        if(this.count === null)
+            return null;
+        return Math.ceil(this.count / this.itemsPerPage);
+    }
+}
+
+Lani.DataSourceReturnType = {
+    Array: "Array",
+    DataSet: "DataSet"
+};
+
+// Base / abstract data source class
+Lani.DataSource = class {
+    constructor(){
+        this.filters = [];
+        this.groups = [];
+        this.sorts = [];
+        this.paginator = new Lani.Paginator();
+        this.paginator.enabled = false;
+
+        // Generally, DataSources are used by Lani
+        this.returnType = Lani.DataSourceReturnType.DataSet;
+    }
+    async update(){ }
+    async get(){ }
+}
+
+// Data source class for arrays
+Lani.InMemoryDataSource = class extends Lani.DataSource {
+    constructor(array){
+        super();
+        this.paginator.enabled = false;
+        this.array = array;
+        this.product = null;
+    }
+    async get(update = true){
+        if(update)
+            await this.update();
+        if(this.paginator === null || !this.paginator.enabled)
+            return this.product;
+        let indices = this.paginator.indices;
+        return this.product.slice(indices.start, indices.end);
+    }
+    setArray(array){
+        this.array = array;
+        this.update();
+    }
+    async update(){
+        this.product = Lani.DataSet.from(this.array);
+        this.product.filter(this.filters);
+        this.product.group(this.groups);
+        this.product.sort(this.sorts);
+        if(this.returnType === Lani.DataSourceReturnType.Array)
+            this.product = this.product.toArray();
+        this.paginator.length = this.product.length;
+        return this.product;
+    }
+}
+
+
+/*
+    Data elements get information about each other,
+    for example, when one item adds a filter, when
+    the data source is updated, etc. The idea is to
+    use them to create charts.
+*/
+Lani.DataElement = class extends Lani.Element {
+    constructor(){
+        super();
+    }
+}
+
+/*
+    A group of related DataElements which
+    will recieve information and updates from
+    each other
+*/
+Lani.DataDisplayGrouping = class {
+    constructor(){
+        this.elements = [];
+    }
+    connect(element){
+        this.elements.push(element);
+    }
+    disconnect(element){
+        this.elements = this.elements.filter(item => item !== element);
+    }
+}
+
+/*
+
+    Non-Lani-DataSet functions
+
+*/
 
 // Group an array of objects to a structure of nested objects
 // Example usage: Lani.group([ ... ], ["JobTitle"]); // Group array by only job title
@@ -392,22 +471,6 @@ Lani.group = (data, groupStack) => {
     return thisGroup;
 }
 
-Lani.findGroupDepth = groupedData => {
-    let count = 0;
-    let found = false;
-    let item = groupedData;
-    while(!found){
-        if(Array.isArray(item)){
-            found = true;
-        }
-        else{
-            count++;
-            item = Object.values(item)[0];
-        }
-    }
-    return count;
-}
-
 // Explode a grouped object into an array
 // Luckily, at the bottom of each group is a copy
 // of the original data
@@ -422,87 +485,6 @@ Lani.ungroup = (groupedData) => {
         });
     }
     return data;
-}
-
-// While `DataSource`s are meant to be specific
-// and even implemented on a per-source level,
-// this DataManager should be the last one you'd
-// ever need, unless you want to extend it's
-// functionality
-Lani.DataManager = class {
-    constructor(){
-        this.dataSource = null;
-
-        // This is the order that these three
-        // items execute. Data is first filtered,
-        // then grouped, then sorted.
-        // The order of the arrays is also important.
-        this.filters = [];
-        this.groups = [];
-        this.sorts = [];
-
-        // If pagination is enabled, this DataManager
-        // will only return data from the current page.
-        // Pagination happens after filtering, grouping,
-        // and sorting
-        this.pagination = new Lani.Pagination();
-    }
-    // Returns an arary of gorups, to be used analytically
-    // rather than simply displayed. Not all columns may be
-    // grouped. The bottom-most group will contain the
-    // remaining un-grouped data in a "table" format - an array
-    async getGrouped(){
-        if(!this.pagination.enabled)
-            return Lani.group(await this.dataSource.getAll(), this.groups);
-        else{
-            let count = null;
-            if(this.dataSource.supports(Lani.DataSourceFeatures.Count))
-                count = await this.dataSource.count();
-            let indices = this.pagination.getIndices(count, false);
-            let data = await (await this.dataSource.getRange(indices.start, indices.end - indices.end)).json();
-            return Lani.group(data, this.groups);
-        }
-    }
-    // Returns a flat array of objects, ready to just
-    // be thrown 1:1 into a table. In this case,
-    // "groups" are just multi-level sorts
-    async getArray(){
-
-    }
-    // Automatically return either an array or grouping
-    // based on if this table has grouping enabled
-    async get(){
-        if(this.groups.length === 0)
-            return await this.getArray();
-        else
-            return await this.getGrouped();
-    }
-}
-
-/*
-    A group of related DataElements which
-    will recieve information and updates from
-    each other
-*/
-Lani.DataDisplayGrouping = class {
-    constructor(){
-        this.elements = [];
-    }
-    connect(element){
-        this.elements.push(element);
-    }
-    disconnect(element){
-        this.elements = this.elements.filter(item => item !== element);
-    }
-}
-
-/*
-    Data elements get information about
-*/
-Lani.DataElement = class extends Lani.Element {
-    constructor(){
-        super();
-    }
 }
 /*
 
@@ -1663,20 +1645,24 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
 Lani.TableBodyRenderer = class {
     constructor(table){
         this.table = table;
+        this.lastRender = null;
     }
     render(data){
+        // Data = Lani.DataSet
+        // Can be grouped
+
+
+
         let body = Lani.create("tbody");
-        for(let item of data){
+        for(let item of data.rows){
             let row = Lani.create("tr", { parent: body });
             for(let column of this.table.columns){
                 let cell = Lani.create("td", { parent: row });
                 column.render(item, cell);
             }
         }
+        this.lastRender = body;
         return body;
-    }
-    measureColumns(body){
-
     }
 }
 Lani.TableElement = class extends Lani.DataElement {
@@ -1688,7 +1674,12 @@ Lani.TableElement = class extends Lani.DataElement {
         this.renderHeaders = true;
         this.bodyRenderer = new Lani.TableBodyRenderer(this);
         this.dataSource = null;
-        this.dataManager = new Lani.DataManager();
+
+        // Data discovery options
+        this.autoParseColumns = true;
+
+        // Columns
+        this.columns = [];
 
         this.setup();
     }
@@ -1717,26 +1708,17 @@ Lani.TableElement = class extends Lani.DataElement {
         this.shadow.getElementById("title").innerHTML = title;
     }
 
-    // Table headers
-    #renderHeaders(){
-        if(!this.renderHeaders)
-            return;
-    }
-
     // Table body
-    #renderBody(){
-        let body = this.bodyRenderer.render(this.dataManager.getAll());
+    async #renderBody(){
+        let body = this.bodyRenderer.render(await this.dataSource.get());
     }
 
     // Data ops
     // Download data. For now, expects JSON
     async downloadData(source){
         let data = await (await fetch(source)).json();
-        this.setDataSource(Lani.DataSource(data));
-    }
-    setDataSource(dataSource){
-        this.dataSource = dataSource;
-        this.dataManager.dataSource = this.dataSource;
+        this.dataSource = new Lani.InMemoryDataSource(data);
+        //this.#renderBody();
     }
 };
 

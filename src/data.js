@@ -5,13 +5,6 @@
 */
 Lani.installedModules.push("lani-data");
 
-Lani.DataRow = class {
-    constructor(data, key=null){
-        this.data = data;
-        this.key = key;
-    }
-}
-
 Lani.DataSetExporters = {};
 
 Lani.DataSetExporter = class {
@@ -38,6 +31,13 @@ Lani.CSVDataSetExporter = class extends Lani.DataSetExporter {
 
 Lani.DataSetExporters["text/csv"] = Lani.CSVDataSetExporter;
 
+Lani.DataRow = class {
+    constructor(data, key=null){
+        this.data = data;
+        this.key = key;
+    }
+}
+
 Lani.DataSet = class {
     constructor(){
         this.isGrouped = false;
@@ -48,14 +48,15 @@ Lani.DataSet = class {
     static from(arr){
         let set = new Lani.DataSet();
         for(let item of arr){
-            set.push(new Lani.DataRow(item));
+            set.rows.push(new Lani.DataRow(item));
         }
         return set;
     }
     slice(start, end){
         let set = new Lani.DataSet();
         set.isGrouped = this.isGrouped;
-        set.rows = this.rows.slice(start, end)
+        set.rows = this.rows.slice(start, end);
+        return set;
     }
     toArray(){
         
@@ -170,6 +171,12 @@ Lani.DataSource = class {
     async get(){ }
 }
 
+Lani.DataSourceElement = class extends Lani.Element {
+
+}
+
+Lani.regEl("lani-data-source", Lani.DataSourceElement);
+
 // Data source class for arrays
 Lani.InMemoryDataSource = class extends Lani.DataSource {
     constructor(array){
@@ -178,9 +185,9 @@ Lani.InMemoryDataSource = class extends Lani.DataSource {
         this.array = array;
         this.product = null;
     }
-    async get(){
-        if(this.product === null)
-            return null;
+    async get(update = true){
+        if(update)
+            await this.update();
         if(this.paginator === null || !this.paginator.enabled)
             return this.product;
         let indices = this.paginator.indices;
@@ -188,7 +195,7 @@ Lani.InMemoryDataSource = class extends Lani.DataSource {
     }
     setArray(array){
         this.array = array;
-        this.#generateProduct();
+        this.update();
     }
     async update(){
         this.product = Lani.DataSet.from(this.array);
