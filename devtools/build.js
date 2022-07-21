@@ -157,7 +157,7 @@ async function main(){
             counts.success++;
         }
         catch(ex){
-            console.error($`Error executing build handler: ${ex}`);
+            console.error(`Error executing build handler: ${ex}`);
             counts.failure++;
         }
     }

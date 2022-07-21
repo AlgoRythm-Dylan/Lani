@@ -30,7 +30,7 @@
             "./src/elements/arc.js",
 
             "./src/tables/core.js",
-            "./src/tables/bodyRenderer.js",
+            "./src/tables/renderer.js",
             "./src/tables/element.js"
         ],
         "post": ["minify-js"],

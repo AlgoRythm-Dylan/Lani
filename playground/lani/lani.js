@@ -259,7 +259,8 @@ Lani.DataSet = class {
     slice(start, end){
         let set = new Lani.DataSet();
         set.isGrouped = this.isGrouped;
-        set.rows = this.rows.slice(start, end)
+        set.rows = this.rows.slice(start, end);
+        return set;
     }
     toArray(){
         
@@ -373,6 +374,12 @@ Lani.DataSource = class {
     async update(){ }
     async get(){ }
 }
+
+Lani.DataSourceElement = class extends Lani.Element {
+
+}
+
+Lani.regEl("lani-data-source", Lani.DataSourceElement);
 
 // Data source class for arrays
 Lani.InMemoryDataSource = class extends Lani.DataSource {
@@ -1642,29 +1649,25 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
     Default table body renderer
 
 */
-Lani.TableBodyRenderer = class {
+Lani.TableRenderer = class {
     constructor(table){
         this.table = table;
-        this.lastRender = null;
     }
     render(data){
-        // Data = Lani.DataSet
-        // Can be grouped
 
-
-
-        let body = Lani.create("tbody");
-        for(let item of data.rows){
-            let row = Lani.create("tr", { parent: body });
-            for(let column of this.table.columns){
-                let cell = Lani.create("td", { parent: row });
-                column.render(item, cell);
-            }
-        }
-        this.lastRender = body;
-        return body;
     }
 }
+Lani.TableTemplates = {};
+Lani.TableTemplates.Loading = `<style>
+
+</style>
+<div id="loading-container">
+    <h2 id="loading-text">Loading your table...</h2>
+    <p id="loading-subtext">Hang tight</p>
+    <lani-icon id="loading-icon" icon="table"></lani-icon>
+</div>
+`;
+
 Lani.TableElement = class extends Lani.DataElement {
     #title
     constructor(){
@@ -1672,7 +1675,7 @@ Lani.TableElement = class extends Lani.DataElement {
 
         // Formatting
         this.renderHeaders = true;
-        this.bodyRenderer = new Lani.TableBodyRenderer(this);
+        this.renderer = new Lani.TableRenderer(this);
         this.dataSource = null;
 
         // Data discovery options
@@ -1680,6 +1683,10 @@ Lani.TableElement = class extends Lani.DataElement {
 
         // Columns
         this.columns = [];
+
+        // Templates
+        this.loadingTemplate = null;
+        this.noDataFoundTemplate = null;
 
         this.setup();
     }
@@ -1708,9 +1715,20 @@ Lani.TableElement = class extends Lani.DataElement {
         this.shadow.getElementById("title").innerHTML = title;
     }
 
-    // Table body
-    async #renderBody(){
-        let body = this.bodyRenderer.render(await this.dataSource.get());
+    setBody(newBody){
+        let body = this.shadow.getElementById("body")
+        body.innerHTML = "";
+        if(typeof body === "string")
+            body.innerHTML = newBody;
+        else
+            body.appendChild(newBody);
+    }
+
+    showLoading(){
+        this.setBody(this.loadingTemplate);
+    }
+    showNoDataFound(){
+
     }
 
     // Data ops
@@ -1718,7 +1736,6 @@ Lani.TableElement = class extends Lani.DataElement {
     async downloadData(source){
         let data = await (await fetch(source)).json();
         this.dataSource = new Lani.InMemoryDataSource(data);
-        //this.#renderBody();
     }
 };
 
@@ -1758,6 +1775,9 @@ Lani.PerformanceTest = class {
         return this.end - this.start;
     }
 }
+
+Lani.UnitTests = [];
+Lani.PerformanceTests = [];
 /*
 
     Kinda a dev tool, ish

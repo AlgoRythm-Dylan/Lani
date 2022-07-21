@@ -11,4 +11,10 @@
 </head>
 <body class="l-body">
     <lani-table download-data="/tcgo-pkmn.json" table-title="oh, wow!"></lani-table>
+    <script>
+        let table = document.querySelector("lani-table");
+        table.addEventListener(Lani.ElementEvents.Ready, () => {
+            table.showLoading();
+        });
+    </script>
 </body>

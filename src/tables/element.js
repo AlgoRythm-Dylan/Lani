@@ -1,3 +1,14 @@
+Lani.TableTemplates = {};
+Lani.TableTemplates.Loading = `<style>
+
+</style>
+<div id="loading-container">
+    <h2 id="loading-text">Loading your table...</h2>
+    <p id="loading-subtext">Hang tight</p>
+    <lani-icon id="loading-icon" icon="table"></lani-icon>
+</div>
+`;
+
 Lani.TableElement = class extends Lani.DataElement {
     #title
     constructor(){
@@ -5,7 +16,7 @@ Lani.TableElement = class extends Lani.DataElement {
 
         // Formatting
         this.renderHeaders = true;
-        this.bodyRenderer = new Lani.TableBodyRenderer(this);
+        this.renderer = new Lani.TableRenderer(this);
         this.dataSource = null;
 
         // Data discovery options
@@ -13,6 +24,10 @@ Lani.TableElement = class extends Lani.DataElement {
 
         // Columns
         this.columns = [];
+
+        // Templates
+        this.loadingTemplate = null;
+        this.noDataFoundTemplate = null;
 
         this.setup();
     }
@@ -41,9 +56,20 @@ Lani.TableElement = class extends Lani.DataElement {
         this.shadow.getElementById("title").innerHTML = title;
     }
 
-    // Table body
-    async #renderBody(){
-        let body = this.bodyRenderer.render(await this.dataSource.get());
+    setBody(newBody){
+        let body = this.shadow.getElementById("body")
+        body.innerHTML = "";
+        if(typeof body === "string")
+            body.innerHTML = newBody;
+        else
+            body.appendChild(newBody);
+    }
+
+    showLoading(){
+        this.setBody(this.loadingTemplate);
+    }
+    showNoDataFound(){
+
     }
 
     // Data ops
@@ -51,7 +77,6 @@ Lani.TableElement = class extends Lani.DataElement {
     async downloadData(source){
         let data = await (await fetch(source)).json();
         this.dataSource = new Lani.InMemoryDataSource(data);
-        //this.#renderBody();
     }
 };
 
