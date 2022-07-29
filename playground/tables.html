@@ -12,9 +12,24 @@
 <body class="l-body">
     <lani-table download-data="/tcgo-pkmn.json" table-title="oh, wow!"></lani-table>
     <script>
+
+        let prettifier = new Lani.DataNamePrettifier();
+        console.log(prettifier.prettify("WORK_ORDER_NUMBER"));
+        console.log(prettifier.prettify("workOrderNumber"));
+        console.log(prettifier.prettify("workOrder_number"));
+
+        console.log(Lani.prettifyDataName("WORK_ORDER_NUMBER", { replaceUnderscoreWithSpace: false }));
+        console.log(Lani.prettifyDataName("workOrderNumber"));
+        console.log(Lani.prettifyDataName("workOrder_number"));
+
         let table = document.querySelector("lani-table");
         table.addEventListener(Lani.ElementEvents.Ready, () => {
             table.showLoading();
+            console.log(table.parseColumns(Lani.DataSet.from([{
+                "hello": "world",
+                "worldStatus": "okay",
+                "SQL_COLUMN": "that's fine"
+            }])));
         });
     </script>
 </body>

@@ -10,8 +10,7 @@ Lani.search.includes = (term, dataSet, caseInsensitive=true) => {
         return dataSet.filter(item => item.toLowerCase().includes(lowerTerm));
     }
 }
-
-Lani.search.splitWords = str => str.match(/\b(\w+)'?(\w+)?\b/);
+Lani.search.splitWords = str => str.match(/\b(\w+)'?(\w+)?\b/g);
 
 Lani.search.levenshtein = (str1, str2) => {
     if(str1.length === 0)

@@ -14,6 +14,7 @@
         "inputs": [
             "./src/core.js",
             "./src/data.js",
+            "./src/search.js",
             "./src/context.js",
             "./src/extras.js",
 

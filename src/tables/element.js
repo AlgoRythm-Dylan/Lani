@@ -9,6 +9,8 @@ Lani.TableTemplates.Loading = `<style>
 </div>
 `;
 
+Lani.TableTemplates.NoDataFound = `<p>No Data Found</p>`
+
 Lani.TableElement = class extends Lani.DataElement {
     #title
     constructor(){
@@ -24,10 +26,12 @@ Lani.TableElement = class extends Lani.DataElement {
 
         // Columns
         this.columns = [];
+        this.ignoreColumns = [];
+        this.columnNamePrettifier = new Lani.DataNamePrettifier();
 
         // Templates
-        this.loadingTemplate = null;
-        this.noDataFoundTemplate = null;
+        this.loadingTemplate = Lani.TableTemplates.Loading;
+        this.noDataFoundTemplate = Lani.TableTemplates.NoDataFound;
 
         this.setup();
     }
@@ -59,7 +63,7 @@ Lani.TableElement = class extends Lani.DataElement {
     setBody(newBody){
         let body = this.shadow.getElementById("body")
         body.innerHTML = "";
-        if(typeof body === "string")
+        if(typeof newBody === "string")
             body.innerHTML = newBody;
         else
             body.appendChild(newBody);
@@ -77,6 +81,17 @@ Lani.TableElement = class extends Lani.DataElement {
     async downloadData(source){
         let data = await (await fetch(source)).json();
         this.dataSource = new Lani.InMemoryDataSource(data);
+    }
+    parseColumns(data){
+        this.columns = [];
+        for(let row of data.rows){
+            for(let key of Object.keys(row.data)){
+                if(this.ignoreColumns.includes(key))
+                    continue;
+                this.columns.push(new Lani.TableColumn(this.columnNamePrettifier.prettify(key), key));
+            }
+        }
+        return this.columns;
     }
 };
 

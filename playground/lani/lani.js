@@ -493,6 +493,84 @@ Lani.ungroup = (groupedData) => {
     }
     return data;
 }
+
+Lani.initCap = word => {
+    if(typeof word !== "string" || word.length === 0) return word;
+    if(word.includes(" ")){
+        return Lani.search.splitWords(word).map(Lani.initCap).join(" ");
+    }
+    return word[0].toLocaleUpperCase() + word.substring(1).toLocaleLowerCase();
+}
+Lani.containsLowercaseLetters = word => word !== word.toLocaleUpperCase();
+
+Lani.undoCamelCase = word => {
+    if(typeof word !== "string" || word.length === 0) return word;
+    if(word.includes(" ")){
+        return Lani.search.splitWords(word).map(Lani.undoCamelCase).join(" ").toLocaleLowerCase();
+    }
+    if(!Lani.containsLowercaseLetters(word))
+        return word;  // This might be an acronym
+    return word.split(/(?=[A-Z])/g).join(" ").toLocaleLowerCase();
+}
+
+Lani.DataNamePrettifier = class {
+    constructor(){
+        this.enabled = true;
+        this.replaceUnderscoreWithSpace = true;
+        this.undoCamelCase = true;
+        this.normalizeCasing = true;
+    }
+    prettify(input){
+        if(this.enabled === false)
+            return input;
+        let output = input; 
+        if(this.replaceUnderscoreWithSpace)
+            output = output.replaceAll("_", " ");
+        if(this.undoCamelCase)
+            output = Lani.undoCamelCase(output);
+        if(this.normalizeCasing)
+            output = Lani.initCap(output);
+        return output;
+    }
+}
+
+Lani.prettifyDataName = (word, options={}) => {
+    let prettifier = new Lani.DataNamePrettifier();
+    Object.assign(prettifier, options);
+    return prettifier.prettify(word);
+}
+Lani.search = {};
+
+Lani.search.exact = (term, dataSet) => {
+    return dataSet.filter(item => item === term);
+}
+
+Lani.search.includes = (term, dataSet, caseInsensitive=true) => {
+    if(caseInsensitive){
+        let lowerTerm = term.toLowerCase();
+        return dataSet.filter(item => item.toLowerCase().includes(lowerTerm));
+    }
+}
+Lani.search.splitWords = str => str.match(/\b(\w+)'?(\w+)?\b/g);
+
+Lani.search.levenshtein = (str1, str2) => {
+    if(str1.length === 0)
+        return str2.length;
+    else if(str2.length === 0)
+        return str1.length;
+    if(str1[0] === str2[0])
+        return Lani.search.levenshtein(Lani.search.levenshteinTail(str1), Lani.search.levenshteinTail(str2));
+    else
+        return 1 + Math.min(
+            Lani.search.levenshtein(Lani.search.levenshteinTail(str1), str2),
+            Lani.search.levenshtein(str1, Lani.search.levenshteinTail(str2)),
+            Lani.search.levenshtein(Lani.search.levenshteinTail(str1), Lani.search.levenshteinTail(str2))
+        );
+}
+
+Lani.search.levenshteinTail = str => {
+    return str.slice(1);
+}
 /*
 
     Dialog module
@@ -1668,6 +1746,8 @@ Lani.TableTemplates.Loading = `<style>
 </div>
 `;
 
+Lani.TableTemplates.NoDataFound = `<p>No Data Found</p>`
+
 Lani.TableElement = class extends Lani.DataElement {
     #title
     constructor(){
@@ -1683,10 +1763,12 @@ Lani.TableElement = class extends Lani.DataElement {
 
         // Columns
         this.columns = [];
+        this.ignoreColumns = [];
+        this.columnNamePrettifier = new Lani.DataNamePrettifier();
 
         // Templates
-        this.loadingTemplate = null;
-        this.noDataFoundTemplate = null;
+        this.loadingTemplate = Lani.TableTemplates.Loading;
+        this.noDataFoundTemplate = Lani.TableTemplates.NoDataFound;
 
         this.setup();
     }
@@ -1718,7 +1800,7 @@ Lani.TableElement = class extends Lani.DataElement {
     setBody(newBody){
         let body = this.shadow.getElementById("body")
         body.innerHTML = "";
-        if(typeof body === "string")
+        if(typeof newBody === "string")
             body.innerHTML = newBody;
         else
             body.appendChild(newBody);
@@ -1736,6 +1818,17 @@ Lani.TableElement = class extends Lani.DataElement {
     async downloadData(source){
         let data = await (await fetch(source)).json();
         this.dataSource = new Lani.InMemoryDataSource(data);
+    }
+    parseColumns(data){
+        this.columns = [];
+        for(let row of data.rows){
+            for(let key of Object.keys(row.data)){
+                if(this.ignoreColumns.includes(key))
+                    continue;
+                this.columns.push(new Lani.TableColumn(this.columnNamePrettifier.prettify(key), key));
+            }
+        }
+        return this.columns;
     }
 };
 

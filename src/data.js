@@ -289,3 +289,49 @@ Lani.ungroup = (groupedData) => {
     }
     return data;
 }
+
+Lani.initCap = word => {
+    if(typeof word !== "string" || word.length === 0) return word;
+    if(word.includes(" ")){
+        return Lani.search.splitWords(word).map(Lani.initCap).join(" ");
+    }
+    return word[0].toLocaleUpperCase() + word.substring(1).toLocaleLowerCase();
+}
+Lani.containsLowercaseLetters = word => word !== word.toLocaleUpperCase();
+
+Lani.undoCamelCase = word => {
+    if(typeof word !== "string" || word.length === 0) return word;
+    if(word.includes(" ")){
+        return Lani.search.splitWords(word).map(Lani.undoCamelCase).join(" ").toLocaleLowerCase();
+    }
+    if(!Lani.containsLowercaseLetters(word))
+        return word;  // This might be an acronym
+    return word.split(/(?=[A-Z])/g).join(" ").toLocaleLowerCase();
+}
+
+Lani.DataNamePrettifier = class {
+    constructor(){
+        this.enabled = true;
+        this.replaceUnderscoreWithSpace = true;
+        this.undoCamelCase = true;
+        this.normalizeCasing = true;
+    }
+    prettify(input){
+        if(this.enabled === false)
+            return input;
+        let output = input; 
+        if(this.replaceUnderscoreWithSpace)
+            output = output.replaceAll("_", " ");
+        if(this.undoCamelCase)
+            output = Lani.undoCamelCase(output);
+        if(this.normalizeCasing)
+            output = Lani.initCap(output);
+        return output;
+    }
+}
+
+Lani.prettifyDataName = (word, options={}) => {
+    let prettifier = new Lani.DataNamePrettifier();
+    Object.assign(prettifier, options);
+    return prettifier.prettify(word);
+}
