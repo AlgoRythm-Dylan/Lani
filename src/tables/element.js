@@ -88,7 +88,9 @@ Lani.TableElement = class extends Lani.DataElement {
             for(let key of Object.keys(row.data)){
                 if(this.ignoreColumns.includes(key))
                     continue;
-                this.columns.push(new Lani.TableColumn(this.columnNamePrettifier.prettify(key), key));
+                if(!this.columns.some(column => column.sourceName === key))
+                    this.columns.push(new Lani.TableColumn(
+                        this.columnNamePrettifier.prettify(key), key));
             }
         }
         return this.columns;
