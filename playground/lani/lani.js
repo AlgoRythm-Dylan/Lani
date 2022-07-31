@@ -144,6 +144,17 @@ Lani.Element = class extends HTMLElement {
     ready(detail={}){
         this.emit(Lani.ElementEvents.Ready, detail);
     }
+    setupNonDOM(){
+        this.style.display = "none";
+    }
+    getDeclarativeContent(){
+        let contentSlot = this.shadow.querySelector("slot#declarative-content");
+        if(!contentSlot)
+            contentSlot = this.shadow.querySelector("slot[name='declarative-content' i]");
+        if(!contentSlot)
+            return [];
+        return Lani.getLaniElements(contentSlot);
+    }
 }
 
 Lani.waitForElement = elementName => {
@@ -201,6 +212,15 @@ Lani.downloadBlob = (blob, fileName) => {
     a.href = URL.createObjectURL(blob);
     a.download = fileName;
     a.click();
+}
+
+// Very simple and does no concrete tests
+Lani.getLaniElements = element => {
+    let results = [];
+    for(let child of element.children)
+        if(child.tagName.startsWith("LANI-"))
+            results.push(child);
+    return results;
 }
 /*
 
@@ -375,12 +395,6 @@ Lani.DataSource = class {
     async get(){ }
 }
 
-Lani.DataSourceElement = class extends Lani.Element {
-
-}
-
-Lani.regEl("lani-data-source", Lani.DataSourceElement);
-
 // Data source class for arrays
 Lani.InMemoryDataSource = class extends Lani.DataSource {
     constructor(array){
@@ -539,6 +553,32 @@ Lani.prettifyDataName = (word, options={}) => {
     Object.assign(prettifier, options);
     return prettifier.prettify(word);
 }
+/*
+
+    Declarative way to create and use a data source
+
+*/
+
+Lani.ElementEvents.DataDownloaded = "lani::data-downloaded";
+Lani.ElementEvents.DataReady = "lani::data-ready";
+
+Lani.DataSourceElement = class extends Lani.Element {
+    constructor(){
+        super();
+        this.dataSource = null;
+        this.dataReady = false;
+    }
+    connectedCallback(){
+        this.setupNonDOM();
+
+        let download = this.getAttribute("download");
+    }
+    async get(){
+        return await this.dataSource.get();
+    }
+}
+
+Lani.regEl("lani-data-source", Lani.DataSourceElement);
 Lani.search = {};
 
 Lani.search.exact = (term, dataSet) => {
@@ -1722,6 +1762,10 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
         cell.innerHTML = row[this.sourceName];
     }
 }
+
+Lani.TableColumnElement = class extends Lani.Element { }
+
+Lani.regEl("lani-table-column", Lani.TableColumnElement);
 /*
 
     Default table body renderer
@@ -1825,7 +1869,9 @@ Lani.TableElement = class extends Lani.DataElement {
             for(let key of Object.keys(row.data)){
                 if(this.ignoreColumns.includes(key))
                     continue;
-                this.columns.push(new Lani.TableColumn(this.columnNamePrettifier.prettify(key), key));
+                if(!this.columns.some(column => column.sourceName === key))
+                    this.columns.push(new Lani.TableColumn(
+                        this.columnNamePrettifier.prettify(key), key));
             }
         }
         return this.columns;
@@ -1871,48 +1917,3 @@ Lani.PerformanceTest = class {
 
 Lani.UnitTests = [];
 Lani.PerformanceTests = [];
-/*
-
-    Kinda a dev tool, ish
-
-    to play around with SVG
-
-*/
-
-const L_DEFAULT_SVG = `<!-- Reference: https://developer.mozilla.org/en-US/docs/Web/SVG/Element -->
-
-<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-     <circle cx="50" cy="50" r="5" fill="red" />
-</svg>`;
-
-Lani.SVGWriterElement = class extends Lani.Element {
-    constructor(){
-        super();
-
-        this.writer = null;
-        this.output = null;
-
-        this.setup();
-    }
-    async setup(){
-        await this.useDefaultTemplate("lani-svg-writer");
-
-        this.writer = this.shadow.getElementById("writer");
-        this.output = this.shadow.getElementById("output-container");
-
-        this.writer.addEventListener("keydown", e => {
-            if(e.key === "Enter" && e.ctrlKey){
-                e.preventDefault();
-                this.render();
-            }
-        });
-
-        this.writer.value = L_DEFAULT_SVG;
-        this.render();
-    }
-    render(){
-        this.output.innerHTML = this.writer.value;
-    }
-}
-
-Lani.regEl("lani-svg-writer", Lani.SVGWriterElement);

@@ -171,12 +171,6 @@ Lani.DataSource = class {
     async get(){ }
 }
 
-Lani.DataSourceElement = class extends Lani.Element {
-
-}
-
-Lani.regEl("lani-data-source", Lani.DataSourceElement);
-
 // Data source class for arrays
 Lani.InMemoryDataSource = class extends Lani.DataSource {
     constructor(array){

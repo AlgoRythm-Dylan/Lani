@@ -33,3 +33,7 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
         cell.innerHTML = row[this.sourceName];
     }
 }
+
+Lani.TableColumnElement = class extends Lani.Element { }
+
+Lani.regEl("lani-table-column", Lani.TableColumnElement);

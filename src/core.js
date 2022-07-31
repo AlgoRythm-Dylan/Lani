@@ -144,6 +144,17 @@ Lani.Element = class extends HTMLElement {
     ready(detail={}){
         this.emit(Lani.ElementEvents.Ready, detail);
     }
+    setupNonDOM(){
+        this.style.display = "none";
+    }
+    getDeclarativeContent(){
+        let contentSlot = this.shadow.querySelector("slot#declarative-content");
+        if(!contentSlot)
+            contentSlot = this.shadow.querySelector("slot[name='declarative-content' i]");
+        if(!contentSlot)
+            return [];
+        return Lani.getLaniElements(contentSlot);
+    }
 }
 
 Lani.waitForElement = elementName => {
@@ -201,4 +212,13 @@ Lani.downloadBlob = (blob, fileName) => {
     a.href = URL.createObjectURL(blob);
     a.download = fileName;
     a.click();
+}
+
+// Very simple and does no concrete tests
+Lani.getLaniElements = element => {
+    let results = [];
+    for(let child of element.children)
+        if(child.tagName.startsWith("LANI-"))
+            results.push(child);
+    return results;
 }
