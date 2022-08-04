@@ -244,6 +244,9 @@ Lani.useGenericTemplate = (template, parent, appendMode=true) => {
     else{
         if(!appendMode)
             parent.innerHTML = "";
-        parent.appendChild(template.content.cloneNode(true));
+        if(typeof template.content !== "undefined")
+            parent.appendChild(template.content.cloneNode(true));
+        else
+            parent.appendChild(template);
     }
 }

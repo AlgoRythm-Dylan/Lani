@@ -39,12 +39,8 @@ Lani.TableElement = class extends Lani.DataElement {
         await this.useTemplate(Lani.templatesPath(), "#lani-table", false);
         this.linkStyle(Lani.contentRoot + "/tables.css");
 
-        this.discoverTitle();
-
-        let download = this.getAttribute("download-data");
-        if(download){
-            this.downloadData(download);
-        }
+        this.doDiscovery();
+        this.renderTable();
 
         this.ready();
     }
@@ -80,23 +76,23 @@ Lani.TableElement = class extends Lani.DataElement {
 
     }
 
-    // Data ops
-    // Download data. For now, expects JSON
-    async downloadData(source){
-        let data = await (await fetch(source)).json();
-        this.dataSource = new Lani.InMemoryDataSource(data);
-    }
-
     // Discovery
     doDiscovery(){
         this.discoverTitle();
         this.discoverColumns();
+        this.discoverDataSource();
     }
     discoverColumns(){
-        let columns = this.querySelectorAll("lani-table-column");
+        let columns = Array.from(this.querySelectorAll("lani-table-column"));
         if(columns.length === 0)
             return;
         this.columns = columns.map(col => col.column);
+    }
+    discoverDataSource(){
+        let source = this.querySelector("lani-data-source");
+        if(!source)
+            return;
+        this.dataSource = source.dataSource;
     }
     discoverTitle(){
         let discoveredTitle = null;

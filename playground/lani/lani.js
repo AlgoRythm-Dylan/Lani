@@ -244,7 +244,10 @@ Lani.useGenericTemplate = (template, parent, appendMode=true) => {
     else{
         if(!appendMode)
             parent.innerHTML = "";
-        parent.appendChild(template.content.cloneNode(true));
+        if(typeof template.content !== "undefined")
+            parent.appendChild(template.content.cloneNode(true));
+        else
+            parent.appendChild(template);
     }
 }
 /*
@@ -454,6 +457,7 @@ Lani.InMemoryDataSource = class extends Lani.DataSource {
 
 Lani.DownloadedDataSource = class extends Lani.DataSource {
     constructor(source=null){
+        super();
         this.source = source;
         this.fetchOptions = {};
         this.data = null;
@@ -461,11 +465,12 @@ Lani.DownloadedDataSource = class extends Lani.DataSource {
     async get(){
         if(this.data === null)
             await this.download();
+        return this.data;
     }
     async download(){
         if(this.source === null)
             throw "Tried to download from a null source";
-        this.data = Lani.DataSet.from(
+        return this.data = Lani.DataSet.from(
             await (
                 await fetch(this.source, this.fetchOptions)
             ).json()
@@ -1856,10 +1861,15 @@ Lani.TableRenderer = class {
         if(this.table.columns.length === 0)
             return; // What do you want me to do about it??
 
-        let table = Lani.c("table");
-        let head = this.renderHeaders();
+        let tableEl = Lani.c("table");
+        if(this.table.renderHeaders){
+            let head = this.renderHeaders();
+            tableEl.appendChild(head);
+        }
+        let tbody = this.renderBody(data);
+        tableEl.appendChild(tbody);
 
-        this.table.setBody(table);
+        this.table.setBody(tableEl);
     }
     // This function is split up like this to follow good
     // code practices, not necessarily because this is
@@ -1873,6 +1883,7 @@ Lani.TableRenderer = class {
         // Lani.c =~ Lani.create
         let head = Lani.c("thead");
         let headRow = Lani.c("tr");
+        head.appendChild(headRow);
         for(let column of this.table.columns){
             let cell = Lani.c("th");
             column.renderHeader(cell);
@@ -1881,8 +1892,18 @@ Lani.TableRenderer = class {
         return head;
     }
     // See note on renderHeaders
-    renderBody(){
-
+    renderBody(data){
+        let tbody = Lani.create("tbody");
+        for(let dataRow of data.rows){
+            let row = Lani.c("tr");
+            for(let column of this.table.columns){
+                let cell = Lani.c("td");
+                column.render(dataRow.data, cell);
+                row.appendChild(cell);
+            }
+            tbody.appendChild(row);
+        }
+        return tbody;
     }
 }
 Lani.TableTemplates = {};
@@ -1926,12 +1947,8 @@ Lani.TableElement = class extends Lani.DataElement {
         await this.useTemplate(Lani.templatesPath(), "#lani-table", false);
         this.linkStyle(Lani.contentRoot + "/tables.css");
 
-        this.discoverTitle();
-
-        let download = this.getAttribute("download-data");
-        if(download){
-            this.downloadData(download);
-        }
+        this.doDiscovery();
+        this.renderTable();
 
         this.ready();
     }
@@ -1967,23 +1984,23 @@ Lani.TableElement = class extends Lani.DataElement {
 
     }
 
-    // Data ops
-    // Download data. For now, expects JSON
-    async downloadData(source){
-        let data = await (await fetch(source)).json();
-        this.dataSource = new Lani.InMemoryDataSource(data);
-    }
-
     // Discovery
     doDiscovery(){
         this.discoverTitle();
         this.discoverColumns();
+        this.discoverDataSource();
     }
     discoverColumns(){
-        let columns = this.querySelectorAll("lani-table-column");
+        let columns = Array.from(this.querySelectorAll("lani-table-column"));
         if(columns.length === 0)
             return;
         this.columns = columns.map(col => col.column);
+    }
+    discoverDataSource(){
+        let source = this.querySelector("lani-data-source");
+        if(!source)
+            return;
+        this.dataSource = source.dataSource;
     }
     discoverTitle(){
         let discoveredTitle = null;

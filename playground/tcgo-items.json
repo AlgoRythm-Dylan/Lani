@@ -1,0 +1,16 @@
+[
+    {
+        "Card Name": "Missing Clover",
+        "Description": "If you have and play 4 of these cards, take a prize card",
+        "Variant": null,
+        "Score": 95,
+        "Tags": null
+    },
+    {
+        "Card Name": "Cyrus",
+        "Description": "Opponent keeps only 2 benched pokemon. Everything else goes back into their deck",
+        "Variant": null,
+        "Score": 80,
+        "Tags": null
+    }
+]

@@ -1099,24 +1099,6 @@
         "Type": "Normal"
     },
     {
-        "Card Name": "Missing Clover",
-        "Description": "If you have and play 4 of these cards, take a prize card",
-        "Variant": "Item",
-        "Stage": null,
-        "Score": 95,
-        "Tags": null,
-        "Type": null
-    },
-    {
-        "Card Name": "Cyrus",
-        "Description": "Opponent keeps only 2 benched pokemon. Everything else goes back into their deck",
-        "Variant": "Item",
-        "Stage": null,
-        "Score": 80,
-        "Tags": null,
-        "Type": null
-    },
-    {
         "Card Name": "Togekiss VMAX",
         "Description": "Do 120 damage and get 2 of any card from your deck per turn. Only costs 2 energy",
         "Variant": "VMAX",
@@ -1196,5 +1178,140 @@
         "Score": 80,
         "Tags": null,
         "Type": "Steel"
+    },
+    {
+        "Card Name": "Hisuian Growlithe",
+        "Description": "For free, it can prevent all damage vis a coinflip",
+        "Variant": null,
+        "Stage": "Basic",
+        "Score": 20,
+        "Tags": null,
+        "Type": "Fighting"
+    },
+    {
+        "Card Name": "Cyndaquil",
+        "Description": "For 1 energy, search your deck for up to 2 basic energy",
+        "Variant": null,
+        "Stage": "Basic",
+        "Score": 30,
+        "Tags": null,
+        "Type": "Fire"
+    },
+    {
+        "Card Name": "Radiant Heatran",
+        "Description": "Does 70(!!) damage for each damage counter on itself",
+        "Variant": null,
+        "Stage": "Basic",
+        "Score": 75,
+        "Tags": null,
+        "Type": "Fire"
+    },
+    {
+        "Card Name": "Origin Forme Dialga V",
+        "Description": "Attach 2 energy cards from discard to self, big damage, and VMAX is OP",
+        "Variant": "V",
+        "Stage": "Basic",
+        "Score": 80,
+        "Tags": null,
+        "Type": "Steel"
+    },
+    {
+        "Card Name": "Hisuian Electrode",
+        "Description": "For FREE: draw 3 cards. Also for FREE: do 50 damage",
+        "Variant": null,
+        "Stage": "1",
+        "Score": 60,
+        "Tags": null,
+        "Type": "Grass"
+    },
+    {
+        "Card Name": "Hisuian Decidueye",
+        "Description": "for FREE: 30x each damage counter on the opponent pokemon. Another attack does 80 damage to 1 of opponent pokemon",
+        "Variant": null,
+        "Stage": "2",
+        "Score": 60,
+        "Tags": null,
+        "Type": "Fighting"
+    },
+    {
+        "Card Name": "Ursaluna",
+        "Description": "Put 2 cards from discard pile into hand. Also for 3 energy (discard 2) do 200 damage",
+        "Variant": null,
+        "Stage": "2",
+        "Score": 70,
+        "Tags": null,
+        "Type": "Normal"
+    },
+    {
+        "Card Name": "Ramparados",
+        "Description": "240 damage for 2 energy, but does nothing if the opponent has 3 or less cards in their hand",
+        "Variant": null,
+        "Stage": "2",
+        "Score": 70,
+        "Tags": null,
+        "Type": "Fighting"
+    },
+    {
+        "Card Name": "Turtonator",
+        "Description": "80 damage retaliation",
+        "Variant": null,
+        "Stage": "Basic",
+        "Score": 40,
+        "Tags": null,
+        "Type": "Dragon"
+    },
+    {
+        "Card Name": "Mismagius",
+        "Description": "Make your opponent shuffle back everything except three cards in your hand(!!)",
+        "Variant": null,
+        "Stage": "Basic",
+        "Score": 90,
+        "Tags": null,
+        "Type": "Psychic"
+    },
+    {
+        "Card Name": "Shieldon",
+        "Description": "Hard hitter and can coinflip for no damage",
+        "Variant": null,
+        "Stage": "1",
+        "Score": 50,
+        "Tags": null,
+        "Type": "Steel"
+    },
+    {
+        "Card Name": "Leavanny",
+        "Description": "Heal ALL damage from ALL benched pokemon, then this card goes back into the deck",
+        "Variant": null,
+        "Stage": "2",
+        "Score": 55,
+        "Tags": null,
+        "Type": "Grass"
+    },
+    {
+        "Card Name": "Primeape",
+        "Description": "Gets rid of stadiums and does 50x your benched pokemon w/ damage",
+        "Variant": null,
+        "Stage": "2",
+        "Score": 25,
+        "Tags": "Single Strike",
+        "Type": "Fighting"
+    },
+    {
+        "Card Name": "Shadow Rider Calyrex V",
+        "Description": "Decent card, but the VMAX is what you want",
+        "Variant": "V",
+        "Stage": "Basic",
+        "Score": 30,
+        "Tags": null,
+        "Type": "Psychic"
+    },
+    {
+        "Card Name": "Golduck",
+        "Description": "Discard this AND the opponent's active card",
+        "Variant": null,
+        "Stage": "1",
+        "Score": 60,
+        "Tags": null,
+        "Type": "Water"
     }
 ]

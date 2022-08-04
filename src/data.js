@@ -205,6 +205,7 @@ Lani.InMemoryDataSource = class extends Lani.DataSource {
 
 Lani.DownloadedDataSource = class extends Lani.DataSource {
     constructor(source=null){
+        super();
         this.source = source;
         this.fetchOptions = {};
         this.data = null;
@@ -212,11 +213,12 @@ Lani.DownloadedDataSource = class extends Lani.DataSource {
     async get(){
         if(this.data === null)
             await this.download();
+        return this.data;
     }
     async download(){
         if(this.source === null)
             throw "Tried to download from a null source";
-        this.data = Lani.DataSet.from(
+        return this.data = Lani.DataSet.from(
             await (
                 await fetch(this.source, this.fetchOptions)
             ).json()
