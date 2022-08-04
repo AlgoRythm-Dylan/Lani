@@ -613,6 +613,11 @@ Lani.prettifyDataName = (word, options={}) => {
 Lani.ElementEvents.DataDownloaded = "lani::data-downloaded";
 Lani.ElementEvents.DataReady = "lani::data-ready";
 
+Lani.DataSourceElementHandlers = {};
+Lani.DataSourceElementHandlers["download"] = element => {
+    element.dataSource = new Lani.DownloadedDataSource(element.getAttribute("source"));
+};
+
 // TODO: make extensible with handlers
 Lani.DataSourceElement = class extends Lani.Element {
     constructor(){
@@ -622,16 +627,17 @@ Lani.DataSourceElement = class extends Lani.Element {
     }
     connectedCallback(){
         this.setupNonDOM();
-
-        let download = this.getAttribute("download");
-        if(download !== null){
-            this.downloadDataSource(download);
+        let dataSourceType = this.getAttribute("type");
+        if(dataSourceType === null){
+            console.warn("No data source type present, assuming \"download\"", this);
+            dataSourceType = "download";
         }
-        // Pickup fetched data sources, local data sources, etc here.
-    }
-    // TODO: this is poor
-    async downloadDataSource(path){
-        this.dataSource = new Lani.DownloadedDataSource(path);
+        let handler = Lani.DataSourceElementHandlers[dataSourceType];
+        if(!handler){
+            console.error("No handler found for data source element", this);
+            return;
+        }
+        handler(this);
     }
     dataReady(){
         this.dataReady = true;

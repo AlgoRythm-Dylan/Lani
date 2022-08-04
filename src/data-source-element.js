@@ -7,7 +7,21 @@
 Lani.ElementEvents.DataDownloaded = "lani::data-downloaded";
 Lani.ElementEvents.DataReady = "lani::data-ready";
 
-// TODO: make extensible with handlers
+// Handlers are just a function with the element passed in as an
+// argument. This allows custom code to prepare the element and
+// most importantly set the data source, reading information
+// and attributes from the element that might be declared. By
+// convention (the very same convention I just made up in my head),
+// handlers should be lowercase ("download"). However there is
+// no mechanism prohibiting you from naming a handler KJGSDUI^*(SDJH)
+// so just try to be responsible if you're gonna write one of these
+// (which I can see being a common thing since data is ridiculously
+// generic) - it's case sensitive.
+Lani.DataSourceElementHandlers = {};
+Lani.DataSourceElementHandlers["download"] = element => {
+    element.dataSource = new Lani.DownloadedDataSource(element.getAttribute("source"));
+};
+
 Lani.DataSourceElement = class extends Lani.Element {
     constructor(){
         super();
@@ -16,16 +30,17 @@ Lani.DataSourceElement = class extends Lani.Element {
     }
     connectedCallback(){
         this.setupNonDOM();
-
-        let download = this.getAttribute("download");
-        if(download !== null){
-            this.downloadDataSource(download);
+        let dataSourceType = this.getAttribute("type");
+        if(dataSourceType === null){
+            console.warn("No data source type present, assuming \"download\"", this);
+            dataSourceType = "download";
         }
-        // Pickup fetched data sources, local data sources, etc here.
-    }
-    // TODO: this is poor
-    async downloadDataSource(path){
-        this.dataSource = new Lani.DownloadedDataSource(path);
+        let handler = Lani.DataSourceElementHandlers[dataSourceType];
+        if(!handler){
+            console.error(`No handler found for data source element (type: {dataSourceType})`, this);
+            return;
+        }
+        handler(this);
     }
     dataReady(){
         this.dataReady = true;
