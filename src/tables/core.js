@@ -46,7 +46,7 @@ Lani.TableColumnElement = class extends Lani.Element {
         let col = new Lani.TableColumn();
         col.name = this.getAttribute("name") ??
             (this.innerText === "" ? null : this.innerText);
-        col.sourceName = this.getAttribute("source-name");
+        col.sourceName = this.getAttribute("source-name") ?? col.name;
         
         col.formatting.headerAlign = this.getAttribute("header-align");
         return col;

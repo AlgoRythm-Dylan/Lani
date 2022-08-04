@@ -238,6 +238,16 @@ Lani.DownloadedDataSource = class extends Lani.DataSource {
         this.fetchOptions = {};
         this.inMem = new Lani.InMemoryDataSource();
     }
+    set groups(value){
+        if(!this.inMem)
+            return;
+        this.inMem.groups = value;
+    }
+    get groups(){
+        if(!this.inMem)
+            return;
+        return this.inMem.groups;
+    }
     async get(){
         if(await this.inMem.get() === null)
             await this.download();

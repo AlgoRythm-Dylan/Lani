@@ -41,6 +41,11 @@ Lani.DataSourceElement = class extends Lani.Element {
             return;
         }
         handler(this);
+
+        this.discoverGroups();
+    }
+    discoverGroups(){
+        this.dataSource.groups = Array.from(this.querySelectorAll("lani-data-group")).map(el => el.groupKey);
     }
     dataReady(){
         this.dataReady = true;
@@ -56,3 +61,11 @@ Lani.DataSourceElement = class extends Lani.Element {
 }
 
 Lani.regEl("lani-data-source", Lani.DataSourceElement);
+
+Lani.DataGroupElement = class extends Lani.Element {
+    get groupKey(){
+        return this.getAttribute("group") ?? this.getAttribute("group-key") ?? this.innerText;
+    }
+}
+
+Lani.regEl("lani-data-group", Lani.DataGroupElement);

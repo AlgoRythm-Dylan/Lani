@@ -492,6 +492,16 @@ Lani.DownloadedDataSource = class extends Lani.DataSource {
         this.fetchOptions = {};
         this.inMem = new Lani.InMemoryDataSource();
     }
+    set groups(value){
+        if(!this.inMem)
+            return;
+        this.inMem.groups = value;
+    }
+    get groups(){
+        if(!this.inMem)
+            return;
+        return this.inMem.groups;
+    }
     async get(){
         if(await this.inMem.get() === null)
             await this.download();
@@ -1298,6 +1308,11 @@ Lani.DataSourceElement = class extends Lani.Element {
             return;
         }
         handler(this);
+
+        this.discoverGroups();
+    }
+    discoverGroups(){
+        this.dataSource.groups = Array.from(this.querySelectorAll("lani-data-group")).map(el => el.groupKey);
     }
     dataReady(){
         this.dataReady = true;
@@ -1313,6 +1328,14 @@ Lani.DataSourceElement = class extends Lani.Element {
 }
 
 Lani.regEl("lani-data-source", Lani.DataSourceElement);
+
+Lani.DataGroupElement = class extends Lani.Element {
+    get groupKey(){
+        return this.getAttribute("group") ?? this.getAttribute("group-key") ?? this.innerText;
+    }
+}
+
+Lani.regEl("lani-data-group", Lani.DataGroupElement);
 /*
 
     Dialog module
@@ -1888,7 +1911,7 @@ Lani.TableColumnElement = class extends Lani.Element {
         let col = new Lani.TableColumn();
         col.name = this.getAttribute("name") ??
             (this.innerText === "" ? null : this.innerText);
-        col.sourceName = this.getAttribute("source-name");
+        col.sourceName = this.getAttribute("source-name") ?? col.name;
         
         col.formatting.headerAlign = this.getAttribute("header-align");
         return col;
