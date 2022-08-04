@@ -134,10 +134,6 @@ Lani.Element = class extends HTMLElement {
     async useDefaultTemplate(id, emitReady=true){
         await this.useTemplate(Lani.templatesPath(), `#${id}`, emitReady);
     }
-    getBoolAttr(attrName){
-        let attr = this.getAttribute(attrName);
-        return attr && attr.toLowerCase() === "true";
-    }
     emit(eventName, detail={}){
         this.dispatchEvent(new CustomEvent(eventName, detail));
     }
@@ -145,15 +141,27 @@ Lani.Element = class extends HTMLElement {
         this.emit(Lani.ElementEvents.Ready, detail);
     }
     setupNonDOM(){
-        this.style.display = "none";
+        this.setAttribute("lani-declarative", "true");
     }
-    getDeclarativeContent(){
-        let contentSlot = this.shadow.querySelector("slot#declarative-content");
-        if(!contentSlot)
-            contentSlot = this.shadow.querySelector("slot[name='declarative-content' i]");
-        if(!contentSlot)
-            return [];
-        return Lani.getLaniElements(contentSlot);
+    getIntAttribute(name){
+        let val = this.getAttribute(name);
+        if(val)
+            return parseInt(name);
+        else
+            return null;
+    }
+    getFloatAttribute(name){
+        let val = this.getAttribute(name);
+        if(val)
+            return parseFloat(name);
+        else
+            return null;
+    }
+    getBoolAttribute(name, ifMissingValue=false){
+        let val = this.getAttribute(name);
+        if(val === null)
+            return ifMissingValue;
+        return val.toLowerCase() === "true";
     }
 }
 
@@ -221,6 +229,23 @@ Lani.getLaniElements = element => {
         if(child.tagName.startsWith("LANI-"))
             results.push(child);
     return results;
+}
+
+// Handles either string or HTML element templates without
+// needing to discriminate between the two, and offers append
+// mode or replace mode
+Lani.useGenericTemplate = (template, parent, appendMode=true) => {
+    if(typeof template === "string"){
+        if(appendMode)
+            parent.innerHTML += template;
+        else
+            parent.innerHTML = template;
+    }
+    else{
+        if(!appendMode)
+            parent.innerHTML = "";
+        parent.appendChild(template.content.cloneNode(true));
+    }
 }
 /*
 
@@ -427,6 +452,27 @@ Lani.InMemoryDataSource = class extends Lani.DataSource {
     }
 }
 
+Lani.DownloadedDataSource = class extends Lani.DataSource {
+    constructor(source=null){
+        this.source = source;
+        this.fetchOptions = {};
+        this.data = null;
+    }
+    async get(){
+        if(this.data === null)
+            await this.download();
+    }
+    async download(){
+        if(this.source === null)
+            throw "Tried to download from a null source";
+        this.data = Lani.DataSet.from(
+            await (
+                await fetch(this.source, this.fetchOptions)
+            ).json()
+        );
+    }
+}
+
 
 /*
     Data elements get information about each other,
@@ -562,6 +608,7 @@ Lani.prettifyDataName = (word, options={}) => {
 Lani.ElementEvents.DataDownloaded = "lani::data-downloaded";
 Lani.ElementEvents.DataReady = "lani::data-ready";
 
+// TODO: make extensible with handlers
 Lani.DataSourceElement = class extends Lani.Element {
     constructor(){
         super();
@@ -572,6 +619,22 @@ Lani.DataSourceElement = class extends Lani.Element {
         this.setupNonDOM();
 
         let download = this.getAttribute("download");
+        if(download !== null){
+            this.downloadDataSource(download);
+        }
+        // Pickup fetched data sources, local data sources, etc here.
+    }
+    // TODO: this is poor
+    async downloadDataSource(path){
+        this.dataSource = new Lani.DownloadedDataSource(path);
+    }
+    dataReady(){
+        this.dataReady = true;
+        this.emit(Lani.ElementEvents.DataReady);
+    }
+    dataDownloaded(){
+        this.dataReady();
+        this.emit(Lani.ElementEvents.DataReady);
     }
     async get(){
         return await this.dataSource.get();
@@ -1750,6 +1813,7 @@ Lani.TableColumnBase = class {
         this.formatting = new Lani.TableColumnFormatting();
         this.name = name;
     }
+    renderHeader(cell){ }
     render(row, cell){ }
 }
 
@@ -1758,12 +1822,24 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
         super(name);
         this.sourceName = sourceName;
     }
+    renderHeader(cell){
+        cell.innerHTML = this.name;
+    }
     render(row, cell){
         cell.innerHTML = row[this.sourceName];
     }
 }
 
-Lani.TableColumnElement = class extends Lani.Element { }
+Lani.TableColumnElement = class extends Lani.Element {
+    get column(){
+        // TODO: populate the members of the column
+        let col = new Lani.TableColumn();
+        col.name = this.getAttribute("name");
+        col.sourceName = this.getAttribute("source-name") ??
+                            (this.innerText === "" ? null : this.innerText);
+        return col;
+    }
+}
 
 Lani.regEl("lani-table-column", Lani.TableColumnElement);
 /*
@@ -1775,7 +1851,37 @@ Lani.TableRenderer = class {
     constructor(table){
         this.table = table;
     }
+    // Data is a Lani.DataSet
     render(data){
+        if(this.table.columns.length === 0)
+            return; // What do you want me to do about it??
+
+        let table = Lani.c("table");
+        let head = this.renderHeaders();
+
+        this.table.setBody(table);
+    }
+    // This function is split up like this to follow good
+    // code practices, not necessarily because this is
+    // the base class and all TableRenderers should have
+    // renderHeaders and renderBody functions (UNLIKE columns)
+    renderHeaders(){
+        // I know Lani.c isn't readable but it's just so short
+        // and using it really takes the edge off dynamically
+        // creating lines and lines of HTML elements. Sorry.
+
+        // Lani.c =~ Lani.create
+        let head = Lani.c("thead");
+        let headRow = Lani.c("tr");
+        for(let column of this.table.columns){
+            let cell = Lani.c("th");
+            column.renderHeader(cell);
+            headRow.appendChild(cell);
+        }
+        return head;
+    }
+    // See note on renderHeaders
+    renderBody(){
 
     }
 }
@@ -1820,9 +1926,7 @@ Lani.TableElement = class extends Lani.DataElement {
         await this.useTemplate(Lani.templatesPath(), "#lani-table", false);
         this.linkStyle(Lani.contentRoot + "/tables.css");
 
-        let title = this.getAttribute("table-title");
-        if(title)
-            this.title = title;
+        this.discoverTitle();
 
         let download = this.getAttribute("download-data");
         if(download){
@@ -1838,16 +1942,22 @@ Lani.TableElement = class extends Lani.DataElement {
     }
     set title(title){
         this.#title = title;
-        this.shadow.getElementById("title").innerHTML = title;
+        Lani.useGenericTemplate(this.#title, this.shadow.getElementById("title"), false);
     }
 
+    async renderTable(){
+        if(this.renderer === null || this.dataSource === null)
+            return;
+        let data = await this.dataSource.get();
+        // If no columns have been specified, we can try to parse them
+        // unless the developer doesn't want this for some reason
+        if(this.autoParseColumns && this.columns.length === 0)
+            this.parseColumns(data);
+        this.renderer.render(data);
+    }
     setBody(newBody){
         let body = this.shadow.getElementById("body")
-        body.innerHTML = "";
-        if(typeof newBody === "string")
-            body.innerHTML = newBody;
-        else
-            body.appendChild(newBody);
+        Lani.useGenericTemplate(newBody, body, false);
     }
 
     showLoading(){
@@ -1863,6 +1973,28 @@ Lani.TableElement = class extends Lani.DataElement {
         let data = await (await fetch(source)).json();
         this.dataSource = new Lani.InMemoryDataSource(data);
     }
+
+    // Discovery
+    doDiscovery(){
+        this.discoverTitle();
+        this.discoverColumns();
+    }
+    discoverColumns(){
+        let columns = this.querySelectorAll("lani-table-column");
+        if(columns.length === 0)
+            return;
+        this.columns = columns.map(col => col.column);
+    }
+    discoverTitle(){
+        let discoveredTitle = null;
+        let template = this.querySelector("template#title");
+        if(template){
+            discoveredTitle = template;
+        }
+        return this.title = discoveredTitle;
+    }
+
+
     parseColumns(data){
         this.columns = [];
         for(let row of data.rows){
@@ -1881,25 +2013,51 @@ Lani.TableElement = class extends Lani.DataElement {
 Lani.regEl("lani-table", Lani.TableElement);
 Lani.installedModules.push("lani-testing");
 
-Lani.UnitTestError = class extends Error {
+Lani.TestError = class extends Error {
     constructor(message){
         super(message);
     }
 }
 
 Lani.assertEqual = (a, b) => {
-    if(a !== b)
-        throw new Lani.UnitTestError(`${a} is not equal to ${b}`);
+    if(a != b)
+        throw new Lani.TestError(`${a} should be equal to ${b}`);
 }
 
-Lani.UnitTest = class {
-    constructor(){
-        
-    }
-    evaluate(){
+Lani.assertStrictlyEqual = (a, b) => {
+    if(a !== b)
+        throw new Lani.TestError(`${a} should be strictly equal to ${b}`);
+}
 
-    }
-};
+Lani.assertInequal = (a, b) => {
+    if(a == b)
+        throw new Lani.TestError(`${a} should not be equal to ${b}`);
+}
+
+Lani.assertStrictlyInequal = (a, b) => {
+    if(a === b)
+        throw new Lani.TestError(`${a} should not be strictly equal to ${b}`);
+}
+
+Lani.assertGreaterThan = (a, b) => {
+    if(!(a > b))
+        throw new Lani.TestError(`${a} should be greater than ${b}`);
+}
+
+Lani.assertLessThan = (a, b) => {
+    if(!(a < b))
+        throw new Lani.TestError(`${a} should be less than ${b}`);
+}
+
+Lani.assertGreaterThanEq = (a, b) => {
+    if(!(a >= b))
+        throw new Lani.TestError(`${a} should be greater than or equal to ${b}`);
+}
+
+Lani.assertLessThanEq = (a, b) => {
+    if(!(a <= b))
+        throw new Lani.TestError(`${a} should be less than or equal to ${b}`);
+}
 
 Lani.PerformanceTest = class {
     constructor(){
@@ -1914,6 +2072,3 @@ Lani.PerformanceTest = class {
         return this.end - this.start;
     }
 }
-
-Lani.UnitTests = [];
-Lani.PerformanceTests = [];

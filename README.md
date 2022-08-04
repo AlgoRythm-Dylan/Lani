@@ -2,20 +2,37 @@
 *Turn your website into a web application with one*
 *simple-to-use JavaScript plugin library*
 
-The easiest way to get going is to just create a folder
-on the root of your site called "lani" and put the files
-from the `build` folder of this repository in there.
-Finally, ensure FontAwesome is available on your site.
-See the notes below about FontAwesome / icons.
-
-Then, just link `lani.js` and/or `lani.css` in your pages.
-
-The CSS and JS libraries do not depend on each other - 
-you can choose to exclusively use one or the other. The
-`templates.html` file is loaded automatically but the JS
-library.
-
 See [the GitHub Pages site](https://algorythm-dylan.github.io/Lani/) for demos and docs
+
+## Quickstart
+
+Ensure FontAwesome (version 6 or compatible) is available
+on your site. Copy the files from the `build` directory
+of this repository to your static resources under a folder
+called "lani" (or change `Lani.contentRoot`). Then, include
+these files on every page you want to use Lani (you don't
+need to do anything with `templates.html`)
+
+## Focus
+Lani is focused on a great experience for developers and
+end users. Lani elements aim to be as declarative as
+possible, and font-end devs should not need to use any
+JavaScript to configure Lani elements.
+
+```html
+<lani-table>
+    <!-- Set the title of the table to an HTML template -->
+    <template id="title">
+        <h2>Profit - Past 10 years by department</h2>
+    </template>
+
+    <!--
+        Set the data source of this table to download
+        the JSON API response once into memory
+    -->
+    <lani-data-source download="/api/report/profit-10-year"></lani-data-source>
+</lani-table>
+```
 
 ## FontAwesome / Icons
 
@@ -25,49 +42,9 @@ was built with FontAwesome 6.
 
 If you use anything other than the free version, you
 can even set the `Lani.iconResolver.defaultStyle` to
-something like `fa-regular`. Note that `defaultStyle`
+something like `"fa-regular"`. Note that `defaultStyle`
 is only available for `Lani.FontAwesomeIconResolver`.
 
 You can use your own icon library if you want, you just need
 to write your own `Lani.IconResolver` and then set
 `Lani.iconResolver` to an instance of your new resolver.
-
-## Development and this repository
-
-Right now, Lani isn't looking for any collaborators.
-It's a passion project and adding any sort of
-responsibility to it would be detrimental to my
-experience.
-
-There's a custom build system because I couldn't find a
-simple command that would just concatenate JS/CSS/etc files.
-By default they aren't minified. Maybe I'll release
-minified versions with actual "release" packages, but for
-now, you'll need to deal with the extra bytes.
-
-Plus, the `concat.js` file is really simple stuff. It's
-not ***too*** far off something line a webpack js
-config file.
-
-In VSCode you can just press `ctrl + shift + b` to build
-and copy the files to the various locations they need to go.
-The process isn't automatic. If you make changes, you need
-to build. Also, files aren't automatically added to the build.
-You need to add them into `concat.js`. For some reason
-it doesn't work on Linux. You need to manually run
-`node concat.js` from the root directory.
-
-The `playground` folder is a simple place for putting
-together unfinished demos. It's like a slightly more
-permanent version of a test page, but still not permanent.
-
-The `build` folder is just a simple output of the build
-process.
-
-The `docs` folder should be a polished documentation and
-examples site. It will also include "marketing" and act as
-the landing page of the library, not just docs.
-
-There are some npm scripts for building the project and
-also starting local web servers (expressjs dependency).
-By default they run on port 1234.

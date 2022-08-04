@@ -95,6 +95,12 @@
 .l-version-display::before {
     content: var(--lani-version);
 }
+/*
+    Util
+*/
+*[lani-declarative]{
+    display: none;
+}
 
 /*
     text

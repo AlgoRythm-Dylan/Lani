@@ -10,16 +10,16 @@
     <link href="fontawesome/fontawesome.min.css" type="text/css" rel="stylesheet"></link>
 </head>
 <body class="l-body">
-    <lani-table table-title="oh, wow!">
+    
+    <lani-table>
+        <template id="title">
+            <p><lani-icon icon="table"></lani-icon> Test Table</h1>
+        </template>
+
         <lani-data-source download="/tcgo-pkmn.json"></lani-data-source>
 
         <lani-table-column column-name="USER_NAME">Username</lani-table-column>
         <lani-table-column column-name="AGE">Age</lani-table-column>
     </lani-table>
-    <script>
-        let table = document.querySelector("lani-table");
-        table.addEventListener(Lani.ElementEvents.Ready, () => {
-            table.showLoading();
-        });
-    </script>
+
 </body>

@@ -21,6 +21,7 @@ Lani.TableColumnBase = class {
         this.formatting = new Lani.TableColumnFormatting();
         this.name = name;
     }
+    renderHeader(cell){ }
     render(row, cell){ }
 }
 
@@ -29,11 +30,23 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
         super(name);
         this.sourceName = sourceName;
     }
+    renderHeader(cell){
+        cell.innerHTML = this.name;
+    }
     render(row, cell){
         cell.innerHTML = row[this.sourceName];
     }
 }
 
-Lani.TableColumnElement = class extends Lani.Element { }
+Lani.TableColumnElement = class extends Lani.Element {
+    get column(){
+        // TODO: populate the members of the column
+        let col = new Lani.TableColumn();
+        col.name = this.getAttribute("name");
+        col.sourceName = this.getAttribute("source-name") ??
+                            (this.innerText === "" ? null : this.innerText);
+        return col;
+    }
+}
 
 Lani.regEl("lani-table-column", Lani.TableColumnElement);

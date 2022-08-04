@@ -77,7 +77,7 @@
         "extends": "Lani JS",
         "overrideProperties": ["envs", "outputs"],
         "inputs": [
-            "./src/tests/lani.test.js"
+            "./src/test/lani.test.js"
         ],
         "envs": ["dev"],
         "outputs": ["./playground/lani/lani.js"]

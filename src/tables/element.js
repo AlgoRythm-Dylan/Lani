@@ -39,9 +39,7 @@ Lani.TableElement = class extends Lani.DataElement {
         await this.useTemplate(Lani.templatesPath(), "#lani-table", false);
         this.linkStyle(Lani.contentRoot + "/tables.css");
 
-        let title = this.getAttribute("table-title");
-        if(title)
-            this.title = title;
+        this.discoverTitle();
 
         let download = this.getAttribute("download-data");
         if(download){
@@ -57,16 +55,22 @@ Lani.TableElement = class extends Lani.DataElement {
     }
     set title(title){
         this.#title = title;
-        this.shadow.getElementById("title").innerHTML = title;
+        Lani.useGenericTemplate(this.#title, this.shadow.getElementById("title"), false);
     }
 
+    async renderTable(){
+        if(this.renderer === null || this.dataSource === null)
+            return;
+        let data = await this.dataSource.get();
+        // If no columns have been specified, we can try to parse them
+        // unless the developer doesn't want this for some reason
+        if(this.autoParseColumns && this.columns.length === 0)
+            this.parseColumns(data);
+        this.renderer.render(data);
+    }
     setBody(newBody){
         let body = this.shadow.getElementById("body")
-        body.innerHTML = "";
-        if(typeof newBody === "string")
-            body.innerHTML = newBody;
-        else
-            body.appendChild(newBody);
+        Lani.useGenericTemplate(newBody, body, false);
     }
 
     showLoading(){
@@ -82,6 +86,28 @@ Lani.TableElement = class extends Lani.DataElement {
         let data = await (await fetch(source)).json();
         this.dataSource = new Lani.InMemoryDataSource(data);
     }
+
+    // Discovery
+    doDiscovery(){
+        this.discoverTitle();
+        this.discoverColumns();
+    }
+    discoverColumns(){
+        let columns = this.querySelectorAll("lani-table-column");
+        if(columns.length === 0)
+            return;
+        this.columns = columns.map(col => col.column);
+    }
+    discoverTitle(){
+        let discoveredTitle = null;
+        let template = this.querySelector("template#title");
+        if(template){
+            discoveredTitle = template;
+        }
+        return this.title = discoveredTitle;
+    }
+
+
     parseColumns(data){
         this.columns = [];
         for(let row of data.rows){

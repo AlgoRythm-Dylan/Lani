@@ -134,10 +134,6 @@ Lani.Element = class extends HTMLElement {
     async useDefaultTemplate(id, emitReady=true){
         await this.useTemplate(Lani.templatesPath(), `#${id}`, emitReady);
     }
-    getBoolAttr(attrName){
-        let attr = this.getAttribute(attrName);
-        return attr && attr.toLowerCase() === "true";
-    }
     emit(eventName, detail={}){
         this.dispatchEvent(new CustomEvent(eventName, detail));
     }
@@ -145,15 +141,27 @@ Lani.Element = class extends HTMLElement {
         this.emit(Lani.ElementEvents.Ready, detail);
     }
     setupNonDOM(){
-        this.style.display = "none";
+        this.setAttribute("lani-declarative", "true");
     }
-    getDeclarativeContent(){
-        let contentSlot = this.shadow.querySelector("slot#declarative-content");
-        if(!contentSlot)
-            contentSlot = this.shadow.querySelector("slot[name='declarative-content' i]");
-        if(!contentSlot)
-            return [];
-        return Lani.getLaniElements(contentSlot);
+    getIntAttribute(name){
+        let val = this.getAttribute(name);
+        if(val)
+            return parseInt(name);
+        else
+            return null;
+    }
+    getFloatAttribute(name){
+        let val = this.getAttribute(name);
+        if(val)
+            return parseFloat(name);
+        else
+            return null;
+    }
+    getBoolAttribute(name, ifMissingValue=false){
+        let val = this.getAttribute(name);
+        if(val === null)
+            return ifMissingValue;
+        return val.toLowerCase() === "true";
     }
 }
 
@@ -221,4 +229,21 @@ Lani.getLaniElements = element => {
         if(child.tagName.startsWith("LANI-"))
             results.push(child);
     return results;
+}
+
+// Handles either string or HTML element templates without
+// needing to discriminate between the two, and offers append
+// mode or replace mode
+Lani.useGenericTemplate = (template, parent, appendMode=true) => {
+    if(typeof template === "string"){
+        if(appendMode)
+            parent.innerHTML += template;
+        else
+            parent.innerHTML = template;
+    }
+    else{
+        if(!appendMode)
+            parent.innerHTML = "";
+        parent.appendChild(template.content.cloneNode(true));
+    }
 }
