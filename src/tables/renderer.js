@@ -14,10 +14,10 @@ Lani.TableRenderer = class {
 
         let tableEl = Lani.c("table", "l-table");
         if(this.table.renderHeaders){
-            let head = this.renderHeaders();
+            let head = this.#renderHeaders();
             tableEl.appendChild(head);
         }
-        let tbody = this.renderBody(data);
+        let tbody = this.#renderBody(data);
         tableEl.appendChild(tbody);
 
         this.table.setBody(tableEl);
@@ -26,7 +26,7 @@ Lani.TableRenderer = class {
     // code practices, not necessarily because this is
     // the base class and all TableRenderers should have
     // renderHeaders and renderBody functions (UNLIKE columns)
-    renderHeaders(){
+    #renderHeaders(){
         // I know Lani.c isn't readable but it's just so short
         // and using it really takes the edge off dynamically
         // creating lines and lines of HTML elements. Sorry.
@@ -41,8 +41,11 @@ Lani.TableRenderer = class {
         return head;
     }
     // See note on renderHeaders
-    renderBody(data){
-        let tbody = Lani.create("tbody");
+    #renderBody(data){
+        if(data.isGrouped)
+            return this.#renderGroupedBody(data);
+        
+        let tbody = Lani.c("tbody");
         for(let dataRow of data.rows){
             let row = Lani.c("tr");
             for(let column of this.table.columns){
@@ -52,6 +55,16 @@ Lani.TableRenderer = class {
             }
             tbody.appendChild(row);
         }
+        return tbody;
+    }
+    // This is more complex than just rendering the body so
+    // it has been organized out into this alternative method
+    // This takes advantage of the rowspan attribute
+    // of a <td>. Basically, if a <td> has a rowspan of 2 or
+    // more, that <td> is automatically "filled in" in the
+    // next <tr>. This function will likely need to be recursive
+    #renderGroupedBody(data){
+        let tbody = Lani.c("tbody");
         return tbody;
     }
 }

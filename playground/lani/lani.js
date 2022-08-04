@@ -313,7 +313,11 @@ Lani.groupDataSetRecursive = (dataSet, groupStack) => {
     }
 
     dataSet.groupKey = columnToGroup;
-    dataSet.rows = Object.keys(groups).map(key => Lani.DataSet.from(groups[key]));
+    dataSet.rows = Object.keys(groups).map(key => {
+        let set = Lani.DataSet.from(groups[key])
+        set.groupValue = key;
+        return set;
+    });
 
     if(newGroupStack.length !== 0){
         for(let newDataSet of dataSet.rows){
@@ -328,6 +332,7 @@ Lani.DataSet = class {
     constructor(){
         this.rows = [];
         this.groupKey = null;
+        this.groupValue = null;
     }
     // create from a raw array
     static from(arr){
@@ -364,8 +369,14 @@ Lani.DataSet = class {
     removeAt(i){
         this.rows.splice(i, 1);
     }
+    get isGrouped(){
+        return this.groupKey !== null;
+    }
     get length(){
-        return this.rows.length;
+        if(!this.isGrouped)
+            return this.rows.length;
+        else
+            return this.rows.reduce((count, currentItem) => count + currentItem.length, 0);
     }
     async export(fileName, fileType){
         let exporterClass = Lani.DataSetExporters[fileType];
@@ -501,6 +512,9 @@ Lani.DownloadedDataSource = class extends Lani.DataSource {
         if(!this.inMem)
             return;
         return this.inMem.groups;
+    }
+    async update(){
+        await this.inMem.update();
     }
     async get(){
         if(await this.inMem.get() === null)
@@ -1294,9 +1308,16 @@ Lani.DataSourceElement = class extends Lani.Element {
         super();
         this.dataSource = null;
         this.dataReady = false;
+        this.slotElement = null;
     }
     connectedCallback(){
         this.setupNonDOM();
+        this.slotElement = Lani.c("slot");
+        this.shadow.appendChild(this.slotElement);
+        this.slotElement.addEventListener("slotchange", e => {
+            this.discoverGroups();
+        });
+
         let dataSourceType = this.getAttribute("type");
         if(dataSourceType === null){
             console.warn("No data source type present, assuming \"download\"", this);
@@ -1304,12 +1325,10 @@ Lani.DataSourceElement = class extends Lani.Element {
         }
         let handler = Lani.DataSourceElementHandlers[dataSourceType];
         if(!handler){
-            console.error(`No handler found for data source element (type: {dataSourceType})`, this);
+            console.error(`No handler found for data source element (type: ${dataSourceType})`, this);
             return;
         }
         handler(this);
-
-        this.discoverGroups();
     }
     discoverGroups(){
         this.dataSource.groups = Array.from(this.querySelectorAll("lani-data-group")).map(el => el.groupKey);
@@ -1328,6 +1347,7 @@ Lani.DataSourceElement = class extends Lani.Element {
 }
 
 Lani.regEl("lani-data-source", Lani.DataSourceElement);
+
 
 Lani.DataGroupElement = class extends Lani.Element {
     get groupKey(){
@@ -1935,10 +1955,10 @@ Lani.TableRenderer = class {
 
         let tableEl = Lani.c("table", "l-table");
         if(this.table.renderHeaders){
-            let head = this.renderHeaders();
+            let head = this.#renderHeaders();
             tableEl.appendChild(head);
         }
-        let tbody = this.renderBody(data);
+        let tbody = this.#renderBody(data);
         tableEl.appendChild(tbody);
 
         this.table.setBody(tableEl);
@@ -1947,7 +1967,7 @@ Lani.TableRenderer = class {
     // code practices, not necessarily because this is
     // the base class and all TableRenderers should have
     // renderHeaders and renderBody functions (UNLIKE columns)
-    renderHeaders(){
+    #renderHeaders(){
         // I know Lani.c isn't readable but it's just so short
         // and using it really takes the edge off dynamically
         // creating lines and lines of HTML elements. Sorry.
@@ -1962,8 +1982,11 @@ Lani.TableRenderer = class {
         return head;
     }
     // See note on renderHeaders
-    renderBody(data){
-        let tbody = Lani.create("tbody");
+    #renderBody(data){
+        if(data.isGrouped)
+            return this.#renderGroupedBody(data);
+        
+        let tbody = Lani.c("tbody");
         for(let dataRow of data.rows){
             let row = Lani.c("tr");
             for(let column of this.table.columns){
@@ -1973,6 +1996,16 @@ Lani.TableRenderer = class {
             }
             tbody.appendChild(row);
         }
+        return tbody;
+    }
+    // This is more complex than just rendering the body so
+    // it has been organized out into this alternative method
+    // This takes advantage of the rowspan attribute
+    // of a <td>. Basically, if a <td> has a rowspan of 2 or
+    // more, that <td> is automatically "filled in" in the
+    // next <tr>. This function will likely need to be recursive
+    #renderGroupedBody(data){
+        let tbody = Lani.c("tbody");
         return tbody;
     }
 }
@@ -2017,6 +2050,8 @@ Lani.TableElement = class extends Lani.DataElement {
         await this.useTemplate(Lani.templatesPath(), "#lani-table", false);
         this.linkStyle(Lani.contentRoot + "/tables.css");
 
+        // TODO: this only works because the async this.useTemplate is taking
+        // long enough for the child nodes to populate(?) -- CHANGE
         this.doDiscovery();
         this.renderTable();
 
@@ -2094,6 +2129,12 @@ Lani.TableElement = class extends Lani.DataElement {
             }
         }
         return this.columns;
+    }
+    // If any columns are grouped, they:
+    //      a) Must be the first columns in the table
+    //      b) Must be in the order of grouping
+    validateColumnOrder(){
+
     }
 };
 

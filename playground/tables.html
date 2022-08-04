@@ -16,7 +16,10 @@
             <p><lani-icon icon="table"></lani-icon> Test Table</p>
         </template>
 
-        <lani-data-source type="download" source="/tcgo-pkmn.json"></lani-data-source>
+        <lani-data-source type="download" source="/tcgo-pkmn.json">
+            <lani-data-group>Type</lani-data-group>
+            <lani-data-group>Stage</lani-data-group>
+        </lani-data-source>
 
         <lani-table-column>Type</lani-table-column>
         <lani-table-column>Stage</lani-table-column>

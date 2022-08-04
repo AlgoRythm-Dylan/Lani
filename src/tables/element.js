@@ -39,6 +39,8 @@ Lani.TableElement = class extends Lani.DataElement {
         await this.useTemplate(Lani.templatesPath(), "#lani-table", false);
         this.linkStyle(Lani.contentRoot + "/tables.css");
 
+        // TODO: this only works because the async this.useTemplate is taking
+        // long enough for the child nodes to populate(?) -- CHANGE
         this.doDiscovery();
         this.renderTable();
 
@@ -116,6 +118,12 @@ Lani.TableElement = class extends Lani.DataElement {
             }
         }
         return this.columns;
+    }
+    // If any columns are grouped, they:
+    //      a) Must be the first columns in the table
+    //      b) Must be in the order of grouping
+    validateColumnOrder(){
+
     }
 };
 

@@ -59,7 +59,11 @@ Lani.groupDataSetRecursive = (dataSet, groupStack) => {
     }
 
     dataSet.groupKey = columnToGroup;
-    dataSet.rows = Object.keys(groups).map(key => Lani.DataSet.from(groups[key]));
+    dataSet.rows = Object.keys(groups).map(key => {
+        let set = Lani.DataSet.from(groups[key])
+        set.groupValue = key;
+        return set;
+    });
 
     if(newGroupStack.length !== 0){
         for(let newDataSet of dataSet.rows){
@@ -74,6 +78,7 @@ Lani.DataSet = class {
     constructor(){
         this.rows = [];
         this.groupKey = null;
+        this.groupValue = null;
     }
     // create from a raw array
     static from(arr){
@@ -110,8 +115,14 @@ Lani.DataSet = class {
     removeAt(i){
         this.rows.splice(i, 1);
     }
+    get isGrouped(){
+        return this.groupKey !== null;
+    }
     get length(){
-        return this.rows.length;
+        if(!this.isGrouped)
+            return this.rows.length;
+        else
+            return this.rows.reduce((count, currentItem) => count + currentItem.length, 0);
     }
     async export(fileName, fileType){
         let exporterClass = Lani.DataSetExporters[fileType];
@@ -247,6 +258,9 @@ Lani.DownloadedDataSource = class extends Lani.DataSource {
         if(!this.inMem)
             return;
         return this.inMem.groups;
+    }
+    async update(){
+        await this.inMem.update();
     }
     async get(){
         if(await this.inMem.get() === null)

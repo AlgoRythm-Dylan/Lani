@@ -27,9 +27,16 @@ Lani.DataSourceElement = class extends Lani.Element {
         super();
         this.dataSource = null;
         this.dataReady = false;
+        this.slotElement = null;
     }
     connectedCallback(){
         this.setupNonDOM();
+        this.slotElement = Lani.c("slot");
+        this.shadow.appendChild(this.slotElement);
+        this.slotElement.addEventListener("slotchange", e => {
+            this.discoverGroups();
+        });
+
         let dataSourceType = this.getAttribute("type");
         if(dataSourceType === null){
             console.warn("No data source type present, assuming \"download\"", this);
@@ -37,12 +44,10 @@ Lani.DataSourceElement = class extends Lani.Element {
         }
         let handler = Lani.DataSourceElementHandlers[dataSourceType];
         if(!handler){
-            console.error(`No handler found for data source element (type: {dataSourceType})`, this);
+            console.error(`No handler found for data source element (type: ${dataSourceType})`, this);
             return;
         }
         handler(this);
-
-        this.discoverGroups();
     }
     discoverGroups(){
         this.dataSource.groups = Array.from(this.querySelectorAll("lani-data-group")).map(el => el.groupKey);
@@ -61,6 +66,7 @@ Lani.DataSourceElement = class extends Lani.Element {
 }
 
 Lani.regEl("lani-data-source", Lani.DataSourceElement);
+
 
 Lani.DataGroupElement = class extends Lani.Element {
     get groupKey(){
