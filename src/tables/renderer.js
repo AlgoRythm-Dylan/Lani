@@ -12,7 +12,7 @@ Lani.TableRenderer = class {
         if(this.table.columns.length === 0)
             return; // What do you want me to do about it??
 
-        let tableEl = Lani.c("table");
+        let tableEl = Lani.c("table", "l-table");
         if(this.table.renderHeaders){
             let head = this.renderHeaders();
             tableEl.appendChild(head);
@@ -33,12 +33,10 @@ Lani.TableRenderer = class {
 
         // Lani.c =~ Lani.create
         let head = Lani.c("thead");
-        let headRow = Lani.c("tr");
-        head.appendChild(headRow);
+        let headRow = Lani.c("tr", null, head);
         for(let column of this.table.columns){
-            let cell = Lani.c("th");
+            let cell = Lani.c("th", null, headRow);
             column.renderHeader(cell);
-            headRow.appendChild(cell);
         }
         return head;
     }

@@ -48,10 +48,10 @@ Lani.create = (elementName, options={}) => {
 }
 
 // The absolute shortest that "document.createElement" can get, pretty much
-Lani.c = (elementName, className, parentElement, options) => {
+Lani.c = (elementName, className, parent, options) => {
     options = options || {};
     options.className = className;
-    options.parentElement = parentElement;
+    options.parent = parent;
     return Lani.create(elementName, options);
 }
 
@@ -235,6 +235,8 @@ Lani.getLaniElements = element => {
 // needing to discriminate between the two, and offers append
 // mode or replace mode
 Lani.useGenericTemplate = (template, parent, appendMode=true) => {
+    if(template === null)
+        return;
     if(typeof template === "string"){
         if(appendMode)
             parent.innerHTML += template;
@@ -415,11 +417,8 @@ Lani.DataSource = class {
         this.sorts = [];
         this.paginator = new Lani.Paginator();
         this.paginator.enabled = false;
-
-        // Generally, DataSources are used by Lani
-        this.returnType = Lani.DataSourceReturnType.DataSet;
     }
-    async update(){ }
+    async update(){ };
     async get(){ }
 }
 
@@ -431,9 +430,9 @@ Lani.InMemoryDataSource = class extends Lani.DataSource {
         this.array = array;
         this.product = null;
     }
-    async get(update = true){
-        if(update)
-            await this.update();
+    async get(){
+        if(this.product === null)
+            return null;
         if(this.paginator === null || !this.paginator.enabled)
             return this.product;
         let indices = this.paginator.indices;
@@ -460,17 +459,17 @@ Lani.DownloadedDataSource = class extends Lani.DataSource {
         super();
         this.source = source;
         this.fetchOptions = {};
-        this.data = null;
+        this.inMem = new Lani.InMemoryDataSource();
     }
     async get(){
-        if(this.data === null)
+        if(await this.inMem.get() === null)
             await this.download();
-        return this.data;
+        return this.inMem.get();
     }
     async download(){
         if(this.source === null)
             throw "Tried to download from a null source";
-        return this.data = Lani.DataSet.from(
+        this.inMem.setArray(
             await (
                 await fetch(this.source, this.fetchOptions)
             ).json()
@@ -604,55 +603,6 @@ Lani.prettifyDataName = (word, options={}) => {
     Object.assign(prettifier, options);
     return prettifier.prettify(word);
 }
-/*
-
-    Declarative way to create and use a data source
-
-*/
-
-Lani.ElementEvents.DataDownloaded = "lani::data-downloaded";
-Lani.ElementEvents.DataReady = "lani::data-ready";
-
-Lani.DataSourceElementHandlers = {};
-Lani.DataSourceElementHandlers["download"] = element => {
-    element.dataSource = new Lani.DownloadedDataSource(element.getAttribute("source"));
-};
-
-// TODO: make extensible with handlers
-Lani.DataSourceElement = class extends Lani.Element {
-    constructor(){
-        super();
-        this.dataSource = null;
-        this.dataReady = false;
-    }
-    connectedCallback(){
-        this.setupNonDOM();
-        let dataSourceType = this.getAttribute("type");
-        if(dataSourceType === null){
-            console.warn("No data source type present, assuming \"download\"", this);
-            dataSourceType = "download";
-        }
-        let handler = Lani.DataSourceElementHandlers[dataSourceType];
-        if(!handler){
-            console.error("No handler found for data source element", this);
-            return;
-        }
-        handler(this);
-    }
-    dataReady(){
-        this.dataReady = true;
-        this.emit(Lani.ElementEvents.DataReady);
-    }
-    dataDownloaded(){
-        this.dataReady();
-        this.emit(Lani.ElementEvents.DataReady);
-    }
-    async get(){
-        return await this.dataSource.get();
-    }
-}
-
-Lani.regEl("lani-data-source", Lani.DataSourceElement);
 Lani.search = {};
 
 Lani.search.exact = (term, dataSet) => {
@@ -1276,6 +1226,64 @@ Lani.svg.absolute = str => str.toUpperCase();
 
 /*
 
+    Declarative way to create and use a data source
+
+*/
+
+Lani.ElementEvents.DataDownloaded = "lani::data-downloaded";
+Lani.ElementEvents.DataReady = "lani::data-ready";
+
+// Handlers are just a function with the element passed in as an
+// argument. This allows custom code to prepare the element and
+// most importantly set the data source, reading information
+// and attributes from the element that might be declared. By
+// convention (the very same convention I just made up in my head),
+// handlers should be lowercase ("download"). However there is
+// no mechanism prohibiting you from naming a handler KJGSDUI^*(SDJH)
+// so just try to be responsible if you're gonna write one of these
+// (which I can see being a common thing since data is ridiculously
+// generic) - it's case sensitive.
+Lani.DataSourceElementHandlers = {};
+Lani.DataSourceElementHandlers["download"] = element => {
+    element.dataSource = new Lani.DownloadedDataSource(element.getAttribute("source"));
+};
+
+Lani.DataSourceElement = class extends Lani.Element {
+    constructor(){
+        super();
+        this.dataSource = null;
+        this.dataReady = false;
+    }
+    connectedCallback(){
+        this.setupNonDOM();
+        let dataSourceType = this.getAttribute("type");
+        if(dataSourceType === null){
+            console.warn("No data source type present, assuming \"download\"", this);
+            dataSourceType = "download";
+        }
+        let handler = Lani.DataSourceElementHandlers[dataSourceType];
+        if(!handler){
+            console.error(`No handler found for data source element (type: {dataSourceType})`, this);
+            return;
+        }
+        handler(this);
+    }
+    dataReady(){
+        this.dataReady = true;
+        this.emit(Lani.ElementEvents.DataReady);
+    }
+    dataDownloaded(){
+        this.dataReady();
+        this.emit(Lani.ElementEvents.DataReady);
+    }
+    async get(){
+        return await this.dataSource.get();
+    }
+}
+
+Lani.regEl("lani-data-source", Lani.DataSourceElement);
+/*
+
     Dialog module
 
 */
@@ -1811,11 +1819,11 @@ Lani.installedModules.push("lani-tables");
 Lani.TableColumnFormatting = class {
     constructor() {
         this.width = null;
-        this.caseMutation = null;
-        this.titleCaseMutation = null;
+        this.cellCasing = null;
+        this.headerCasing = null;
         this.trimData = false;
-        this.textTransform = null;
         this.nullText = null;
+        this.headerAlign = null;
     }
 }
 
@@ -1834,6 +1842,8 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
         this.sourceName = sourceName;
     }
     renderHeader(cell){
+        if(this.formatting.headerAlign !== null)
+            cell.style.textAlign = this.formatting.headerAlign;
         cell.innerHTML = this.name;
     }
     render(row, cell){
@@ -1845,9 +1855,11 @@ Lani.TableColumnElement = class extends Lani.Element {
     get column(){
         // TODO: populate the members of the column
         let col = new Lani.TableColumn();
-        col.name = this.getAttribute("name");
-        col.sourceName = this.getAttribute("source-name") ??
-                            (this.innerText === "" ? null : this.innerText);
+        col.name = this.getAttribute("name") ??
+            (this.innerText === "" ? null : this.innerText);
+        col.sourceName = this.getAttribute("source-name");
+        
+        col.formatting.headerAlign = this.getAttribute("header-align");
         return col;
     }
 }
@@ -1867,7 +1879,7 @@ Lani.TableRenderer = class {
         if(this.table.columns.length === 0)
             return; // What do you want me to do about it??
 
-        let tableEl = Lani.c("table");
+        let tableEl = Lani.c("table", "l-table");
         if(this.table.renderHeaders){
             let head = this.renderHeaders();
             tableEl.appendChild(head);
@@ -1888,12 +1900,10 @@ Lani.TableRenderer = class {
 
         // Lani.c =~ Lani.create
         let head = Lani.c("thead");
-        let headRow = Lani.c("tr");
-        head.appendChild(headRow);
+        let headRow = Lani.c("tr", null, head);
         for(let column of this.table.columns){
-            let cell = Lani.c("th");
+            let cell = Lani.c("th", null, headRow);
             column.renderHeader(cell);
-            headRow.appendChild(cell);
         }
         return head;
     }

@@ -163,11 +163,8 @@ Lani.DataSource = class {
         this.sorts = [];
         this.paginator = new Lani.Paginator();
         this.paginator.enabled = false;
-
-        // Generally, DataSources are used by Lani
-        this.returnType = Lani.DataSourceReturnType.DataSet;
     }
-    async update(){ }
+    async update(){ };
     async get(){ }
 }
 
@@ -179,9 +176,9 @@ Lani.InMemoryDataSource = class extends Lani.DataSource {
         this.array = array;
         this.product = null;
     }
-    async get(update = true){
-        if(update)
-            await this.update();
+    async get(){
+        if(this.product === null)
+            return null;
         if(this.paginator === null || !this.paginator.enabled)
             return this.product;
         let indices = this.paginator.indices;
@@ -208,17 +205,17 @@ Lani.DownloadedDataSource = class extends Lani.DataSource {
         super();
         this.source = source;
         this.fetchOptions = {};
-        this.data = null;
+        this.inMem = new Lani.InMemoryDataSource();
     }
     async get(){
-        if(this.data === null)
+        if(await this.inMem.get() === null)
             await this.download();
-        return this.data;
+        return this.inMem.get();
     }
     async download(){
         if(this.source === null)
             throw "Tried to download from a null source";
-        return this.data = Lani.DataSet.from(
+        this.inMem.setArray(
             await (
                 await fetch(this.source, this.fetchOptions)
             ).json()

@@ -48,10 +48,10 @@ Lani.create = (elementName, options={}) => {
 }
 
 // The absolute shortest that "document.createElement" can get, pretty much
-Lani.c = (elementName, className, parentElement, options) => {
+Lani.c = (elementName, className, parent, options) => {
     options = options || {};
     options.className = className;
-    options.parentElement = parentElement;
+    options.parent = parent;
     return Lani.create(elementName, options);
 }
 
@@ -235,6 +235,8 @@ Lani.getLaniElements = element => {
 // needing to discriminate between the two, and offers append
 // mode or replace mode
 Lani.useGenericTemplate = (template, parent, appendMode=true) => {
+    if(template === null)
+        return;
     if(typeof template === "string"){
         if(appendMode)
             parent.innerHTML += template;

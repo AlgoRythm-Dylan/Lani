@@ -8,11 +8,11 @@ Lani.installedModules.push("lani-tables");
 Lani.TableColumnFormatting = class {
     constructor() {
         this.width = null;
-        this.caseMutation = null;
-        this.titleCaseMutation = null;
+        this.cellCasing = null;
+        this.headerCasing = null;
         this.trimData = false;
-        this.textTransform = null;
         this.nullText = null;
+        this.headerAlign = null;
     }
 }
 
@@ -31,6 +31,8 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
         this.sourceName = sourceName;
     }
     renderHeader(cell){
+        if(this.formatting.headerAlign !== null)
+            cell.style.textAlign = this.formatting.headerAlign;
         cell.innerHTML = this.name;
     }
     render(row, cell){
@@ -42,9 +44,11 @@ Lani.TableColumnElement = class extends Lani.Element {
     get column(){
         // TODO: populate the members of the column
         let col = new Lani.TableColumn();
-        col.name = this.getAttribute("name");
-        col.sourceName = this.getAttribute("source-name") ??
-                            (this.innerText === "" ? null : this.innerText);
+        col.name = this.getAttribute("name") ??
+            (this.innerText === "" ? null : this.innerText);
+        col.sourceName = this.getAttribute("source-name");
+        
+        col.formatting.headerAlign = this.getAttribute("header-align");
         return col;
     }
 }

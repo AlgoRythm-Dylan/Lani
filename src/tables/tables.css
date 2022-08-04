@@ -5,3 +5,22 @@
 #title {
     flex: 1;
 }
+#body table.l-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+#body table tr {
+    border-top: var(--lani-border);
+}
+#body table tr:last-child {
+    border-bottom: var(--lani-border);
+}
+#body table tr > td, #body table tr > th {
+    border-left: var(--lani-border);
+}
+#body table tr > td:last-child, #body table tr > th:last-child {
+    border-right: var(--lani-border);
+}
+#body table td, #body table th {
+    padding: var(--lani-margin);
+}

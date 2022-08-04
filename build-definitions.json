@@ -14,7 +14,6 @@
         "inputs": [
             "./src/core.js",
             "./src/data.js",
-            "./src/data-source-element.js",
             "./src/search.js",
             "./src/context.js",
             "./src/extras.js",
@@ -26,6 +25,7 @@
 
             "./src/svg.js",
 
+            "./src/elements/data-source.js",
             "./src/elements/dialog.js",
             "./src/elements/icon.js",
             "./src/elements/paginator.js",
