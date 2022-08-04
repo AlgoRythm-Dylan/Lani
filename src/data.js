@@ -31,18 +31,49 @@ Lani.CSVDataSetExporter = class extends Lani.DataSetExporter {
 
 Lani.DataSetExporters["text/csv"] = Lani.CSVDataSetExporter;
 
+// Class so that if required, the data row can hold metadata
 Lani.DataRow = class {
-    constructor(data, key=null){
+    constructor(data){
         this.data = data;
-        this.key = key;
     }
+}
+
+// Sets the parent DataSet groupKey to the top groupStack value
+// and then replaces the .rows property with an array of
+// child DataSets grouped by the parent groupKey. If the
+// groupStack has more, then the same is done for each child
+// DataSet. Otherwise, the child DataSets have a .rows
+// of DataRow
+Lani.groupDataSetRecursive = (dataSet, groupStack) => {
+    if(groupStack.length === 0)
+        return dataSet;
+    let newGroupStack = groupStack.slice();
+    let columnToGroup = newGroupStack.shift();
+    let groups = {};
+
+    for(let dataRow of dataSet.rows){
+        let groupValue = dataRow.data[columnToGroup];
+        if(typeof groups[groupValue] === "undefined")
+            groups[groupValue] = [];
+        groups[groupValue].push(dataRow.data);
+    }
+
+    dataSet.groupKey = columnToGroup;
+    dataSet.rows = Object.keys(groups).map(key => Lani.DataSet.from(groups[key]));
+
+    if(newGroupStack.length !== 0){
+        for(let newDataSet of dataSet.rows){
+            Lani.groupDataSetRecursive(newDataSet, newGroupStack);
+        }
+    }
+
+    return dataSet;
 }
 
 Lani.DataSet = class {
     constructor(){
-        this.isGrouped = false;
-
         this.rows = [];
+        this.groupKey = null;
     }
     // create from a raw array
     static from(arr){
@@ -68,7 +99,7 @@ Lani.DataSet = class {
                     this.removeAt(i--);
     }
     group(groupList){
-
+        Lani.groupDataSetRecursive(this, groupList);
     }
     sort(sortList){
 
