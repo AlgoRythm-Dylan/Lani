@@ -118,6 +118,9 @@ Lani.DataSet = class {
     get isGrouped(){
         return this.groupKey !== null;
     }
+    get isAGroup(){
+        return this.groupValue !== null;
+    }
     get length(){
         return this.rows.length;
     }

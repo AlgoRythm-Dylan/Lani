@@ -372,6 +372,9 @@ Lani.DataSet = class {
     get isGrouped(){
         return this.groupKey !== null;
     }
+    get isAGroup(){
+        return this.groupValue !== null;
+    }
     get length(){
         return this.rows.length;
     }
@@ -2018,7 +2021,7 @@ Lani.TableRenderer = class {
         return tbody;
     }
     #renderGroupedPartial(body, columnIndex, data, rowToContinue=null){
-        if(data.isGrouped){
+        if(data.isAGroup){
             // Create cell, give it rowspan, recurse with rowToContinue
             let row = rowToContinue ?? Lani.c("tr", null, body);
             let cell = Lani.c("td", null, row);
@@ -2031,11 +2034,15 @@ Lani.TableRenderer = class {
                 continueRow = false;
             }
         }
+        else if(data.isGrouped){
+            for(let group of data.rows){
+                this.#renderGroupedPartial(body, columnIndex, group, rowToContinue)
+            }
+        }
         else{
             let row = rowToContinue ?? Lani.c("tr", null, body);
             // Render out all the remaining rows
             for(let i = columnIndex; i < this.table.columns.length; i++){
-                debugger;
                 let column = this.table.columns[i];
                 let cell = Lani.c("td", null, row);
                 column.render(data.data, cell)
