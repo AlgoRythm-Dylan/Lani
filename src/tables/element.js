@@ -9,7 +9,8 @@ Lani.TableTemplates.Loading = `<style>
 </div>
 `;
 
-Lani.TableTemplates.NoDataFound = `<p>No Data Found</p>`
+Lani.TableTemplates.NoDataFound = `<p>No Data Found</p>`;
+Lani.ElementEvents.TableColumnAdded = "lani::table-column-added";
 
 Lani.TableElement = class extends Lani.DataElement {
     #title
@@ -88,7 +89,9 @@ Lani.TableElement = class extends Lani.DataElement {
         let columns = Array.from(this.querySelectorAll("lani-table-column"));
         if(columns.length === 0)
             return;
-        this.columns = columns.map(col => col.column);
+        for(let column of columns.map(col => col.column)){
+            this.addColumn(column);
+        }
     }
     discoverDataSource(){
         let source = this.querySelector("lani-data-source");
@@ -105,7 +108,10 @@ Lani.TableElement = class extends Lani.DataElement {
         return this.title = discoveredTitle;
     }
 
-
+    addColumn(column){
+        this.columns.push(column);
+        this.emit(Lani.ElementEvents.TableColumnAdded, {column});
+    }
     parseColumns(data){
         this.columns = [];
         for(let row of data.rows){
@@ -123,7 +129,12 @@ Lani.TableElement = class extends Lani.DataElement {
     //      a) Must be the first columns in the table
     //      b) Must be in the order of grouping
     validateColumnOrder(){
-
+        if(this.dataSource.groups.length > this.columns.length)
+            throw "More groups than columns";
+        for(let i = 0; i < this.dataSource.groups.length; i++){
+            if(this.dataSource.groups[i] != this.columns[i].sourceName)
+                throw `Grouped column in wrong order: ${this.columns[i].name} (${this.columns[i].sourceName})`;
+        }
     }
 };
 

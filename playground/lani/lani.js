@@ -135,7 +135,7 @@ Lani.Element = class extends HTMLElement {
         await this.useTemplate(Lani.templatesPath(), `#${id}`, emitReady);
     }
     emit(eventName, detail={}){
-        this.dispatchEvent(new CustomEvent(eventName, detail));
+        this.dispatchEvent(new CustomEvent(eventName, { detail }));
     }
     ready(detail={}){
         this.emit(Lani.ElementEvents.Ready, detail);
@@ -1916,21 +1916,53 @@ Lani.TableColumnBase = class {
     render(row, cell){ }
 }
 
+Lani.TableFormatter = class {
+    format(row, cell) {}
+    formatGrouped(group, cell) {}
+}
+
+Lani.Condition = class {
+    isMet() { return true; }
+}
+
+Lani.ConditionalTableFormatter = class extends Lani.TableFormatter {
+    constructor(){
+        super();
+        this.condition = null;
+    }
+    checkCondition(row){
+        if(this.condition === null) return true;
+        else if(this.condition instanceof Lani.Condition)
+            return this.condition.isMet(row);
+        else return this.condition(row);
+    }
+}
+
 Lani.TableColumn = class extends Lani.TableColumnBase {
     constructor(name, sourceName){
         super(name);
         this.sourceName = sourceName;
+        this.formatters = [];
     }
     renderHeader(cell){
         if(this.formatting.headerAlign !== null)
             cell.style.textAlign = this.formatting.headerAlign;
         cell.innerHTML = this.name;
     }
-    render(row, cell){
-        cell.innerHTML = row[this.sourceName];
-    }
-    renderGrouped(group, cell){
-        cell.innerHTML = group.groupValue;
+    render(data, cell){
+        if(data.isAGroup){
+            cell.innerHTML = data.groupValue;
+        }
+        else{
+            cell.innerHTML = data[this.sourceName];
+        }
+        for(let formatter of this.formatters)
+            if(formatter instanceof Lani.ConditionalTableFormatter){
+                if(formatter.checkCondition(data))
+                    formatter.format(data, cell);
+            }
+            else
+                formatter.format(data, cell);
     }
 }
 
@@ -2015,8 +2047,14 @@ Lani.TableRenderer = class {
     // next <tr>. This function will likely need to be recursive
     #renderGroupedBody(data){
         let tbody = Lani.c("tbody");
-        for(let group of data.rows){
-            this.#renderGroupedPartial(tbody, 0, group);
+        try{
+            this.table.validateColumnOrder();
+            for(let group of data.rows){
+                this.#renderGroupedPartial(tbody, 0, group);
+            }
+        }
+        catch(ex){
+            console.error(ex);
         }
         return tbody;
     }
@@ -2027,7 +2065,7 @@ Lani.TableRenderer = class {
             let cell = Lani.c("td", null, row);
             cell.rowSpan = data.count;
             let column = this.table.columns[columnIndex];
-            column.renderGrouped(data, cell);
+            column.render(data, cell);
             let continueRow = true;
             for(let group of data.rows){
                 this.#renderGroupedPartial(body, columnIndex + 1, group, continueRow ? row : null);
@@ -2061,7 +2099,8 @@ Lani.TableTemplates.Loading = `<style>
 </div>
 `;
 
-Lani.TableTemplates.NoDataFound = `<p>No Data Found</p>`
+Lani.TableTemplates.NoDataFound = `<p>No Data Found</p>`;
+Lani.ElementEvents.TableColumnAdded = "lani::table-column-added";
 
 Lani.TableElement = class extends Lani.DataElement {
     #title
@@ -2140,7 +2179,9 @@ Lani.TableElement = class extends Lani.DataElement {
         let columns = Array.from(this.querySelectorAll("lani-table-column"));
         if(columns.length === 0)
             return;
-        this.columns = columns.map(col => col.column);
+        for(let column of columns.map(col => col.column)){
+            this.addColumn(column);
+        }
     }
     discoverDataSource(){
         let source = this.querySelector("lani-data-source");
@@ -2157,7 +2198,10 @@ Lani.TableElement = class extends Lani.DataElement {
         return this.title = discoveredTitle;
     }
 
-
+    addColumn(column){
+        this.columns.push(column);
+        this.emit(Lani.ElementEvents.TableColumnAdded, {column});
+    }
     parseColumns(data){
         this.columns = [];
         for(let row of data.rows){
@@ -2175,7 +2219,12 @@ Lani.TableElement = class extends Lani.DataElement {
     //      a) Must be the first columns in the table
     //      b) Must be in the order of grouping
     validateColumnOrder(){
-
+        if(this.dataSource.groups.length > this.columns.length)
+            throw "More groups than columns";
+        for(let i = 0; i < this.dataSource.groups.length; i++){
+            if(this.dataSource.groups[i] != this.columns[i].sourceName)
+                throw `Grouped column in wrong order: ${this.columns[i].name} (${this.columns[i].sourceName})`;
+        }
     }
 };
 

@@ -135,7 +135,7 @@ Lani.Element = class extends HTMLElement {
         await this.useTemplate(Lani.templatesPath(), `#${id}`, emitReady);
     }
     emit(eventName, detail={}){
-        this.dispatchEvent(new CustomEvent(eventName, detail));
+        this.dispatchEvent(new CustomEvent(eventName, { detail }));
     }
     ready(detail={}){
         this.emit(Lani.ElementEvents.Ready, detail);

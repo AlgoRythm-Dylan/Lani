@@ -65,8 +65,14 @@ Lani.TableRenderer = class {
     // next <tr>. This function will likely need to be recursive
     #renderGroupedBody(data){
         let tbody = Lani.c("tbody");
-        for(let group of data.rows){
-            this.#renderGroupedPartial(tbody, 0, group);
+        try{
+            this.table.validateColumnOrder();
+            for(let group of data.rows){
+                this.#renderGroupedPartial(tbody, 0, group);
+            }
+        }
+        catch(ex){
+            console.error(ex);
         }
         return tbody;
     }
@@ -77,7 +83,7 @@ Lani.TableRenderer = class {
             let cell = Lani.c("td", null, row);
             cell.rowSpan = data.count;
             let column = this.table.columns[columnIndex];
-            column.renderGrouped(data, cell);
+            column.render(data, cell);
             let continueRow = true;
             for(let group of data.rows){
                 this.#renderGroupedPartial(body, columnIndex + 1, group, continueRow ? row : null);

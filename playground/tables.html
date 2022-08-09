@@ -11,7 +11,7 @@
 </head>
 <body class="l-body">
     
-    <lani-table>
+    <lani-table id="main-table">
         <template id="title">
             <h1 style="margin: 0px;"><lani-icon icon="dice"></lani-icon> My Pokemon Cards</h1>
         </template>
@@ -29,5 +29,38 @@
         <lani-table-column>Tags</lani-table-column>
         <lani-table-column>Score</lani-table-column>
     </lani-table>
+
+    <script>
+
+        class ScoreFormatter extends Lani.TableFormatter {
+            format(data, cell){
+                cell.style.backgroundColor = `rgba(0, 133, 71, ${data["Score"] / 100})`;
+                if(data["Score"] > 75){
+                    cell.style.color = "white";
+                }
+            }
+        }
+
+        class NonNullTag extends Lani.ConditionalTableFormatter {
+            constructor(){
+                super();
+                this.condition = function(data){
+                    return data["Tags"] !== null && data["Tags"].length > 0;
+                }
+            }
+            format(data, cell){
+                cell.style.background = "yellow";
+            }
+        }
+
+        document.getElementById("main-table").addEventListener(Lani.ElementEvents.TableColumnAdded, e => {
+            if(e.detail.column.name === "Tags"){
+                e.detail.column.formatters.push(new NonNullTag());
+            }
+            else if(e.detail.column.name === "Score"){
+                e.detail.column.formatters.push(new ScoreFormatter());
+            }
+        });
+    </script>
 
 </body>

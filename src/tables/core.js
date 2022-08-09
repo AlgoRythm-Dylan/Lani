@@ -25,21 +25,53 @@ Lani.TableColumnBase = class {
     render(row, cell){ }
 }
 
+Lani.TableFormatter = class {
+    format(row, cell) {}
+    formatGrouped(group, cell) {}
+}
+
+Lani.Condition = class {
+    isMet() { return true; }
+}
+
+Lani.ConditionalTableFormatter = class extends Lani.TableFormatter {
+    constructor(){
+        super();
+        this.condition = null;
+    }
+    checkCondition(row){
+        if(this.condition === null) return true;
+        else if(this.condition instanceof Lani.Condition)
+            return this.condition.isMet(row);
+        else return this.condition(row);
+    }
+}
+
 Lani.TableColumn = class extends Lani.TableColumnBase {
     constructor(name, sourceName){
         super(name);
         this.sourceName = sourceName;
+        this.formatters = [];
     }
     renderHeader(cell){
         if(this.formatting.headerAlign !== null)
             cell.style.textAlign = this.formatting.headerAlign;
         cell.innerHTML = this.name;
     }
-    render(row, cell){
-        cell.innerHTML = row[this.sourceName];
-    }
-    renderGrouped(group, cell){
-        cell.innerHTML = group.groupValue;
+    render(data, cell){
+        if(data.isAGroup){
+            cell.innerHTML = data.groupValue;
+        }
+        else{
+            cell.innerHTML = data[this.sourceName];
+        }
+        for(let formatter of this.formatters)
+            if(formatter instanceof Lani.ConditionalTableFormatter){
+                if(formatter.checkCondition(data))
+                    formatter.format(data, cell);
+            }
+            else
+                formatter.format(data, cell);
     }
 }
 
