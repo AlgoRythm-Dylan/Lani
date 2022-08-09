@@ -60,6 +60,9 @@
             else if(e.detail.column.name === "Score"){
                 e.detail.column.formatters.push(new ScoreFormatter());
             }
+            else if(e.detail.column.name === "Type"){
+                e.detail.column.render = (group, cell) => cell.innerHTML = `${group.groupValue} (${group.count})`;
+            }
         });
     </script>
 
