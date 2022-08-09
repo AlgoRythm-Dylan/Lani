@@ -119,10 +119,13 @@ Lani.DataSet = class {
         return this.groupKey !== null;
     }
     get length(){
+        return this.rows.length;
+    }
+    get count(){
         if(!this.isGrouped)
             return this.rows.length;
         else
-            return this.rows.reduce((count, currentItem) => count + currentItem.length, 0);
+            return this.rows.reduce((count, currentItem) => count + currentItem.count, 0);
     }
     async export(fileName, fileType){
         let exporterClass = Lani.DataSetExporters[fileType];

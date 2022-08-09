@@ -373,10 +373,13 @@ Lani.DataSet = class {
         return this.groupKey !== null;
     }
     get length(){
+        return this.rows.length;
+    }
+    get count(){
         if(!this.isGrouped)
             return this.rows.length;
         else
-            return this.rows.reduce((count, currentItem) => count + currentItem.length, 0);
+            return this.rows.reduce((count, currentItem) => count + currentItem.count, 0);
     }
     async export(fileName, fileType){
         let exporterClass = Lani.DataSetExporters[fileType];
@@ -1923,6 +1926,9 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
     render(row, cell){
         cell.innerHTML = row[this.sourceName];
     }
+    renderGrouped(group, cell){
+        cell.innerHTML = group.groupValue;
+    }
 }
 
 Lani.TableColumnElement = class extends Lani.Element {
@@ -2006,7 +2012,35 @@ Lani.TableRenderer = class {
     // next <tr>. This function will likely need to be recursive
     #renderGroupedBody(data){
         let tbody = Lani.c("tbody");
+        for(let group of data.rows){
+            this.#renderGroupedPartial(tbody, 0, group);
+        }
         return tbody;
+    }
+    #renderGroupedPartial(body, columnIndex, data, rowToContinue=null){
+        if(data.isGrouped){
+            // Create cell, give it rowspan, recurse with rowToContinue
+            let row = rowToContinue ?? Lani.c("tr", null, body);
+            let cell = Lani.c("td", null, row);
+            cell.rowSpan = data.count;
+            let column = this.table.columns[columnIndex];
+            column.renderGrouped(data, cell);
+            let continueRow = true;
+            for(let group of data.rows){
+                this.#renderGroupedPartial(body, columnIndex + 1, group, continueRow ? row : null);
+                continueRow = false;
+            }
+        }
+        else{
+            let row = rowToContinue ?? Lani.c("tr", null, body);
+            // Render out all the remaining rows
+            for(let i = columnIndex; i < this.table.columns.length; i++){
+                debugger;
+                let column = this.table.columns[i];
+                let cell = Lani.c("td", null, row);
+                column.render(data.data, cell)
+            }
+        }
     }
 }
 Lani.TableTemplates = {};

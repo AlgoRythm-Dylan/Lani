@@ -38,6 +38,9 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
     render(row, cell){
         cell.innerHTML = row[this.sourceName];
     }
+    renderGrouped(group, cell){
+        cell.innerHTML = group.groupValue;
+    }
 }
 
 Lani.TableColumnElement = class extends Lani.Element {

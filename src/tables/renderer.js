@@ -65,6 +65,34 @@ Lani.TableRenderer = class {
     // next <tr>. This function will likely need to be recursive
     #renderGroupedBody(data){
         let tbody = Lani.c("tbody");
+        for(let group of data.rows){
+            this.#renderGroupedPartial(tbody, 0, group);
+        }
         return tbody;
+    }
+    #renderGroupedPartial(body, columnIndex, data, rowToContinue=null){
+        if(data.isGrouped){
+            // Create cell, give it rowspan, recurse with rowToContinue
+            let row = rowToContinue ?? Lani.c("tr", null, body);
+            let cell = Lani.c("td", null, row);
+            cell.rowSpan = data.count;
+            let column = this.table.columns[columnIndex];
+            column.renderGrouped(data, cell);
+            let continueRow = true;
+            for(let group of data.rows){
+                this.#renderGroupedPartial(body, columnIndex + 1, group, continueRow ? row : null);
+                continueRow = false;
+            }
+        }
+        else{
+            let row = rowToContinue ?? Lani.c("tr", null, body);
+            // Render out all the remaining rows
+            for(let i = columnIndex; i < this.table.columns.length; i++){
+                debugger;
+                let column = this.table.columns[i];
+                let cell = Lani.c("td", null, row);
+                column.render(data.data, cell)
+            }
+        }
     }
 }
