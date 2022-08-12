@@ -17,6 +17,8 @@ Lani.TableRenderer = class {
             let head = this.#renderHeaders();
             tableEl.appendChild(head);
         }
+        let colGroup = this.#renderColGroup();
+        tableEl.appendChild(colGroup);
         let tbody = this.#renderBody(data);
         tableEl.appendChild(tbody);
 
@@ -39,6 +41,15 @@ Lani.TableRenderer = class {
             column.renderHeader(cell);
         }
         return head;
+    }
+    // Not an actual group function - renders the HTML element
+    // <colgroup> to define width and other things
+    #renderColGroup(){
+        let cg = Lani.c("colgroup");
+        for(let column of this.table.columns){
+            cg.appendChild(column.renderColGroup());
+        }
+        return cg;
     }
     // See note on renderHeaders
     #renderBody(data){

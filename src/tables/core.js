@@ -58,6 +58,11 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
             cell.style.textAlign = this.formatting.headerAlign;
         cell.innerHTML = this.name;
     }
+    renderColGroup(){
+        let col = Lani.c("col");
+        if(this.formatting.width) col.style.width = this.formatting.width;
+        return col;
+    }
     render(data, cell){
         if(data.isAGroup){
             cell.innerHTML = data.groupValue;
@@ -84,6 +89,7 @@ Lani.TableColumnElement = class extends Lani.Element {
         col.sourceName = this.getAttribute("source-name") ?? col.name;
         
         col.formatting.headerAlign = this.getAttribute("header-align");
+        col.formatting.width = this.getAttribute("width");
         return col;
     }
 }

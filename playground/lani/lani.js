@@ -1949,6 +1949,11 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
             cell.style.textAlign = this.formatting.headerAlign;
         cell.innerHTML = this.name;
     }
+    renderColGroup(){
+        let col = Lani.c("col");
+        if(this.formatting.width) col.style.width = this.formatting.width;
+        return col;
+    }
     render(data, cell){
         if(data.isAGroup){
             cell.innerHTML = data.groupValue;
@@ -1975,6 +1980,7 @@ Lani.TableColumnElement = class extends Lani.Element {
         col.sourceName = this.getAttribute("source-name") ?? col.name;
         
         col.formatting.headerAlign = this.getAttribute("header-align");
+        col.formatting.width = this.getAttribute("width");
         return col;
     }
 }
@@ -1999,6 +2005,8 @@ Lani.TableRenderer = class {
             let head = this.#renderHeaders();
             tableEl.appendChild(head);
         }
+        let colGroup = this.#renderColGroup();
+        tableEl.appendChild(colGroup);
         let tbody = this.#renderBody(data);
         tableEl.appendChild(tbody);
 
@@ -2021,6 +2029,15 @@ Lani.TableRenderer = class {
             column.renderHeader(cell);
         }
         return head;
+    }
+    // Not an actual group function - renders the HTML element
+    // <colgroup> to define width and other things
+    #renderColGroup(){
+        let cg = Lani.c("colgroup");
+        for(let column of this.table.columns){
+            cg.appendChild(column.renderColGroup());
+        }
+        return cg;
     }
     // See note on renderHeaders
     #renderBody(data){
