@@ -1919,8 +1919,7 @@ Lani.TableColumnBase = class {
 }
 
 Lani.TableFormatter = class {
-    format(row, cell) {}
-    formatGrouped(group, cell) {}
+    format(data, cell) {}
 }
 
 Lani.Condition = class {
@@ -1989,7 +1988,8 @@ Lani.TableColumnElement = class extends Lani.Element {
         // TODO: populate the members of the column
         let col = new Lani.TableColumn();
         col.name = this.getAttribute("name") ??
-            (this.innerText === "" ? null : this.innerText);
+            (this.innerText === "" ? null : this.innerText) ??
+            (this.innerHTML === "" ? null : this.innerHTML);
         col.sourceName = this.getAttribute("source-name") ?? col.name;
         
         Lani.TableColumnElement.parseFormatting(this, col.formatting);
@@ -2229,7 +2229,7 @@ Lani.TableElement = class extends Lani.DataElement {
     }
     discoverTitle(){
         let discoveredTitle = null;
-        let template = this.querySelector("template#title");
+        let template = this.querySelector("template[slot='title']");
         if(template){
             discoveredTitle = template;
         }

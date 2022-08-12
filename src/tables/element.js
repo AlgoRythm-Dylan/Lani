@@ -103,7 +103,7 @@ Lani.TableElement = class extends Lani.DataElement {
     }
     discoverTitle(){
         let discoveredTitle = null;
-        let template = this.querySelector("template#title");
+        let template = this.querySelector("template[slot='title']");
         if(template){
             discoveredTitle = template;
         }

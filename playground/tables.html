@@ -8,11 +8,16 @@
     <link href="lani/lani.css" type="text/css" rel="stylesheet"></link>
     <link href="fontawesome/solid.min.css" type="text/css" rel="stylesheet"></link>
     <link href="fontawesome/fontawesome.min.css" type="text/css" rel="stylesheet"></link>
+    <style>
+        * {
+            font-family: "Mukta";
+        }
+    </style>
 </head>
 <body class="l-body">
     
-    <lani-table id="main-table">
-        <template id="title">
+    <lani-table id="main-table" header-style="background: #7991c7; color: white; font-weight: normal;">
+        <template slot="title">
             <h1 style="margin: 0px;"><lani-icon icon="dice"></lani-icon> My Pokemon Cards</h1>
         </template>
 
