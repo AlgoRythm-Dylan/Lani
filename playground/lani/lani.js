@@ -1904,6 +1904,7 @@ Lani.TableColumnFormatting = class {
         this.trimData = false;
         this.nullText = null;
         this.headerAlign = null;
+        this.style = null;
     }
 }
 
@@ -1951,6 +1952,7 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
     }
     renderColGroup(){
         let col = Lani.c("col");
+        if(this.formatting.style) col.style.cssText = this.formatting.style;
         if(this.formatting.width) col.style.width = this.formatting.width;
         return col;
     }
@@ -1981,6 +1983,7 @@ Lani.TableColumnElement = class extends Lani.Element {
         
         col.formatting.headerAlign = this.getAttribute("header-align");
         col.formatting.width = this.getAttribute("width");
+        col.formatting.style = this.getAttribute("style");
         return col;
     }
 }
