@@ -132,14 +132,17 @@ Lani.Dialog = class extends Lani.Element{
         this.#resizeHandle("resize-top-left", dragEvent => {
             let x = dragEvent.clientX - this.offsetLeft;
             let y = dragEvent.clientY - this.offsetTop;
+            let originalWidth = this.offsetWidth;
+            let originalHeight = this.offsetHeight;
             this.resize(this.offsetWidth - x, this.offsetHeight - y);
-            this.moveBy(x, y);
+            this.moveBy(originalWidth - this.offsetWidth, originalHeight - this.offsetHeight);
         });
 
         this.#resizeHandle("resize-top", dragEvent => {
             let y = dragEvent.clientY - this.offsetTop;
+            let originalHeight = this.offsetHeight;
             this.resize(null, this.offsetHeight - y);
-            this.moveBy(null, y);
+            this.moveBy(null, originalHeight - this.offsetHeight);
         });
 
         this.#resizeHandle("resize-top-right", dragEvent => {
@@ -174,8 +177,9 @@ Lani.Dialog = class extends Lani.Element{
 
         this.#resizeHandle("resize-left", dragEvent => {
             let x = dragEvent.clientX - this.offsetLeft;
+            let originalWidth = this.offsetWidth;
             this.resize(this.offsetWidth - x, null);
-            this.moveBy(x, null);
+            this.moveBy(originalWidth - this.offsetWidth, null);
         });
 
     }

@@ -70,7 +70,8 @@ Lani.loadTemplate = async (src, querySelector) => {
 Lani.ElementEvents = {
     Ready: "lani::ready",
     Close: "lani::close",
-    Show: "lani::show"
+    Show: "lani::show",
+    StateChange: "lani::state-change"
 };
 
 // Lifecycle callbacks:
@@ -1496,14 +1497,17 @@ Lani.Dialog = class extends Lani.Element{
         this.#resizeHandle("resize-top-left", dragEvent => {
             let x = dragEvent.clientX - this.offsetLeft;
             let y = dragEvent.clientY - this.offsetTop;
+            let originalWidth = this.offsetWidth;
+            let originalHeight = this.offsetHeight;
             this.resize(this.offsetWidth - x, this.offsetHeight - y);
-            this.moveBy(x, y);
+            this.moveBy(originalWidth - this.offsetWidth, originalHeight - this.offsetHeight);
         });
 
         this.#resizeHandle("resize-top", dragEvent => {
             let y = dragEvent.clientY - this.offsetTop;
+            let originalHeight = this.offsetHeight;
             this.resize(null, this.offsetHeight - y);
-            this.moveBy(null, y);
+            this.moveBy(null, originalHeight - this.offsetHeight);
         });
 
         this.#resizeHandle("resize-top-right", dragEvent => {
@@ -1538,8 +1542,9 @@ Lani.Dialog = class extends Lani.Element{
 
         this.#resizeHandle("resize-left", dragEvent => {
             let x = dragEvent.clientX - this.offsetLeft;
+            let originalWidth = this.offsetWidth;
             this.resize(this.offsetWidth - x, null);
-            this.moveBy(x, null);
+            this.moveBy(originalWidth - this.offsetWidth, null);
         });
 
     }
@@ -1889,6 +1894,45 @@ Lani.ArcElement = class extends Lani.DataElement {
 }
 
 Lani.regEl("lani-arc", Lani.ArcElement);
+Lani.OnOffElement = class extends Lani.Element {
+    constructor(){
+        super();
+        this.state = "on";
+        this.onText = "ON";
+        this.offText = "OFF";
+
+        this.setup();
+    }
+    async setup(){
+        await this.useDefaultTemplate("lani-on-off");
+        this.shadow.getElementById("circle").addEventListener("click", e => {
+            this.toggle();
+        });
+
+        this.state = this.getAttribute("state") ?? this.state;
+        this.onText = this.getAttribute("on-text") ?? this.onText;
+        this.offText = this.getAttribute("off-text") ?? this.offText;
+
+        this.displayState();
+    }
+    toggle(){
+        this.state = (this.state == "on" ? "off" : "on");
+        this.displayState();
+        this.emit(Lani.ElementEvents.StateChange, { state: this.state, element: this });
+    }
+    displayState(){
+        if(this.state == "on"){
+            this.shadow.getElementById("ring-outer").style.borderColor = "var(--lani-on-off-state-on)";
+            this.shadow.querySelector("div#content p").innerHTML = this.onText;
+        }
+        else{
+            this.shadow.getElementById("ring-outer").style.borderColor = "var(--lani-on-off-state-off)";
+            this.shadow.querySelector("div#content p").innerHTML = this.offText;
+        }
+    }
+}
+
+Lani.regEl("lani-on-off", Lani.OnOffElement);
 /*
 
     Lani tables module
@@ -1919,8 +1963,7 @@ Lani.TableColumnBase = class {
 }
 
 Lani.TableFormatter = class {
-    format(row, cell) {}
-    formatGrouped(group, cell) {}
+    format(data, cell) {}
 }
 
 Lani.Condition = class {
@@ -1989,7 +2032,8 @@ Lani.TableColumnElement = class extends Lani.Element {
         // TODO: populate the members of the column
         let col = new Lani.TableColumn();
         col.name = this.getAttribute("name") ??
-            (this.innerText === "" ? null : this.innerText);
+            (this.innerText === "" ? null : this.innerText) ??
+            (this.innerHTML === "" ? null : this.innerHTML);
         col.sourceName = this.getAttribute("source-name") ?? col.name;
         
         Lani.TableColumnElement.parseFormatting(this, col.formatting);
@@ -2229,7 +2273,7 @@ Lani.TableElement = class extends Lani.DataElement {
     }
     discoverTitle(){
         let discoveredTitle = null;
-        let template = this.querySelector("template#title");
+        let template = this.querySelector("template[slot='title']");
         if(template){
             discoveredTitle = template;
         }

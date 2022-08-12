@@ -79,6 +79,8 @@
         </div>
         <div id="body" class="l-body"></div>
         <div id="footer" class="l-body"></div>
+        <slot></slot>
+        <slot name="title"></slot>
     </template>
 
     <template id="lani-dialog-layer">
@@ -173,6 +175,70 @@
         </textarea>
         <div id="output-container">
 
+        </div>
+    </template>
+
+    <template id="lani-on-off">
+        <style>
+            :root, :host {
+                --lani-on-off-state-on: green;
+                --lani-on-off-state-off: red;
+            }
+            :host {
+                display: flex;
+            }
+            div#circle {
+                border-radius: 50%;
+                height: 100px;
+                width: 100px;
+                display: flex;
+                position: relative;
+                cursor: pointer;
+            }
+            div#decoration-container, div#content{
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                display: flex;
+            }
+            div#ring-outer, div#ring-inner {
+                border-style: solid;
+                transition: border-color 0.5s;
+            }
+            div#ring-outer{
+                border-radius: 50%;
+                border-width: 10px;
+                flex: 1;
+                display: flex;
+                filter: blur(1px);
+            }
+            div#ring-inner{
+                flex: 1;
+                border-color: white;
+                border-radius: 50%;
+                border-width: 10px;
+                opacity: 75%;
+                margin: -10px;
+                filter: blur(2px);
+            }
+            div#content{
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+            }
+        </style>
+        <div id="circle">
+            <div id="decoration-container">
+                <div id="ring-outer">
+                    <div id="ring-inner"></div>
+                </div>
+            </div>
+            <div id="content" class="l-no-select">
+                <p></p>
+            </div>
         </div>
     </template>
 
