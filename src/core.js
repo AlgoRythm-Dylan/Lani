@@ -70,7 +70,8 @@ Lani.loadTemplate = async (src, querySelector) => {
 Lani.ElementEvents = {
     Ready: "lani::ready",
     Close: "lani::close",
-    Show: "lani::show"
+    Show: "lani::show",
+    StateChange: "lani::state-change"
 };
 
 // Lifecycle callbacks:
