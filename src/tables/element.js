@@ -27,6 +27,7 @@ Lani.TableElement = class extends Lani.DataElement {
 
         // Columns
         this.columns = [];
+        this.columnFormatting = new Lani.TableColumnFormatting();
         this.ignoreColumns = [];
         this.columnNamePrettifier = new Lani.DataNamePrettifier();
 
@@ -42,6 +43,7 @@ Lani.TableElement = class extends Lani.DataElement {
 
         // TODO: this only works because the async this.useTemplate is taking
         // long enough for the child nodes to populate(?) -- CHANGE
+        Lani.TableColumnElement.parseFormatting(this, this.columnFormatting);
         this.doDiscovery();
         this.renderTable();
 
@@ -110,6 +112,7 @@ Lani.TableElement = class extends Lani.DataElement {
 
     addColumn(column){
         this.columns.push(column);
+        column.table = this;
         this.emit(Lani.ElementEvents.TableColumnAdded, {column});
     }
     parseColumns(data){
@@ -119,7 +122,7 @@ Lani.TableElement = class extends Lani.DataElement {
                 if(this.ignoreColumns.includes(key))
                     continue;
                 if(!this.columns.some(column => column.sourceName === key))
-                    this.columns.push(new Lani.TableColumn(
+                    this.addColumn(new Lani.TableColumn(
                         this.columnNamePrettifier.prettify(key), key));
             }
         }

@@ -1905,6 +1905,7 @@ Lani.TableColumnFormatting = class {
         this.nullText = null;
         this.headerAlign = null;
         this.style = null;
+        this.headerStyle = null;
     }
 }
 
@@ -1940,20 +1941,30 @@ Lani.ConditionalTableFormatter = class extends Lani.TableFormatter {
 }
 
 Lani.TableColumn = class extends Lani.TableColumnBase {
-    constructor(name, sourceName){
+    constructor(name, sourceName, table=null){
         super(name);
         this.sourceName = sourceName;
         this.formatters = [];
+        this.table = table;
+    }
+    getFormattingProperty(name){
+        if(this.table !== null)
+            return this.formatting[name] ?? this.table.columnFormatting[name];
+        return this.formatting[name];
     }
     renderHeader(cell){
-        if(this.formatting.headerAlign !== null)
-            cell.style.textAlign = this.formatting.headerAlign;
+        let headerStyle = this.getFormattingProperty("headerStyle");
+        if(headerStyle !== null)
+            cell.style.cssText = headerStyle;
+        let headerAlign = this.getFormattingProperty("headerAlign");
+        if(headerAlign !== null)
+            cell.style.textAlign = headerAlign;
         cell.innerHTML = this.name;
     }
     renderColGroup(){
         let col = Lani.c("col");
-        if(this.formatting.style) col.style.cssText = this.formatting.style;
-        if(this.formatting.width) col.style.width = this.formatting.width;
+        if(this.formatting.style !== null) col.style.cssText = this.formatting.style;
+        if(this.formatting.width !== null) col.style.width = this.formatting.width;
         return col;
     }
     render(data, cell){
@@ -1981,10 +1992,15 @@ Lani.TableColumnElement = class extends Lani.Element {
             (this.innerText === "" ? null : this.innerText);
         col.sourceName = this.getAttribute("source-name") ?? col.name;
         
-        col.formatting.headerAlign = this.getAttribute("header-align");
-        col.formatting.width = this.getAttribute("width");
-        col.formatting.style = this.getAttribute("style");
+        Lani.TableColumnElement.parseFormatting(this, col.formatting);
+        
         return col;
+    }
+    static parseFormatting(element, formattingObject){
+        formattingObject.headerAlign = element.getAttribute("header-align");
+        formattingObject.width = element.getAttribute("width");
+        formattingObject.style = element.getAttribute("style");
+        formattingObject.headerStyle = element.getAttribute("header-style");
     }
 }
 
@@ -2137,6 +2153,7 @@ Lani.TableElement = class extends Lani.DataElement {
 
         // Columns
         this.columns = [];
+        this.columnFormatting = new Lani.TableColumnFormatting();
         this.ignoreColumns = [];
         this.columnNamePrettifier = new Lani.DataNamePrettifier();
 
@@ -2152,6 +2169,7 @@ Lani.TableElement = class extends Lani.DataElement {
 
         // TODO: this only works because the async this.useTemplate is taking
         // long enough for the child nodes to populate(?) -- CHANGE
+        Lani.TableColumnElement.parseFormatting(this, this.columnFormatting);
         this.doDiscovery();
         this.renderTable();
 
@@ -2220,6 +2238,7 @@ Lani.TableElement = class extends Lani.DataElement {
 
     addColumn(column){
         this.columns.push(column);
+        column.table = this;
         this.emit(Lani.ElementEvents.TableColumnAdded, {column});
     }
     parseColumns(data){
@@ -2229,7 +2248,7 @@ Lani.TableElement = class extends Lani.DataElement {
                 if(this.ignoreColumns.includes(key))
                     continue;
                 if(!this.columns.some(column => column.sourceName === key))
-                    this.columns.push(new Lani.TableColumn(
+                    this.addColumn(new Lani.TableColumn(
                         this.columnNamePrettifier.prettify(key), key));
             }
         }
