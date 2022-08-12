@@ -2042,8 +2042,8 @@ Lani.TableColumnElement = class extends Lani.Element {
     }
     static parseFormatting(element, formattingObject){
         formattingObject.headerAlign = element.getAttribute("header-align");
-        formattingObject.width = element.getAttribute("width");
-        formattingObject.style = element.getAttribute("style");
+        formattingObject.width = element.tagName == "LANI-TABLE" ? element.getAttribute("col-width") : element.getAttribute("width");
+        formattingObject.style = element.tagName == "LANI-TABLE" ? element.getAttribute("col-style") : element.getAttribute("style");
         formattingObject.headerStyle = element.getAttribute("header-style");
     }
 }
