@@ -47,7 +47,25 @@ Lani.TableElement = class extends Lani.DataElement {
         this.doDiscovery();
         this.renderTable();
 
+        if(!this.getBoolAttribute("show-header", true))
+            this.hideHeader();
+        if(!this.getBoolAttribute("show-search", true))
+            this.hideSearch();
+
         this.ready();
+    }
+
+    showHeader(){
+        this.shadow.getElementById("header").style.display = "flex";
+    }
+    hideHeader(){
+        this.shadow.getElementById("header").style.display = "none";
+    }
+    showSearch(){
+        this.shadow.getElementById("search-container").style.display = "flex";
+    }
+    hideSearch(){
+        this.shadow.getElementById("search-container").style.display = "none";
     }
 
     // Title items 

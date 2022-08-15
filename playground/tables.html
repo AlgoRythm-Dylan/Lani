@@ -16,7 +16,9 @@
 </head>
 <body class="l-body">
     
-    <lani-table id="main-table" header-style="background: #7991c7; color: white; font-weight: normal;">
+    <lani-table id="main-table"
+        header-style="background: #7991c7; color: white; font-weight: normal;"
+        show-header="false">
         
         <h1 slot="title" style="margin: 0px;"><lani-icon icon="dice"></lani-icon> My Pokemon Cards</h1>
 
@@ -34,6 +36,11 @@
         <lani-table-column>Variant</lani-table-column>
         <lani-table-column>Tags</lani-table-column>
         <lani-table-column style="text-align: center">Score</lani-table-column>
+        <lani-table-column name="Rating" type="markup">
+            <template>
+                <button>Get Rating</button>
+            </template>
+        </lani-table-column>
     </lani-table>
 
     <script>
@@ -60,14 +67,25 @@
         }
 
         document.getElementById("main-table").addEventListener(Lani.ElementEvents.TableColumnAdded, e => {
-            if(e.detail.column.name === "Tags"){
-                e.detail.column.formatters.push(new NonNullTag());
-            }
-            else if(e.detail.column.name === "Score"){
-                e.detail.column.formatters.push(new ScoreFormatter());
-            }
-            else if(e.detail.column.name === "Type"){
-                e.detail.column.render = (group, cell) => cell.innerHTML = `${group.groupValue} (${group.count})`;
+            let column = e.detail.column;
+            switch(column.name) {
+                case "Tags":
+                    column.formatters.push(new NonNullTag());
+                    break;
+                case "Score":
+                    column.formatters.push(new ScoreFormatter());
+                    break;
+                case "Type":
+                    column.render = (data, cell) => cell.innerHTML = `${data.groupValue} (${data.count})`;
+                    break;
+                case "Rating":
+                    column.render = function(data, cell) {
+                        this.renderTemplate(cell);
+                        cell.querySelector("button").addEventListener("click", e => {
+                            alert(data["Score"] > 80 ? "GREAT" : "It's a card");
+                        });
+                    }
+                    break;
             }
         });
     </script>

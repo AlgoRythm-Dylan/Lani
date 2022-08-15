@@ -1753,6 +1753,15 @@ Lani.alert = async (message, title="Webpage Dialog") => {
     await Lani.showDialog(dialog);
 }
 
+Lani.showFormInDialog = async (form, title="Webpage Form") => {
+    if(typeof form === "string"){
+        // Assume this is a selector
+    }
+    else {
+        // Assume this is an HTML element
+    }
+}
+
 Lani.regEl("lani-dialog-layer", Lani.DialogLayer);
 Lani.regEl("lani-dialog", Lani.Dialog);
 /*
@@ -2017,6 +2026,7 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
         else{
             cell.innerHTML = data[this.sourceName];
         }
+        cell.style.cssText = this.formatting.style;
         for(let formatter of this.formatters)
             if(formatter instanceof Lani.ConditionalTableFormatter){
                 if(formatter.checkCondition(data))
@@ -2027,10 +2037,42 @@ Lani.TableColumn = class extends Lani.TableColumnBase {
     }
 }
 
+Lani.TableMarkupColumn = class extends Lani.TableColumn {
+    constructor(name, sourceName, table=null){
+        super(name, sourceName, table);
+        this.template = null;
+    }
+    connectedCallback(){
+        this.shadow.innerHTML = "<slot></slot>";
+        this.addEventListener("slotchange", e => {
+            this.template = this.querySelector("template");
+        });
+    }
+    renderTemplate(cell){
+        if(this.template)
+            Lani.useGenericTemplate(this.template, cell, false);
+    }
+    render(data, cell){
+        this.renderTemplate(cell);
+    }
+}
+
+Lani.tableColumnElementHandlers = {};
+
+Lani.tableColumnElementHandlers["table-column"] = el => {
+    return new Lani.TableColumn();
+}
+
+Lani.tableColumnElementHandlers["markup"] = el => {
+    let col = new Lani.TableMarkupColumn();
+    col.template = el.querySelector("template");
+    return col;
+}
+
 Lani.TableColumnElement = class extends Lani.Element {
     get column(){
-        // TODO: populate the members of the column
-        let col = new Lani.TableColumn();
+        let handler = Lani.tableColumnElementHandlers[this.getAttribute("type") ?? "table-column"]
+        let col = handler(this);
         col.name = this.getAttribute("name") ??
             (this.innerText === "" ? null : this.innerText) ??
             (this.innerHTML === "" ? null : this.innerHTML);
@@ -2217,7 +2259,25 @@ Lani.TableElement = class extends Lani.DataElement {
         this.doDiscovery();
         this.renderTable();
 
+        if(!this.getBoolAttribute("show-header", true))
+            this.hideHeader();
+        if(!this.getBoolAttribute("show-search", true))
+            this.hideSearch();
+
         this.ready();
+    }
+
+    showHeader(){
+        this.shadow.getElementById("header").style.display = "flex";
+    }
+    hideHeader(){
+        this.shadow.getElementById("header").style.display = "none";
+    }
+    showSearch(){
+        this.shadow.getElementById("search-container").style.display = "flex";
+    }
+    hideSearch(){
+        this.shadow.getElementById("search-container").style.display = "none";
     }
 
     // Title items 
