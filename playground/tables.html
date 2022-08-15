@@ -17,9 +17,10 @@
 <body class="l-body">
     
     <lani-table id="main-table" header-style="background: #7991c7; color: white; font-weight: normal;">
-        <template slot="title">
-            <h1 style="margin: 0px;"><lani-icon icon="dice"></lani-icon> My Pokemon Cards</h1>
-        </template>
+        
+        <h1 slot="title" style="margin: 0px;"><lani-icon icon="dice"></lani-icon> My Pokemon Cards</h1>
+
+        <button slot="header-right">+ Add Pokemon</button>
 
         <lani-data-source type="download" source="/tcgo-pkmn">
             <lani-data-group>Type</lani-data-group>
@@ -32,7 +33,7 @@
         <lani-table-column>Description</lani-table-column>
         <lani-table-column>Variant</lani-table-column>
         <lani-table-column>Tags</lani-table-column>
-        <lani-table-column>Score</lani-table-column>
+        <lani-table-column style="text-align: center">Score</lani-table-column>
     </lani-table>
 
     <script>

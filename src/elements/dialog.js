@@ -388,5 +388,14 @@ Lani.alert = async (message, title="Webpage Dialog") => {
     await Lani.showDialog(dialog);
 }
 
+Lani.showFormInDialog = async (form, title="Webpage Form") => {
+    if(typeof form === "string"){
+        // Assume this is a selector
+    }
+    else {
+        // Assume this is an HTML element
+    }
+}
+
 Lani.regEl("lani-dialog-layer", Lani.DialogLayer);
 Lani.regEl("lani-dialog", Lani.Dialog);
