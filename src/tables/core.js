@@ -113,6 +113,30 @@ Lani.TableMarkupColumn = class extends Lani.TableColumn {
     }
 }
 
+Lani.TableButtonColumn = class extends Lani.TableColumn {
+    constructor(){
+        this.template = null;
+        this.buttonText = null;
+    }
+    connectedCallback(){
+        this.shadow.innerHTML = "<slot></slot>";
+        this.addEventListener("slotchange", e => {
+            this.template = this.querySelector("template");
+        });
+    }
+    render(data, cell){
+        let button = null;
+        if(this.template !== null)
+            Lani.useGenericTemplate(this.template, cell, false);
+        else{
+            button = Lani.c("button", null, this);
+            button.innerHTML = this.buttonText ?? this.getAttribute("text") ?? "Click";
+        }
+        if(button === null)
+            button = this.querySelector("button");
+    }
+}
+
 Lani.tableColumnElementHandlers = {};
 
 Lani.tableColumnElementHandlers["table-column"] = el => {
