@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<head>
+    <title>Lani</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta&family=Square+Peg&display=swap" rel="stylesheet"> 
+    <script src="lani/lani.js"></script>
+    <link href="lani/lani.css" type="text/css" rel="stylesheet"></link>
+    <link href="fontawesome/solid.min.css" type="text/css" rel="stylesheet"></link>
+    <link href="fontawesome/fontawesome.min.css" type="text/css" rel="stylesheet"></link>
+    <style>
+        * {
+            font-family: "Mukta";
+        }
+
+        .display-block * {
+            display: block;
+        }
+        .display-inline * {
+            display: inline;
+        }
+        .display-inline-block * {
+            display: inline-block;
+        }
+
+        #compare-background {
+            display: flex;
+            align-items: center;
+        }
+        #white-square {
+            max-width: 250px;
+            min-height: 50px;
+            flex: 1;
+        }
+
+        #headers * {
+            display: inline-block;
+            margin-left: 2em;
+        }
+    </style>
+</head>
+<body class="l-body">
+    <h1>Style Playground</h1>
+    <i>This page does not use bootstrap</i>
+
+    <div id="compare-background">
+        <p>
+            This is an <code>l-body</code>, which  may have a different
+            background color than plain white. Here is a white square
+            to compare:
+        </p>
+        <div id="white-square"></div>
+    </div>
+    
+    <h2>Headers</h2>
+    <div id="headers">
+        <h1>h1</h1>
+        <h2>h2</h2>
+        <h3>h3</h3>
+        <h4>h4</h4>
+        <h5>h5</h5>
+        <h6>h6</h6>
+    </div>
+
+    <div class="display-block">
+        <h2>Inputs</h2>
+        <button>Button</button>
+        <input placeholder="Input" />
+        <input placeholder="Password" type="Password" />
+        <input value="Submit Input" type="submit" />
+        <input value="Reset Input" type="reset" />
+        <textarea>Textarea</textarea>
+        <select>
+            <option>Option1</option>
+            <option>Option2</option>
+            <option>Option3</option>
+        </select>
+        <div class="display-inline">
+            <input type="checkbox" id="cb1" value="a">
+            <label for="cb1">A</label>
+            <input type="checkbox" id="cb2" value="b">
+            <label for="cb2">B</label>
+            <input type="checkbox" id="cb3" calue="c">
+            <label for="cb3">C</label>
+        </div>
+    </div>
+
+    <h3>Disabled inputs</h3>
+
+    <div class="display-block">
+        <button disabled>Button</button>
+        <input disabled placeholder="Input" />
+        <input disabled placeholder="Password" type="Password" />
+        <input disabled value="Submit Input" type="submit" />
+        <input disabled value="Reset Input" type="reset" />
+        <textarea disabled>Textarea</textarea>
+        <select disabled>
+            <option>Option1</option>
+            <option>Option2</option>
+            <option>Option3</option>
+        </select>
+        <div class="display-inline">
+            <input disabled type="checkbox" id="dcb1" value="a">
+            <label for="dcb1">A</label>
+            <input disabled type="checkbox" id="dcb2" value="b">
+            <label for="dcb2">B</label>
+            <input disabled type="checkbox" id="dcb3" calue="c">
+            <label for="dcb3">C</label>
+        </div>
+    </div>
+
+</body>
