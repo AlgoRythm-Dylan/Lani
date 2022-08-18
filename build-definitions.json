@@ -31,6 +31,7 @@
             "./src/elements/paginator.js",
             "./src/elements/arc.js",
             "./src/elements/on-off.js",
+            "./src/elements/calendar.js",
 
             "./src/tables/core.js",
             "./src/tables/renderer.js",

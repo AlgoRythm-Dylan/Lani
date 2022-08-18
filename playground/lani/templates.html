@@ -243,4 +243,48 @@
         </div>
     </template>
 
+    <template id="lani-calendar">
+        <style>
+            :host {
+                display: flex;
+            }
+            div#container {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                border-style: solid;
+            }
+            div#title-container{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-style: solid;
+            }
+            div#grid-container{
+                display: flex;
+            }
+            table#day-grid{
+                flex: 1;
+            }
+            p {
+                margin: 0px;
+            }
+            table#day-grid {
+                table-layout: fixed;
+                width: 100%;
+            }
+        </style>
+        <div id="container" class="l-body">
+            <div id="title-container">
+                <p id="title"></p>
+            </div>
+            <div id="grid-container">
+                <table id="day-grid">
+
+                </table>
+            </div>
+        </div>
+        
+    </template>
+
 </body>
