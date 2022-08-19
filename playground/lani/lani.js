@@ -2034,6 +2034,7 @@ Lani.CalendarFormatting = class {
         this.gridInnerBorderColor = new Lani.CalendarColor4("black");
 
         this.showDaysRow = true;
+        this.gridDaysBackgroundColor = "lightgray";//null;
     }
 }
 
@@ -2103,6 +2104,50 @@ Lani.CalendarMonthsShort = [
     "dec"
 ]
 
+/*
+
+    This one warrants some explanation...
+
+    So this is a combination of a JavaScript hack(?)
+    and the fact that Lani uses 1-based months,
+    as opposed to JS, which uses 0-based months.
+
+    The generic solution to this issue is to pass in
+    the index of the **next** month to the date
+    constructor and use 0 as the day:
+
+    https://stackoverflow.com/questions/1184334/get-number-days-in-a-specified-month-using-javascript
+
+    HOWEVER, since Lani uses 1 = January, we can keep
+    it as-is
+
+*/
+Lani.daysInMonth = (year, month) => {
+    return new Date(year, month, 0).getDate();
+}
+
+Lani.firstDayOfMonth = (year, month) => {
+    return new Date(year, month - 1).getDay();
+}
+
+Lani.calendarRowsForMonth = (year, month, endOfWeekDay=6) => {
+    month--;
+    let days = Lani.daysInMonth(year, month);
+    let rows = 0;
+    let i = 0;
+    while(i < days){
+        i++;
+        let thisDate = new Date(year, month, i);
+        if(thisDate.getDay() === endOfWeekDay || i == days)
+            rows++;
+        // Small optimization to skip forwards. We don't care
+        // about non-Saturdays. Saves 6 cycles per week.
+        if(thisDate.getDay() === endOfWeekDay && (days - i) > 7)
+            i += 6;
+    }
+    return rows;
+}
+
 Lani.CalendarElement = class extends Lani.Element {
     constructor(){
         super();
@@ -2158,7 +2203,8 @@ Lani.CalendarElement = class extends Lani.Element {
             let head = Lani.c("thead", null, table);
             let row = Lani.c("tr", null, head);
             for(let day of Lani.CalendarDays){
-                Lani.c("th", null, row, {innerHTML: Lani.initCap(day)});
+                let cell = Lani.c("th", null, row, {innerHTML: Lani.initCap(day)});
+                cell.style.background = this.formatting.gridDaysBackgroundColor ?? "none";
             }
         }
 
