@@ -253,3 +253,22 @@ Lani.useGenericTemplate = (template, parent, appendMode=true) => {
             parent.appendChild(template);
     }
 }
+
+Lani.objectLoad = (source, objectType, options) => {
+    let destination = options.destination ?? new objectType();
+
+    let destItems = Object.entries(destination);
+
+    for(let entry of destItems){
+        let sourceTypeof = typeof source[entry.key];
+
+        // TODO: Read options so that we can recursively load
+        // subtypes of objects
+        if(sourceTypeof === "undefined")
+            continue;
+        else
+            dest[entry.key] = source[entry.key];
+    }
+
+    return destination;
+}
