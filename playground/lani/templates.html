@@ -138,7 +138,8 @@
         <div id="resize-left" class="l-dialog-resize-handle"></div>
     </template>
 
-    <template id="lani-arc">
+                        Lani.c("p", null, cell, {innerHTML: daysInLastMonth + thisDayOfMonth});
+                        <template id="lani-arc">
         <style>
             :host {
                 display: flex;
@@ -262,17 +263,31 @@
             }
             div#grid-container{
                 display: flex;
+                border-style: solid;
+                border-width: 0;
             }
-            table#day-grid{
+            table#grid{
                 flex: 1;
             }
             p {
                 margin: 0px;
             }
-            table#day-grid {
+            table#grid {
                 table-layout: fixed;
                 width: 100%;
                 border-collapse: collapse;
+            }
+            table#grid th {
+                border-style: solid;
+                border-width: 0px;
+            }
+            table#grid td {
+                vertical-align: top;
+                border-style: solid;
+                border-width: 0px;
+            }
+            td.not-this-month p.day-label {
+                opacity: 0.5;
             }
         </style>
         <div id="container" class="l-body">
@@ -280,7 +295,7 @@
                 <p id="title"></p>
             </div>
             <div id="grid-container">
-                <table id="day-grid"></table>
+                <table id="grid"></table>
             </div>
         </div>
         

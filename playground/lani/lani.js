@@ -253,6 +253,25 @@ Lani.useGenericTemplate = (template, parent, appendMode=true) => {
             parent.appendChild(template);
     }
 }
+
+Lani.objectLoad = (source, objectType, options) => {
+    let destination = options.destination ?? new objectType();
+
+    let destItems = Object.entries(destination);
+
+    for(let entry of destItems){
+        let sourceTypeof = typeof source[entry.key];
+
+        // TODO: Read options so that we can recursively load
+        // subtypes of objects
+        if(sourceTypeof === "undefined")
+            continue;
+        else
+            dest[entry.key] = source[entry.key];
+    }
+
+    return destination;
+}
 /*
 
     Data container / operations module
@@ -1944,6 +1963,17 @@ Lani.OnOffElement = class extends Lani.Element {
 Lani.regEl("lani-on-off", Lani.OnOffElement);
 Lani.installedModules.push("lani-calendar");
 
+Lani.CalendarFont = class {
+    constructor(){
+        this.isBold = false;
+        this.isItalic = false;
+        this.isUnderlined = false;
+        this.family = null;
+        this.size = null;
+        this.weight = "normal";
+    }
+}
+
 Lani.CalendarDimension = class {
     constructor(size=0){
         this.all = size;
@@ -2010,9 +2040,9 @@ Lani.CalendarFormatting = class {
         this.width = "11in";
         this.height = "8.5in";
 
-        this.outerBorderSize = new Lani.CalendarDimension(2);
-        this.outerBorderMargin = new Lani.CalendarDimension(2);
-        this.outerBorderPadding = new Lani.CalendarDimension(2);
+        this.outerBorderSize = new Lani.CalendarDimension(0);
+        this.outerBorderMargin = new Lani.CalendarDimension(0);
+        this.outerBorderPadding = new Lani.CalendarDimension(0);
         this.outerBorderColor = new Lani.CalendarColor4("black");
 
         this.titleBackgroundColor = "lightblue";
@@ -2026,15 +2056,18 @@ Lani.CalendarFormatting = class {
 
         this.gridBackgroundColor = null;
         this.gridForegroundColor = "black";
-        this.gridMargin = new Lani.CalendarDimension();
+        this.gridMargin = new Lani.CalendarDimension(10);
         this.gridSize = 5;
         this.gridOuterBorderSize = new Lani.CalendarDimension(1);
-        this.gridInnerBorderSize = new Lani.CalendarDimension(1);
-        this.gridOuterBorderColor = new Lani.CalendarColor4("black");
-        this.gridInnerBorderColor = new Lani.CalendarColor4("black");
+        this.gridInnerBorderSize = 1;
+        this.gridOuterBorderColor = new Lani.CalendarColor4("lightgray");
+        this.gridInnerBorderColor = "lightgray";
 
         this.showDaysRow = true;
-        this.gridDaysBackgroundColor = "lightgray";//null;
+        this.gridDaysBackgroundColor = null;
+        this.dayGridInnerBorderColor = null;
+        this.dayGridBottomBorderColor = "lightgray";
+        this.dayGridBottomBorderSize = 1;
     }
 }
 
@@ -2190,26 +2223,122 @@ Lani.CalendarElement = class extends Lani.Element {
 
         let gridContainer = this.shadow.getElementById("grid-container");
         gridContainer.style.flex = this.formatting.gridSize;
+        this.formatting.gridMargin.applyToMargin(gridContainer);
+        this.formatting.gridOuterBorderSize.applyToBorder(gridContainer);
+        this.formatting.gridOuterBorderColor.applyToBorder(gridContainer);
 
-        this.populateGrid();
+        let grid = this.populateGrid();
 
     }
 
     populateGrid(){
-        let table = this.shadow.getElementById("day-grid");
+        let table = this.shadow.getElementById("grid");
         table.innerHTML = "";
 
+        let i = 0;
         if(this.formatting.showDaysRow){
             let head = Lani.c("thead", null, table);
             let row = Lani.c("tr", null, head);
             for(let day of Lani.CalendarDays){
                 let cell = Lani.c("th", null, row, {innerHTML: Lani.initCap(day)});
                 cell.style.background = this.formatting.gridDaysBackgroundColor ?? "none";
+                if(this.formatting.dayGridBottomBorderSize !== null)
+                    cell.style.borderBottomWidth = `${this.formatting.dayGridBottomBorderSize}px`;
+                cell.style.borderBottomColor = this.formatting.dayGridBottomBorderColor ?? "transparent";
+
+                if(i !== 0){
+                    cell.style.borderLeftColor = this.formatting.dayGridInnerBorderColor ??
+                        this.formatting.gridInnerBorderColor ?? "transparent";
+                    cell.style.borderLeftWidth = `${this.formatting.gridInnerBorderSize}px`;
+                }
+                if(i < 6){
+                    cell.style.borderRightColor = this.formatting.dayGridInnerBorderColor ??
+                        this.formatting.gridInnerBorderColor ?? "transparent";
+                    cell.style.borderRightWidth = `${this.formatting.gridInnerBorderSize}px`;
+                }
+                i++;
             }
         }
 
         let body = Lani.c("tbody", null, table);
+        let rows = Lani.calendarRowsForMonth(this.calendar.year, this.calendar.month);
+        let firstDayOfMonth = Lani.firstDayOfMonth(this.calendar.year, this.calendar.month);
 
+        let daysInLastMonth = Lani.daysInMonth(this.calendar.year, this.calendar.month - 1);
+        let daysInMonth = Lani.daysInMonth(this.calendar.year, this.calendar.month);
+
+
+        for(let rowInd = 0; rowInd < rows; rowInd++){
+            let row = Lani.c("tr", null, body);
+            for(let i = 0; i < 7; i++){
+                let thisDayOfMonth = (rowInd * 7) + i - (firstDayOfMonth - 1);
+
+                let cell = Lani.c("td", null, row);
+                if(rowInd === 0) {
+                    // The first row
+                    if(thisDayOfMonth > 0){
+                        Lani.c("p", "day-label", cell, {innerHTML: thisDayOfMonth});
+                    }
+                    else{
+                        Lani.c("p", "day-label", cell, {innerHTML: daysInLastMonth + thisDayOfMonth});
+                        cell.className += " not-this-month";
+                    }
+
+                    if(i !== 0){
+                        cell.style.borderLeftWidth = `${this.formatting.gridInnerBorderSize}px`;
+                        cell.style.borderLeftColor = this.formatting.gridInnerBorderColor;
+                    }
+                    // Bottom border
+                    cell.style.borderBottomWidth = `${this.formatting.gridInnerBorderSize}px`;
+                    cell.style.borderBottomColor = this.formatting.gridInnerBorderColor;
+                    if(i < 6){
+                        cell.style.borderRightWidth = `${this.formatting.gridInnerBorderSize}px`;
+                        cell.style.borderRightColor = this.formatting.gridInnerBorderColor;
+                    }
+
+                }
+                else if(rowInd === rows - 1){
+                    // The last row
+                    if(thisDayOfMonth <= daysInMonth){
+                        Lani.c("p", "day-label", cell, {innerHTML: thisDayOfMonth});
+                    }
+                    else {
+                        Lani.c("p", "day-label", cell, {innerHTML: thisDayOfMonth - daysInMonth});
+                        cell.className += " not-this-month";
+                    }
+
+                    if(i !== 0){
+                        cell.style.borderLeftWidth = `${this.formatting.gridInnerBorderSize}px`;
+                        cell.style.borderLeftColor = this.formatting.gridInnerBorderColor;
+                    }
+                    if(i < 6){
+                        cell.style.borderRightWidth = `${this.formatting.gridInnerBorderSize}px`;
+                        cell.style.borderRightColor = this.formatting.gridInnerBorderColor;
+                    }
+
+                }
+                else {
+                    // All middle rows
+                    Lani.c("p", "day-label", cell, {innerHTML: thisDayOfMonth});
+                    // Left side border
+                    if(i !== 0){
+                        cell.style.borderLeftWidth = `${this.formatting.gridInnerBorderSize}px`;
+                        cell.style.borderLeftColor = this.formatting.gridInnerBorderColor;
+                    }
+                    // Bottom border
+                    cell.style.borderBottomWidth = `${this.formatting.gridInnerBorderSize}px`;
+                    cell.style.borderBottomColor = this.formatting.gridInnerBorderColor;
+                    // Right side border
+                    if(i < 6){
+                        cell.style.borderRightWidth = `${this.formatting.gridInnerBorderSize}px`;
+                        cell.style.borderRightColor = this.formatting.gridInnerBorderColor;
+                    }
+                }
+
+            }
+        }
+
+        return table;
     }
 
     set title(value){
