@@ -272,6 +272,39 @@ Lani.objectLoad = (source, objectType, options) => {
 
     return destination;
 }
+
+
+// Generic description of a font
+Lani.Font = class {
+    constructor(){
+        this.weight = null;
+        this.isItalic = false;
+        this.isUnderlined = false;
+        this.family = null;
+        this.size = null;
+    }
+    apply(element){
+        if(this.weight !== null)
+            element.style.weight = this.weight;
+        if(this.isItalic === true)
+            element.style.fontStyle = "italic";
+        if(this.isUnderlined === true)
+            element.style.textDecoration = "underline";
+        if(this.family !== null)
+            element.style.fontFamily = this.family;
+        if(this.size !== null)
+            element.style.fontSize = this.size;
+    }
+    get isBold(){
+        return this.weight === 700;
+    }
+    set isBold(value){
+        if(value === true)
+            this.fontWeight = 700;
+        else
+            this.fontWeight = null;
+    }
+}
 /*
 
     Data container / operations module
@@ -1963,17 +1996,6 @@ Lani.OnOffElement = class extends Lani.Element {
 Lani.regEl("lani-on-off", Lani.OnOffElement);
 Lani.installedModules.push("lani-calendar");
 
-Lani.CalendarFont = class {
-    constructor(){
-        this.isBold = false;
-        this.isItalic = false;
-        this.isUnderlined = false;
-        this.family = null;
-        this.size = null;
-        this.weight = "normal";
-    }
-}
-
 Lani.CalendarDimension = class {
     constructor(size=0){
         this.all = size;
@@ -2048,8 +2070,8 @@ Lani.CalendarFormatting = class {
         this.titleBackgroundColor = "lightblue";
         this.titleForegroundColor = "black";
         this.titleSize = 1;
-        this.titleFontSize = "4rem";
-        this.titleFont = null;
+        this.titleFont = new Lani.Font();
+        this.titleFont.size = "4em";
         this.titleBorderSize = new Lani.CalendarDimension();
         this.titleBorderColor = new Lani.CalendarColor4();
         this.titleMargin = new Lani.CalendarDimension(2);
@@ -2216,10 +2238,8 @@ Lani.CalendarElement = class extends Lani.Element {
         this.formatting.titleBorderSize.applyToBorder(titleContainer);
 
         let title = this.shadow.getElementById("title");
-        title.style.color = this.formatting.titleForegroundColor;
-        if(this.formatting.titleFont)
-            title.style.fontFamily = this.formatting.titleFont;
-        title.style.fontSize = this.formatting.titleFontSize;
+        title.style.color = this.formatting.titleForegroundColor ?? "transparent";
+        this.formatting.titleFont.apply(title);
 
         let gridContainer = this.shadow.getElementById("grid-container");
         gridContainer.style.flex = this.formatting.gridSize;

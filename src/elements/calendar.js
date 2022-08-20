@@ -74,8 +74,8 @@ Lani.CalendarFormatting = class {
         this.titleBackgroundColor = "lightblue";
         this.titleForegroundColor = "black";
         this.titleSize = 1;
-        this.titleFontSize = "4rem";
-        this.titleFont = null;
+        this.titleFont = new Lani.Font();
+        this.titleFont.size = "4em";
         this.titleBorderSize = new Lani.CalendarDimension();
         this.titleBorderColor = new Lani.CalendarColor4();
         this.titleMargin = new Lani.CalendarDimension(2);
@@ -242,10 +242,8 @@ Lani.CalendarElement = class extends Lani.Element {
         this.formatting.titleBorderSize.applyToBorder(titleContainer);
 
         let title = this.shadow.getElementById("title");
-        title.style.color = this.formatting.titleForegroundColor;
-        if(this.formatting.titleFont)
-            title.style.fontFamily = this.formatting.titleFont;
-        title.style.fontSize = this.formatting.titleFontSize;
+        title.style.color = this.formatting.titleForegroundColor ?? "transparent";
+        this.formatting.titleFont.apply(title);
 
         let gridContainer = this.shadow.getElementById("grid-container");
         gridContainer.style.flex = this.formatting.gridSize;

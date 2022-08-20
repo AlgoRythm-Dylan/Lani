@@ -72,10 +72,11 @@
             }
         </style>
         <div id="header" class="l-body">
-            <div id="title"></div>
+            <slot name="title"></slot>
             <div id="search-container">
                 <input id="search" placeholder="Search">
             </div>
+            <slot name="header-right"></slot>
         </div>
         <div id="body" class="l-body"></div>
         <div id="footer" class="l-body"></div>
@@ -137,7 +138,8 @@
         <div id="resize-left" class="l-dialog-resize-handle"></div>
     </template>
 
-    <template id="lani-arc">
+                        Lani.c("p", null, cell, {innerHTML: daysInLastMonth + thisDayOfMonth});
+                        <template id="lani-arc">
         <style>
             :host {
                 display: flex;
@@ -240,6 +242,63 @@
                 <p></p>
             </div>
         </div>
+    </template>
+
+    <template id="lani-calendar">
+        <style>
+            :host {
+                display: flex;
+            }
+            div#container {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                border-style: solid;
+            }
+            div#title-container{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-style: solid;
+            }
+            div#grid-container{
+                display: flex;
+                border-style: solid;
+                border-width: 0;
+            }
+            table#grid{
+                flex: 1;
+            }
+            p {
+                margin: 0px;
+            }
+            table#grid {
+                table-layout: fixed;
+                width: 100%;
+                border-collapse: collapse;
+            }
+            table#grid th {
+                border-style: solid;
+                border-width: 0px;
+            }
+            table#grid td {
+                vertical-align: top;
+                border-style: solid;
+                border-width: 0px;
+            }
+            td.not-this-month p.day-label {
+                opacity: 0.5;
+            }
+        </style>
+        <div id="container" class="l-body">
+            <div id="title-container">
+                <p id="title"></p>
+            </div>
+            <div id="grid-container">
+                <table id="grid"></table>
+            </div>
+        </div>
+        
     </template>
 
 </body>
