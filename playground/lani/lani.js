@@ -2058,6 +2058,8 @@ Lani.CalendarColor4 = class {
 
 Lani.CalendarFormatting = class {
     constructor(){
+        this.version = 1;
+
         this.backgroundColor = "white";
         this.width = "11in";
         this.height = "8.5in";
@@ -2067,11 +2069,12 @@ Lani.CalendarFormatting = class {
         this.outerBorderPadding = new Lani.CalendarDimension(0);
         this.outerBorderColor = new Lani.CalendarColor4("black");
 
-        this.titleBackgroundColor = "lightblue";
-        this.titleForegroundColor = "black";
+        this.showTitle = true;
+        this.titleBackgroundColor = "#f54242";
+        this.titleForegroundColor = "white";
         this.titleSize = 1;
         this.titleFont = new Lani.Font();
-        this.titleFont.size = "4em";
+        this.titleFont.size = "4rem";
         this.titleBorderSize = new Lani.CalendarDimension();
         this.titleBorderColor = new Lani.CalendarColor4();
         this.titleMargin = new Lani.CalendarDimension(2);
@@ -2089,10 +2092,18 @@ Lani.CalendarFormatting = class {
         this.dayGridBackgroundColor = null;
         this.dayGridForegroundColor = "black";
         this.dayGridFont = new Lani.Font();
+        this.dayGridFont.size = "1rem";
         this.dayGridFont.isBold = true;
         this.dayGridInnerBorderColor = null;
         this.dayGridBottomBorderColor = "lightgray";
         this.dayGridBottomBorderSize = 1;
+
+        this.gridCellPadding = new Lani.CalendarDimension(2);
+        this.showDayNumbers = true;
+        this.showDayNumbersForOtherMonths = true;
+        this.gridDayNumberFont = new Lani.Font();
+        this.gridDayNumberFont.size = "1rem";
+        this.gridDayNumberMargin = new Lani.CalendarDimension(3);
     }
 }
 
@@ -2235,14 +2246,21 @@ Lani.CalendarElement = class extends Lani.Element {
         this.formatting.outerBorderSize.applyToBorder(container);
 
         let titleContainer = this.shadow.getElementById("title-container");
-        titleContainer.style.flex = this.formatting.titleSize;
-        titleContainer.style.background = this.formatting.titleBackgroundColor ?? "none";
-        this.formatting.titleBorderColor.applyToBorder(titleContainer);
-        this.formatting.titleBorderSize.applyToBorder(titleContainer);
 
-        let title = this.shadow.getElementById("title");
-        title.style.color = this.formatting.titleForegroundColor ?? "transparent";
-        this.formatting.titleFont.apply(title);
+        if(this.formatting.showTitle === true){
+            titleContainer.style.display = "flex";
+            titleContainer.style.flex = this.formatting.titleSize;
+            titleContainer.style.background = this.formatting.titleBackgroundColor ?? "none";
+            this.formatting.titleBorderColor.applyToBorder(titleContainer);
+            this.formatting.titleBorderSize.applyToBorder(titleContainer);
+    
+            let title = this.shadow.getElementById("title");
+            title.style.color = this.formatting.titleForegroundColor ?? "transparent";
+            this.formatting.titleFont.apply(title);
+        }
+        else{
+            titleContainer.style.display = "none";
+        }
 
         let gridContainer = this.shadow.getElementById("grid-container");
         gridContainer.style.flex = this.formatting.gridSize;
@@ -2299,14 +2317,19 @@ Lani.CalendarElement = class extends Lani.Element {
                 let thisDayOfMonth = (rowInd * 7) + i - (firstDayOfMonth - 1);
 
                 let cell = Lani.c("td", null, row);
+                let dayLabel = null;
+                this.formatting.gridCellPadding.applyToPadding(cell);
                 if(rowInd === 0) {
                     // The first row
                     if(thisDayOfMonth > 0){
-                        Lani.c("p", "day-label", cell, {innerHTML: thisDayOfMonth});
+                        if(this.formatting.showDayNumbers)
+                            dayLabel = Lani.c("p", "day-label", cell, {innerHTML: thisDayOfMonth});
                     }
                     else{
-                        Lani.c("p", "day-label", cell, {innerHTML: daysInLastMonth + thisDayOfMonth});
-                        cell.className += " not-this-month";
+                        if(this.formatting.showDayNumbers && this.formatting.showDayNumbersForOtherMonths){
+                            dayLabel = Lani.c("p", "day-label", cell, {innerHTML: daysInLastMonth + thisDayOfMonth});
+                            cell.className += " not-this-month";
+                        }
                     }
 
                     if(i !== 0){
@@ -2325,11 +2348,14 @@ Lani.CalendarElement = class extends Lani.Element {
                 else if(rowInd === rows - 1){
                     // The last row
                     if(thisDayOfMonth <= daysInMonth){
-                        Lani.c("p", "day-label", cell, {innerHTML: thisDayOfMonth});
+                        if(this.formatting.showDayNumbers)
+                            dayLabel = Lani.c("p", "day-label", cell, {innerHTML: thisDayOfMonth});
                     }
                     else {
-                        Lani.c("p", "day-label", cell, {innerHTML: thisDayOfMonth - daysInMonth});
-                        cell.className += " not-this-month";
+                        if(this.formatting.showDayNumbers && this.formatting.showDayNumbersForOtherMonths){
+                            dayLabel = Lani.c("p", "day-label", cell, {innerHTML: thisDayOfMonth - daysInMonth});
+                            cell.className += " not-this-month";
+                        }
                     }
 
                     if(i !== 0){
@@ -2344,7 +2370,8 @@ Lani.CalendarElement = class extends Lani.Element {
                 }
                 else {
                     // All middle rows
-                    Lani.c("p", "day-label", cell, {innerHTML: thisDayOfMonth});
+                    if(this.formatting.showDayNumbers)
+                        dayLabel = Lani.c("p", "day-label", cell, {innerHTML: thisDayOfMonth});
                     // Left side border
                     if(i !== 0){
                         cell.style.borderLeftWidth = `${this.formatting.gridInnerBorderSize}px`;
@@ -2358,6 +2385,10 @@ Lani.CalendarElement = class extends Lani.Element {
                         cell.style.borderRightWidth = `${this.formatting.gridInnerBorderSize}px`;
                         cell.style.borderRightColor = this.formatting.gridInnerBorderColor;
                     }
+                }
+                if(dayLabel !== null){
+                    this.formatting.gridDayNumberFont.apply(dayLabel);
+                    this.formatting.gridDayNumberMargin.applyToMargin(dayLabel);
                 }
 
             }
