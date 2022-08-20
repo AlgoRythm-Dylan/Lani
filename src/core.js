@@ -285,7 +285,7 @@ Lani.Font = class {
     }
     apply(element){
         if(this.weight !== null)
-            element.style.weight = this.weight;
+            element.style.fontWeight = this.weight;
         if(this.isItalic === true)
             element.style.fontStyle = "italic";
         if(this.isUnderlined === true)
@@ -300,8 +300,8 @@ Lani.Font = class {
     }
     set isBold(value){
         if(value === true)
-            this.fontWeight = 700;
+            this.weight = 700;
         else
-            this.fontWeight = null;
+            this.weight = null;
     }
 }

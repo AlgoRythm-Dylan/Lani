@@ -285,7 +285,7 @@ Lani.Font = class {
     }
     apply(element){
         if(this.weight !== null)
-            element.style.weight = this.weight;
+            element.style.fontWeight = this.weight;
         if(this.isItalic === true)
             element.style.fontStyle = "italic";
         if(this.isUnderlined === true)
@@ -300,9 +300,9 @@ Lani.Font = class {
     }
     set isBold(value){
         if(value === true)
-            this.fontWeight = 700;
+            this.weight = 700;
         else
-            this.fontWeight = null;
+            this.weight = null;
     }
 }
 /*
@@ -2086,7 +2086,10 @@ Lani.CalendarFormatting = class {
         this.gridInnerBorderColor = "lightgray";
 
         this.showDaysRow = true;
-        this.gridDaysBackgroundColor = null;
+        this.dayGridBackgroundColor = null;
+        this.dayGridForegroundColor = "black";
+        this.dayGridFont = new Lani.Font();
+        this.dayGridFont.isBold = true;
         this.dayGridInnerBorderColor = null;
         this.dayGridBottomBorderColor = "lightgray";
         this.dayGridBottomBorderSize = 1;
@@ -2261,7 +2264,9 @@ Lani.CalendarElement = class extends Lani.Element {
             let row = Lani.c("tr", null, head);
             for(let day of Lani.CalendarDays){
                 let cell = Lani.c("th", null, row, {innerHTML: Lani.initCap(day)});
-                cell.style.background = this.formatting.gridDaysBackgroundColor ?? "none";
+                cell.style.background = this.formatting.dayGridBackgroundColor ?? "none";
+                cell.style.color = this.formatting.dayGridForegroundColor;
+                this.formatting.dayGridFont.apply(cell);
                 if(this.formatting.dayGridBottomBorderSize !== null)
                     cell.style.borderBottomWidth = `${this.formatting.dayGridBottomBorderSize}px`;
                 cell.style.borderBottomColor = this.formatting.dayGridBottomBorderColor ?? "transparent";
