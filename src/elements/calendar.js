@@ -1,16 +1,5 @@
 Lani.installedModules.push("lani-calendar");
 
-Lani.CalendarFont = class {
-    constructor(){
-        this.isBold = false;
-        this.isItalic = false;
-        this.isUnderlined = false;
-        this.family = null;
-        this.size = null;
-        this.weight = "normal";
-    }
-}
-
 Lani.CalendarDimension = class {
     constructor(size=0){
         this.all = size;

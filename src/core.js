@@ -272,3 +272,36 @@ Lani.objectLoad = (source, objectType, options) => {
 
     return destination;
 }
+
+
+// Generic description of a font
+Lani.Font = class {
+    constructor(){
+        this.weight = null;
+        this.isItalic = false;
+        this.isUnderlined = false;
+        this.family = null;
+        this.size = null;
+    }
+    apply(element){
+        if(this.weight !== null)
+            element.style.weight = this.weight;
+        if(this.isItalic === true)
+            element.style.fontStyle = "italic";
+        if(this.isUnderlined === true)
+            element.style.textDecoration = "underline";
+        if(this.family !== null)
+            element.style.fontFamily = this.family;
+        if(this.size !== null)
+            element.style.fontSize = this.size;
+    }
+    get isBold(){
+        return this.weight === 700;
+    }
+    set isBold(value){
+        if(value === true)
+            this.fontWeight = 700;
+        else
+            this.fontWeight = null;
+    }
+}
