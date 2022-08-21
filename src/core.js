@@ -305,3 +305,25 @@ Lani.Font = class {
             this.weight = null;
     }
 }
+
+Lani.Corners = class {
+    constructor(value=0){
+        this.all = value;
+    }
+    set all(value){
+        this.topLeft = value;
+        this.topRight = value;
+        this.bottomLeft = value;
+        this.bottomRight = value;
+    }
+    applyToBorderRadius(element){
+        if(this.topLeft !== null)
+            element.style.borderTopLeftRadius = `${this.topLeft}px`;
+        if(this.topRight !== null)
+            element.style.borderTopRightRadius = `${this.topRight}px`;
+        if(this.bottomRight !== null)
+            element.style.borderBottomRightRadius = `${this.bottomRight}px`;
+        if(this.bottomLeft !== null)
+            element.style.borderBottomLeftRadius = `${this.bottomLeft}px`;
+    }
+}

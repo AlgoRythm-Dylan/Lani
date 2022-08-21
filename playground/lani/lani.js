@@ -305,6 +305,28 @@ Lani.Font = class {
             this.weight = null;
     }
 }
+
+Lani.Corners = class {
+    constructor(value=0){
+        this.all = value;
+    }
+    set all(value){
+        this.topLeft = value;
+        this.topRight = value;
+        this.bottomLeft = value;
+        this.bottomRight = value;
+    }
+    applyToBorderRadius(element){
+        if(this.topLeft !== null)
+            element.style.borderTopLeftRadius = `${this.topLeft}px`;
+        if(this.topRight !== null)
+            element.style.borderTopRightRadius = `${this.topRight}px`;
+        if(this.bottomRight !== null)
+            element.style.borderBottomRightRadius = `${this.bottomRight}px`;
+        if(this.bottomLeft !== null)
+            element.style.borderBottomLeftRadius = `${this.bottomLeft}px`;
+    }
+}
 /*
 
     Data container / operations module
@@ -2056,9 +2078,11 @@ Lani.CalendarColor4 = class {
     }
 }
 
+Lani.CALENDAR_FMT_VERSION = 1;
+
 Lani.CalendarFormatting = class {
     constructor(){
-        this.version = 1;
+        this.version = Lani.CALENDAR_FMT_VERSION;
 
         this.backgroundColor = "white";
         this.width = "11in";
@@ -2101,23 +2125,81 @@ Lani.CalendarFormatting = class {
         this.gridCellPadding = new Lani.CalendarDimension(2);
         this.showDayNumbers = true;
         this.showDayNumbersForOtherMonths = true;
-        this.gridDayNumberFont = new Lani.Font();
-        this.gridDayNumberFont.size = "1rem";
-        this.gridDayNumberMargin = new Lani.CalendarDimension(3);
+
+        this.defaultCellFormatting = new Lani.CalendarCellFormatting();
+        this.defaultWeekendCellFormatting = null;
+        this.defaultEventFormatting = new Lani.CalendarEventFormatting();
+
+    }
+}
+
+Lani.CalendarCellFormatting = class {
+    constructor(){
+        this.version = Lani.CALENDAR_FMT_VERSION;
+
+        this.dayNumberFont = new Lani.Font();
+        this.dayNumberFont.size = "1rem";
+        this.dayNumberMargin = new Lani.CalendarDimension(3);
+        this.dayNumberPadding = new Lani.CalendarDimension(3);
+        this.dayNumberForegroundColor = "black";
+        this.dayNumberBackgroundColor = null;
+        this.dayNumberRounding = new Lani.Corners(3);
+
+    }
+}
+
+Lani.CalendarEventFormatting = class {
+    constructor(){
+        this.version = Lani.CALENDAR_FMT_VERSION;
+    }
+}
+
+Lani.CalendarEvent = class {
+    constructor(){
+        this.formatting = new Lani.CalendarEventFormatting();
+        this.content = "(new event)";
+    }
+}
+
+Lani.CalendarDay = class {
+    constructor(){
+        this.events = [];
+        this.formatting = null;
     }
 }
 
 Lani.Calendar = class {
     constructor(){
         let date = new Date();
-        this.month = date.getMonth() + 1;
-        this.year = date.getFullYear();
+        this.setDate(date.getMonth() + 1, date.getFullYear());
 
         this.title = null;
-        // free-form object of text variables for the calendar
-        this.textResources = {"subTitle": null};
+        // free-form object of variables for the calendar
+        this.resources = {"subTitle": null};
 
         this.formatting = new Lani.CalendarFormatting();
+    }
+    createDaysArray(){
+        this.days = new Array(Lani.calendarRowsForMonth(this.year, this.month) * 7);
+        for(let i = 0; i < this.days.length; i++){
+            this.days[i] = new Lani.CalendarDay();
+        }
+    }
+    // The "days" array also (potentially) contains the last few days of the previous
+    // month, and the first few days of the next month. This is because a calendar
+    // (one that you would hang on you office wall) generally does this, and keeping
+    // them in memory like this makes it easy to add events to even days that don't
+    // happen this month (this helps in situations where you're doing something 
+    // *tomorrow*, but tomorrow is next month)
+    getDayOfMonth(day){
+        return this.days[day + firstDayOfMonth(this.year, this.month)];
+    }
+    setDate(year=null, month=null){
+        if(year !== null)
+            this.year = year;
+        if(month !== null)
+            this.month = month;
+        this.createDaysArray();
     }
 }
 
@@ -2386,10 +2468,17 @@ Lani.CalendarElement = class extends Lani.Element {
                         cell.style.borderRightColor = this.formatting.gridInnerBorderColor;
                     }
                 }
-                if(dayLabel !== null){
+                /*if(dayLabel !== null){
+
+                    let dayFormatting = this.calendar.days[i].formatting ?? this.calendar.defaultCellFormatting;
+
                     this.formatting.gridDayNumberFont.apply(dayLabel);
                     this.formatting.gridDayNumberMargin.applyToMargin(dayLabel);
-                }
+                    this.formatting.gridDayNumberPadding.applyToPadding(dayLabel);
+                    dayLabel.style.color = this.formatting.gridDayNumberForegroundColor;
+                    dayLabel.style.background = this.formatting.gridDayNumberBackgroundColor ?? "transparent";
+                    this.formatting.gridDayNumberRounding.applyToBorderRadius(dayLabel);
+                }*/
 
             }
         }
