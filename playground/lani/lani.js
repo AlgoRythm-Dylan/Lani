@@ -293,7 +293,7 @@ Lani.Font = class {
         if(this.family !== null)
             element.style.fontFamily = this.family;
         if(this.size !== null)
-            element.style.fontSize = this.size;
+            element.style.fontSize = Lani.genericDimension(this.size);
     }
     get isBold(){
         return this.weight === 700;
@@ -318,15 +318,57 @@ Lani.Corners = class {
     }
     applyToBorderRadius(element){
         if(this.topLeft !== null)
-            element.style.borderTopLeftRadius = `${this.topLeft}px`;
+            element.style.borderTopLeftRadius = Lani.genericDimension(this.topLeft);
         if(this.topRight !== null)
-            element.style.borderTopRightRadius = `${this.topRight}px`;
+            element.style.borderTopRightRadius = Lani.genericDimension(this.topRight);
         if(this.bottomRight !== null)
-            element.style.borderBottomRightRadius = `${this.bottomRight}px`;
+            element.style.borderBottomRightRadius = Lani.genericDimension(this.bottomRight);
         if(this.bottomLeft !== null)
-            element.style.borderBottomLeftRadius = `${this.bottomLeft}px`;
+            element.style.borderBottomLeftRadius = Lani.genericDimension(this.bottomLeft);
     }
 }
+
+Lani.Dimension = class {
+    constructor(size=0){
+        this.all = size;
+    }
+    set all(value){
+        this.top = value;
+        this.bottom = value;
+        this.left = value;
+        this.right =  value;
+    }
+    applyToMargin(element){
+        element.style.marginTop = Lani.genericDimension(this.top);
+        element.style.marginBottom = Lani.genericDimension(this.bottom);
+        element.style.marginLeft = Lani.genericDimension(this.left);
+        element.style.marginRight = Lani.genericDimension(this.right);
+    }
+    applyToPadding(element){
+        element.style.paddingTop = Lani.genericDimension(this.top);
+        element.style.paddingBottom = Lani.genericDimension(this.bottom);
+        element.style.paddingLeft = Lani.genericDimension(this.left);
+        element.style.paddingRight = Lani.genericDimension(this.right);
+    }
+    applyToBorder(element){
+        element.style.borderTopWidth = Lani.genericDimension(this.top);
+        element.style.borderBottomWidth = Lani.genericDimension(this.bottom);
+        element.style.borderLeftWidth = Lani.genericDimension(this.left);
+        element.style.borderRightWidth = Lani.genericDimension(this.right);
+    }
+    get isNone(){
+        return (this.top === null || this.top === 0) &&
+            (this.bottom === null || this.bottom === 0) &&
+            (this.left === null || this.left === 0) &&
+            (this.right === null || this.right === 0);
+    }
+}
+
+// Allows for integer (number) values to be interpreted as pixel values
+// (or whatever is passed in as the default dimension), but strings which
+// come packaged with actual dimension specifications are still respected
+Lani.genericDimension = (input, dimension="px") =>
+    typeof input === "number" ? `${input}${dimension}` : input;
 /*
 
     Data container / operations module
@@ -2018,41 +2060,7 @@ Lani.OnOffElement = class extends Lani.Element {
 Lani.regEl("lani-on-off", Lani.OnOffElement);
 Lani.installedModules.push("lani-calendar");
 
-Lani.CalendarDimension = class {
-    constructor(size=0){
-        this.all = size;
-    }
-    applyToMargin(element){
-        element.style.marginTop = `${this.top}px`;
-        element.style.marginBottom = `${this.bottom}px`;
-        element.style.marginLeft = `${this.left}px`;
-        element.style.marginRight = `${this.right}px`;
-    }
-    applyToPadding(element){
-        element.style.paddingTop = `${this.top}px`;
-        element.style.paddingBottom = `${this.bottom}px`;
-        element.style.paddingLeft = `${this.left}px`;
-        element.style.paddingRight = `${this.right}px`;
-    }
-    applyToBorder(element){
-        element.style.borderTopWidth = `${this.top}px`;
-        element.style.borderBottomWidth = `${this.bottom}px`;
-        element.style.borderLeftWidth = `${this.left}px`;
-        element.style.borderRightWidth = `${this.right}px`;
-    }
-    set all(value){
-        this.top = value;
-        this.bottom = value;
-        this.left = value;
-        this.right =  value;
-    }
-    get isNone(){
-        return (this.top === null || this.top === 0) &&
-            (this.bottom === null || this.bottom === 0) &&
-            (this.left === null || this.left === 0) &&
-            (this.right === null || this.right === 0);
-    }
-}
+Lani.CalendarLib = {};
 
 Lani.CalendarColor4 = class {
     constructor(color=null){
@@ -2062,7 +2070,7 @@ Lani.CalendarColor4 = class {
         this.top = value;
         this.bottom = value;
         this.left = value;
-        this.right =  value;
+        this.right = value;
     }
     applyToBorder(element){
         element.style.borderTopColor = Lani.CalendarColor4.toCSS(this.top);
@@ -2088,9 +2096,9 @@ Lani.CalendarFormatting = class {
         this.width = "11in";
         this.height = "8.5in";
 
-        this.outerBorderSize = new Lani.CalendarDimension(0);
-        this.outerBorderMargin = new Lani.CalendarDimension(0);
-        this.outerBorderPadding = new Lani.CalendarDimension(0);
+        this.outerBorderSize = new Lani.Dimension(0);
+        this.outerBorderMargin = new Lani.Dimension(0);
+        this.outerBorderPadding = new Lani.Dimension(0);
         this.outerBorderColor = new Lani.CalendarColor4("black");
 
         this.showTitle = true;
@@ -2099,15 +2107,15 @@ Lani.CalendarFormatting = class {
         this.titleSize = 1;
         this.titleFont = new Lani.Font();
         this.titleFont.size = "4rem";
-        this.titleBorderSize = new Lani.CalendarDimension();
+        this.titleBorderSize = new Lani.Dimension();
         this.titleBorderColor = new Lani.CalendarColor4();
-        this.titleMargin = new Lani.CalendarDimension(2);
+        this.titleMargin = new Lani.Dimension(2);
 
         this.gridBackgroundColor = null;
         this.gridForegroundColor = "black";
-        this.gridMargin = new Lani.CalendarDimension(10);
+        this.gridMargin = new Lani.Dimension(10);
         this.gridSize = 5;
-        this.gridOuterBorderSize = new Lani.CalendarDimension(1);
+        this.gridOuterBorderSize = new Lani.Dimension(1);
         this.gridInnerBorderSize = 1;
         this.gridOuterBorderColor = new Lani.CalendarColor4("lightgray");
         this.gridInnerBorderColor = "lightgray";
@@ -2122,13 +2130,9 @@ Lani.CalendarFormatting = class {
         this.dayGridBottomBorderColor = "lightgray";
         this.dayGridBottomBorderSize = 1;
 
-        this.gridCellPadding = new Lani.CalendarDimension(2);
+        this.gridCellPadding = new Lani.Dimension(2);
         this.showDayNumbers = true;
         this.showDayNumbersForOtherMonths = true;
-
-        this.defaultCellFormatting = new Lani.CalendarCellFormatting();
-        this.defaultWeekendCellFormatting = null;
-        this.defaultEventFormatting = new Lani.CalendarEventFormatting();
 
     }
 }
@@ -2139,8 +2143,8 @@ Lani.CalendarCellFormatting = class {
 
         this.dayNumberFont = new Lani.Font();
         this.dayNumberFont.size = "1rem";
-        this.dayNumberMargin = new Lani.CalendarDimension(3);
-        this.dayNumberPadding = new Lani.CalendarDimension(3);
+        this.dayNumberMargin = new Lani.Dimension(3);
+        this.dayNumberPadding = new Lani.Dimension(3);
         this.dayNumberForegroundColor = "black";
         this.dayNumberBackgroundColor = null;
         this.dayNumberRounding = new Lani.Corners(3);
@@ -2171,13 +2175,16 @@ Lani.CalendarDay = class {
 Lani.Calendar = class {
     constructor(){
         let date = new Date();
-        this.setDate(date.getMonth() + 1, date.getFullYear());
+        this.setDate(date.getFullYear(), date.getMonth() + 1);
 
         this.title = null;
         // free-form object of variables for the calendar
         this.resources = {"subTitle": null};
 
         this.formatting = new Lani.CalendarFormatting();
+        this.defaultCellFormatting = new Lani.CalendarCellFormatting();
+        this.defaultWeekendCellFormatting = null;
+        this.defaultEventFormatting = new Lani.CalendarEventFormatting();
     }
     createDaysArray(){
         this.days = new Array(Lani.calendarRowsForMonth(this.year, this.month) * 7);
@@ -2468,17 +2475,20 @@ Lani.CalendarElement = class extends Lani.Element {
                         cell.style.borderRightColor = this.formatting.gridInnerBorderColor;
                     }
                 }
-                /*if(dayLabel !== null){
+                if(dayLabel !== null){
 
                     let dayFormatting = this.calendar.days[i].formatting ?? this.calendar.defaultCellFormatting;
+                    dayFormatting.dayNumberFont.apply(dayLabel);
+                    dayFormatting.dayNumberMargin.applyToMargin(dayLabel);
+                    dayFormatting.dayNumberPadding.applyToPadding(dayLabel);
 
-                    this.formatting.gridDayNumberFont.apply(dayLabel);
+                    /*this.formatting.gridDayNumberFont.apply(dayLabel);
                     this.formatting.gridDayNumberMargin.applyToMargin(dayLabel);
                     this.formatting.gridDayNumberPadding.applyToPadding(dayLabel);
                     dayLabel.style.color = this.formatting.gridDayNumberForegroundColor;
                     dayLabel.style.background = this.formatting.gridDayNumberBackgroundColor ?? "transparent";
-                    this.formatting.gridDayNumberRounding.applyToBorderRadius(dayLabel);
-                }*/
+                    this.formatting.gridDayNumberRounding.applyToBorderRadius(dayLabel);*/
+                }
 
             }
         }

@@ -293,7 +293,7 @@ Lani.Font = class {
         if(this.family !== null)
             element.style.fontFamily = this.family;
         if(this.size !== null)
-            element.style.fontSize = this.size;
+            element.style.fontSize = Lani.genericDimension(this.size);
     }
     get isBold(){
         return this.weight === 700;
@@ -318,12 +318,54 @@ Lani.Corners = class {
     }
     applyToBorderRadius(element){
         if(this.topLeft !== null)
-            element.style.borderTopLeftRadius = `${this.topLeft}px`;
+            element.style.borderTopLeftRadius = Lani.genericDimension(this.topLeft);
         if(this.topRight !== null)
-            element.style.borderTopRightRadius = `${this.topRight}px`;
+            element.style.borderTopRightRadius = Lani.genericDimension(this.topRight);
         if(this.bottomRight !== null)
-            element.style.borderBottomRightRadius = `${this.bottomRight}px`;
+            element.style.borderBottomRightRadius = Lani.genericDimension(this.bottomRight);
         if(this.bottomLeft !== null)
-            element.style.borderBottomLeftRadius = `${this.bottomLeft}px`;
+            element.style.borderBottomLeftRadius = Lani.genericDimension(this.bottomLeft);
     }
 }
+
+Lani.Dimension = class {
+    constructor(size=0){
+        this.all = size;
+    }
+    set all(value){
+        this.top = value;
+        this.bottom = value;
+        this.left = value;
+        this.right =  value;
+    }
+    applyToMargin(element){
+        element.style.marginTop = Lani.genericDimension(this.top);
+        element.style.marginBottom = Lani.genericDimension(this.bottom);
+        element.style.marginLeft = Lani.genericDimension(this.left);
+        element.style.marginRight = Lani.genericDimension(this.right);
+    }
+    applyToPadding(element){
+        element.style.paddingTop = Lani.genericDimension(this.top);
+        element.style.paddingBottom = Lani.genericDimension(this.bottom);
+        element.style.paddingLeft = Lani.genericDimension(this.left);
+        element.style.paddingRight = Lani.genericDimension(this.right);
+    }
+    applyToBorder(element){
+        element.style.borderTopWidth = Lani.genericDimension(this.top);
+        element.style.borderBottomWidth = Lani.genericDimension(this.bottom);
+        element.style.borderLeftWidth = Lani.genericDimension(this.left);
+        element.style.borderRightWidth = Lani.genericDimension(this.right);
+    }
+    get isNone(){
+        return (this.top === null || this.top === 0) &&
+            (this.bottom === null || this.bottom === 0) &&
+            (this.left === null || this.left === 0) &&
+            (this.right === null || this.right === 0);
+    }
+}
+
+// Allows for integer (number) values to be interpreted as pixel values
+// (or whatever is passed in as the default dimension), but strings which
+// come packaged with actual dimension specifications are still respected
+Lani.genericDimension = (input, dimension="px") =>
+    typeof input === "number" ? `${input}${dimension}` : input;
