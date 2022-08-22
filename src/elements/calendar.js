@@ -315,18 +315,18 @@ Lani.CalendarElement = class extends Lani.Element {
                 cell.style.color = this.formatting.dayGridForegroundColor;
                 this.formatting.dayGridFont.apply(cell);
                 if(this.formatting.dayGridBottomBorderSize !== null)
-                    cell.style.borderBottomWidth = `${this.formatting.dayGridBottomBorderSize}px`;
+                    cell.style.borderBottomWidth = Lani.genericDimension(this.formatting.dayGridBottomBorderSize);
                 cell.style.borderBottomColor = this.formatting.dayGridBottomBorderColor ?? "transparent";
 
                 if(i !== 0){
                     cell.style.borderLeftColor = this.formatting.dayGridInnerBorderColor ??
                         this.formatting.gridInnerBorderColor ?? "transparent";
-                    cell.style.borderLeftWidth = `${this.formatting.gridInnerBorderSize}px`;
+                    cell.style.borderLeftWidth = Lani.genericDimension(this.formatting.gridInnerBorderSize);
                 }
                 if(i < 6){
                     cell.style.borderRightColor = this.formatting.dayGridInnerBorderColor ??
                         this.formatting.gridInnerBorderColor ?? "transparent";
-                    cell.style.borderRightWidth = `${this.formatting.gridInnerBorderSize}px`;
+                    cell.style.borderRightWidth = Lani.genericDimension(this.formatting.gridInnerBorderSize);
                 }
                 i++;
             }
@@ -362,14 +362,14 @@ Lani.CalendarElement = class extends Lani.Element {
                     }
 
                     if(i !== 0){
-                        cell.style.borderLeftWidth = `${this.formatting.gridInnerBorderSize}px`;
+                        cell.style.borderLeftWidth = Lani.genericDimension(this.formatting.gridInnerBorderSize);
                         cell.style.borderLeftColor = this.formatting.gridInnerBorderColor;
                     }
                     // Bottom border
-                    cell.style.borderBottomWidth = `${this.formatting.gridInnerBorderSize}px`;
+                    cell.style.borderBottomWidth = Lani.genericDimension(this.formatting.gridInnerBorderSize);
                     cell.style.borderBottomColor = this.formatting.gridInnerBorderColor;
                     if(i < 6){
-                        cell.style.borderRightWidth = `${this.formatting.gridInnerBorderSize}px`;
+                        cell.style.borderRightWidth = Lani.genericDimension(this.formatting.gridInnerBorderSize);
                         cell.style.borderRightColor = this.formatting.gridInnerBorderColor;
                     }
 
@@ -388,11 +388,11 @@ Lani.CalendarElement = class extends Lani.Element {
                     }
 
                     if(i !== 0){
-                        cell.style.borderLeftWidth = `${this.formatting.gridInnerBorderSize}px`;
+                        cell.style.borderLeftWidth = Lani.genericDimension(this.formatting.gridInnerBorderSize);
                         cell.style.borderLeftColor = this.formatting.gridInnerBorderColor;
                     }
                     if(i < 6){
-                        cell.style.borderRightWidth = `${this.formatting.gridInnerBorderSize}px`;
+                        cell.style.borderRightWidth = Lani.genericDimension(this.formatting.gridInnerBorderSize);
                         cell.style.borderRightColor = this.formatting.gridInnerBorderColor;
                     }
 
@@ -403,15 +403,15 @@ Lani.CalendarElement = class extends Lani.Element {
                         dayLabel = Lani.c("p", "day-label", cell, {innerHTML: thisDayOfMonth});
                     // Left side border
                     if(i !== 0){
-                        cell.style.borderLeftWidth = `${this.formatting.gridInnerBorderSize}px`;
+                        cell.style.borderLeftWidth = Lani.genericDimension(this.formatting.gridInnerBorderSize);
                         cell.style.borderLeftColor = this.formatting.gridInnerBorderColor;
                     }
                     // Bottom border
-                    cell.style.borderBottomWidth = `${this.formatting.gridInnerBorderSize}px`;
+                    cell.style.borderBottomWidth = Lani.genericDimension(this.formatting.gridInnerBorderSize);
                     cell.style.borderBottomColor = this.formatting.gridInnerBorderColor;
                     // Right side border
                     if(i < 6){
-                        cell.style.borderRightWidth = `${this.formatting.gridInnerBorderSize}px`;
+                        cell.style.borderRightWidth = Lani.genericDimension(this.formatting.gridInnerBorderSize);
                         cell.style.borderRightColor = this.formatting.gridInnerBorderColor;
                     }
                 }
