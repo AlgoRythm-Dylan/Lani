@@ -369,3 +369,34 @@ Lani.Dimension = class {
 // come packaged with actual dimension specifications are still respected
 Lani.genericDimension = (input, dimension="px") =>
     typeof input === "number" ? `${input}${dimension}` : input;
+
+// Wanna take a property from an object, a fallback object, and another
+// infinitely long list of fallback objects? Well, 'ere ya go
+Lani.coalescedPropertyGet = (objectArray, name, goPastNull=true) => {
+    for(obj of objectArray){
+        let val = obj[name];
+        if(!(typeof val !== "undefined" || (!goPastNull && val === null)))
+            return val;
+    }
+    return null;
+}
+
+// coalescedPropertyGet is ridiculously long
+Lani.cPG = Lani.coalescePropertyGet;
+
+// Using the first object as the seed object, returns
+// a basic JavaScript object that is populated by coalescing
+// the properties of the seed all the way to the end of the list
+Lani.coalescedObjectGet = (objectArray, goPastNull=true) => {
+
+}
+
+Lani.cOG = Lani.coalescedObjectGet;
+
+// The same as Lani.coalescedObjectGet, but returns an instance
+// of a type using Lani.objectLoad
+Lani.typedCoalescedObjectGet = (objectArray, type, goPastNull=true, objectLoadOptions=null) => {
+    return Lani.objectLoad(Lani.coalescedObjectGet(objectArray, goPastNull), type, objectLoadOptions);
+}
+
+Lani.tCOG = Lani.typedCoalescedObjectGet;

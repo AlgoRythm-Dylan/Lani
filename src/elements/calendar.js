@@ -345,6 +345,19 @@ Lani.CalendarElement = class extends Lani.Element {
             for(let i = 0; i < 7; i++){
                 let thisDayOfMonth = (rowInd * 7) + i - (firstDayOfMonth - 1);
 
+                let actualDay = new Date(this.calendar.year, this.calendar.month - 1, thisDayOfMonth);
+                let isWeekend = actualDay.getDay() == 0 || actualDay.getDay() == 6;
+
+                let dayFormatting;
+                if(isWeekend){
+                    dayFormatting = this.calendar.days[i].formatting ??
+                        this.calendar.defaultWeekendCellFormatting ??
+                        this.calendar.defaultCellFormatting;
+                }
+                else{
+                    dayFormatting = this.calendar.days[i].formatting ?? this.calendar.defaultCellFormatting;
+                }
+
                 let cell = Lani.c("td", null, row);
                 let dayLabel = null;
                 this.formatting.gridCellPadding.applyToPadding(cell);
@@ -417,17 +430,13 @@ Lani.CalendarElement = class extends Lani.Element {
                 }
                 if(dayLabel !== null){
 
-                    let dayFormatting = this.calendar.days[i].formatting ?? this.calendar.defaultCellFormatting;
                     dayFormatting.dayNumberFont.apply(dayLabel);
                     dayFormatting.dayNumberMargin.applyToMargin(dayLabel);
                     dayFormatting.dayNumberPadding.applyToPadding(dayLabel);
+                    dayFormatting.dayNumberRounding.applyToBorderRadius(dayLabel);
+                    dayLabel.style.backgroundColor = dayFormatting.dayNumberBackgroundColor ?? "transparent";
+                    dayLabel.style.color = dayFormatting.dayNumberForegroundColor;
 
-                    /*this.formatting.gridDayNumberFont.apply(dayLabel);
-                    this.formatting.gridDayNumberMargin.applyToMargin(dayLabel);
-                    this.formatting.gridDayNumberPadding.applyToPadding(dayLabel);
-                    dayLabel.style.color = this.formatting.gridDayNumberForegroundColor;
-                    dayLabel.style.background = this.formatting.gridDayNumberBackgroundColor ?? "transparent";
-                    this.formatting.gridDayNumberRounding.applyToBorderRadius(dayLabel);*/
                 }
 
             }
