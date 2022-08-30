@@ -375,20 +375,24 @@ Lani.genericDimension = (input, dimension="px") =>
 Lani.coalescedPropertyGet = (objectArray, name, goPastNull=true) => {
     for(obj of objectArray){
         let val = obj[name];
-        if(!(typeof val !== "undefined" || (!goPastNull && val === null)))
+        if(typeof val !== "undefined" && (goPastNull && val !== null))
             return val;
     }
     return null;
 }
 
 // coalescedPropertyGet is ridiculously long
-Lani.cPG = Lani.coalescePropertyGet;
+Lani.cPG = Lani.coalescedPropertyGet;
 
 // Using the first object as the seed object, returns
 // a basic JavaScript object that is populated by coalescing
 // the properties of the seed all the way to the end of the list
-Lani.coalescedObjectGet = (objectArray, goPastNull=true) => {
-
+Lani.coalescedObjectGet = (seed, objectArray, goPastNull=true) => {
+    let keys = Object.keys(seed);
+    for(let key of keys){
+        seed[key] = Lani.coalescedPropertyGet([seed, ...objectArray], key, goPastNull);
+    }
+    return seed;
 }
 
 Lani.cOG = Lani.coalescedObjectGet;
