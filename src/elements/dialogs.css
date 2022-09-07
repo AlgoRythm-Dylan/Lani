@@ -21,7 +21,7 @@
 :host {
     box-shadow: var(--lani-shadow);
     border-radius: var(--lani-rounded);
-    background: white;
+    background: var(--lani-body-background);
     display: flex;
     flex-direction: column;
     position: absolute;

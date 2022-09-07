@@ -384,7 +384,7 @@ Lani.alert = async (message, title="Webpage Dialog") => {
     dialog.style.minWidth = "250px";
     dialog.style.minHeight = "150px";
     dialog.addCloseButton("Ok");
-    dialog.htmlContent(`<div class="l-alert-content"><p class="l-no-spacing">${message}</p></div>`);
+    dialog.htmlContent(`<div><p class="l-no-spacing">${message}</p></div>`);
     await Lani.showDialog(dialog);
 }
 

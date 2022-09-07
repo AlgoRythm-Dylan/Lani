@@ -104,26 +104,26 @@
         <div id="container" class="l-body l-rounded l-background-secondary">
 
             <div id="status-bar" class="l-no-select">
-                <p id="title">Webpage Dialog</p>
+                <p id="title" part="title">Webpage Dialog</p>
                 <div id="controls-container">
-                    <button id="minimize-button">
+                    <button id="minimize-button" part="minimize-button">
                         <lani-icon icon="window-minimize"></lani-icon>
                     </button>
-                    <button id="maximize-button" class="l-background-primary">
+                    <button id="maximize-button" class="l-background-primary" part="maximize-button">
                         <lani-icon icon="expand"></lani-icon>
                     </button>
-                    <button id="close-button" class="l-background-primary">
+                    <button id="close-button" class="l-background-primary" part="close-button">
                         <lani-icon icon="xmark"></lani-icon>
                     </button>
                 </div>
             </div>
-            <div id="content" class="l-body l-margin l-rounded l-background-primary">
+            <div id="content" class="l-background-primary l-body l-margin" part="content-container">
                 <slot>
                     
                 </slot>
             </div>
         </div>
-        <div id="buttons-container" class="l-body l-margin">
+        <div id="buttons-container" class="l-body l-margin" part="buttons-container">
             <slot name="buttons" id="buttons-slot">
 
             </slot>

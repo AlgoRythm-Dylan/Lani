@@ -24,9 +24,9 @@
     --lani-text-accent-subtle-color: rgb(85, 145, 245);
 
     /* Corner rounding */
-    --lani-rounded-strong: .8pc;
-    --lani-rounded: .6pc;
-    --lani-rounded-subtle: .3pc;
+    --lani-rounded-strong: .5pc;
+    --lani-rounded: .3pc;
+    --lani-rounded-subtle: .2pc;
 
     /* Shadows */
     --lani-shadow-strong: rgba(32, 32, 128, 0.4) 0px 24px 80px;
@@ -51,9 +51,9 @@
     --lani-selection-bg: rgba(80, 175, 255, 0.5);
 
     /* Margin */
-    --lani-margin-strong: 10px;
-    --lani-margin: 5px;
-    --lani-margin-subtle: 3px;
+    --lani-margin-strong: 0.5rem;
+    --lani-margin: 0.3rem;
+    --lani-margin-subtle: 0.1rem;
     /* 
         Note: in this case, the term "margin" is used
         in a more general manner. It would be accurate
@@ -72,14 +72,16 @@
     --lani-background-primary: rgb(237, 237, 237);
     --lani-background-secondary: rgb(255, 255, 255);
 
+    --lani-body-background: rgb(243, 243, 243);
+
     /* Borders */
     --lani-border-strong: solid black 1px;
     --lani-border: solid rgb(210, 215, 220) 1px;
     --lani-border-subtle: solid black 1px;
 
-    --lani-border-accent-strong: solid black 1px;
-    --lani-border-accent: solid black 1px;
-    --lani-border-accent-subtle: solid black 1px;
+    --lani-border-accent-strong: solid rgb(0, 60, 150) 1px;
+    --lani-border-accent: solid rgb(30, 105, 225) 1px;
+    --lani-border-accent-subtle: solid rgb(85, 145, 245) 1px;
 
     /* Button properties */
     --lani-button-min-width: 75px;
@@ -241,6 +243,14 @@
     background: var(--lani-background-secondary);
 }
 
+.l-body {
+    background: var(--lani-body-background);
+}
+.l-body button, .l-body textarea, .l-body input, .l-body p,
+.l-body select {
+    margin: var(--lani-margin);
+}
+
 /*
     button
 */
@@ -248,21 +258,9 @@
     padding: var(--lani-margin);
     margin: var(--lani-margin);
     border: var(--lani-border);
-    border-color: var(--lani-background-primary);
     background: var(--lani-background-primary);
     border-radius: var(--lani-rounded);
     min-width: var(--lani-button-min-width);
-}
-.l-button:hover, .l-body button:hover {
-    border: var(--lani-border);
-}
-
-/*
-    alert
-*/
-.l-alert-content {
-    display: flex;
-    margin: var(--lani-margin);
 }
 
 /*
@@ -270,4 +268,20 @@
 */
 .l-disabled, .l-body *:disabled{
     opacity: var(--lani-disabled-opacity);
+}
+
+/*
+    inputs
+*/
+.l-input, .l-body input, .l-text-area, .l-body textarea {
+    border: var(--lani-border);
+    border-radius: var(--lani-rounded);
+    padding: var(--lani-margin);
+}
+.l-input:not([type]):focus, .l-body input:not([type]):focus, 
+.l-input[type=text]:focus, .l-body input[type=text]:focus, 
+.l-input[type=password]:focus, .l-body input[type=password]:focus,
+.l-text-area:focus, .l-body textarea:focus {
+    border: var(--lani-border-accent);
+    outline: none;
 }

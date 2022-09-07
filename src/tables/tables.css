@@ -8,6 +8,7 @@
 #body table.l-table {
     width: 100%;
     border-collapse: collapse;
+    background: var(--lani-background-secondary);
 }
 #body table tr {
     border-top: var(--lani-border);
