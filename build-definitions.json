@@ -25,6 +25,8 @@
 
             "./src/svg.js",
 
+            "./src/markdown.js",
+
             "./src/elements/data-source.js",
             "./src/elements/dialog.js",
             "./src/elements/icon.js",
