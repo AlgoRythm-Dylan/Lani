@@ -84,7 +84,8 @@ Lani.Markdown.Tokenizer = class {
 Lani.Markdown.SymbolType = {
     Text: 0,
     Header: 1,
-    EOL: 2
+    EOL: 2,
+    TextStyle: 3
 }
 
 Lani.Markdown.Symbol = class {
@@ -98,6 +99,15 @@ Lani.Markdown.HeaderSymbol = class extends Lani.Markdown.Symbol {
     constructor(level=1){
         super(Lani.Markdown.SymbolType.Header);
         this.level = level;
+    }
+}
+
+Lani.Markdown.TextStyleSymbol = class extends Lani.Markdown.Symbol {
+    constructor(){
+        super(Lani.Markdown.SymbolType.TextStyle);
+
+        this.isItalic = false;
+        this.isBold = false;
     }
 }
 
@@ -189,6 +199,11 @@ Lani.Markdown.Parser = class {
                     this.addTextSymbol("#");
                 }
             }
+            else if(token.type === Lani.Markdown.TokenType.TextStyle) {
+                let symbol = new Lani.Markdown.TextStyleSymbol();
+                symbol.isItalic = true;
+                this.currentLine.push(symbol);
+            }
             else if(token.type === Lani.Markdown.TokenType.Text){
                 this.addTextSymbol(token.text);
             }
@@ -204,15 +219,38 @@ Lani.Markdown.Parser = class {
 }
 
 Lani.Markdown.UnclosedLineTag = class {
-    constructor(symbolMatch=null, closeTag=null){
+    constructor(symbolMatch=null, closeTag=null, matchProperties=null){
         this.symbolMatch = symbolMatch;
         this.closeTag = closeTag;
+        this.matchProperties = matchProperties;
+    }
+    matches(symbol){
+        let propertiesMatch = true;
+        if(this.matchProperties !== null){
+            for(let [key, value] of Object.entries(this.matchProperties)){
+                if(symbol[key] !== value){
+                    propertiesMatch = false;
+                    break;
+                }
+            }
+        }
+        return symbol.type === this.symbolMatch && propertiesMatch;
     }
 }
 
 Lani.Markdown.Renderer = class {
     constructor(parser=null){
         this.parser = parser;
+    }
+    static findAndRemoveMatchingUnclosedLineTag(unclosedLineTags, symbol){
+        for(let i = unclosedLineTags.length - 1; i > 0; i--){
+            let unclosedLineTag = unclosedLineTags[i];
+            if(unclosedLineTag.matches(symbol)){
+                unclosedLineTags.splice(i, 1);
+                return unclosedLineTag;
+            }
+        }
+        return null;
     }
     toHTML(){
         let output = "";
@@ -232,6 +270,28 @@ Lani.Markdown.Renderer = class {
                     }
                     else{
                         output += symbol.text;
+                    }
+                }
+                else if(symbol.type === Lani.Markdown.SymbolType.TextStyle){
+                    let match = Lani.Markdown.Renderer.findAndRemoveMatchingUnclosedLineTag(unclosedLineTags, symbol);
+                    if(match !== null){
+                        // Add the closing line tag!
+                        output += match.closeTag;
+                    }
+                    else{
+                        // Add a new line tag!
+                        if(symbol.isItalic){
+                            output += "<i>";
+                            let unclosedTag = new Lani.Markdown.UnclosedLineTag(
+                                Lani.Markdown.SymbolType.TextStyle, "</i>", {isItalic: true, isBold: false});
+                            unclosedLineTags.push(unclosedTag);
+                        }
+                        else{
+                            output += "<b>";
+                            let unclosedTag = new Lani.Markdown.UnclosedLineTag(
+                                Lani.Markdown.SymbolType.TextStyle, "</b>", {isItalic: false, isBold: true});
+                            unclosedLineTags.push(unclosedTag);
+                        }
                     }
                 }
                 else if(symbol.type === Lani.Markdown.SymbolType.EOL){
