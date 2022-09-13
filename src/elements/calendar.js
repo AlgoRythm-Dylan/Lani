@@ -85,7 +85,7 @@ Lani.CalendarCellFormatting = class {
         this.dayNumberFont.size = "1rem";
         this.dayNumberMargin = new Lani.Dimension(3);
         this.dayNumberPadding = new Lani.Dimension(3);
-        this.dayNumberForegroundColor = "black";
+        this.dayNumberForegroundColor = null;
         this.dayNumberBackgroundColor = null;
         this.dayNumberRounding = new Lani.Corners(3);
 
@@ -102,6 +102,7 @@ Lani.CalendarEvent = class {
     constructor(){
         this.formatting = new Lani.CalendarEventFormatting();
         this.content = "(new event)";
+        this.contentType = "text/plain";
     }
 }
 
@@ -123,7 +124,8 @@ Lani.Calendar = class {
 
         this.formatting = new Lani.CalendarFormatting();
         this.defaultCellFormatting = new Lani.CalendarCellFormatting();
-        this.defaultWeekendCellFormatting = null;
+        this.defaultWeekendCellFormatting = new Lani.CalendarCellFormatting();
+        this.defaultWeekendCellFormatting.dayNumberForegroundColor = "red";
         this.defaultEventFormatting = new Lani.CalendarEventFormatting();
     }
     createDaysArray(){
@@ -350,12 +352,23 @@ Lani.CalendarElement = class extends Lani.Element {
 
                 let dayFormatting;
                 if(isWeekend){
-                    dayFormatting = this.calendar.days[i].formatting ??
-                        this.calendar.defaultWeekendCellFormatting ??
-                        this.calendar.defaultCellFormatting;
+                    dayFormatting = Lani.typedCoalescedObjectGet([
+                        this.calendar.days[i].formatting,
+                        this.calendar.defaultWeekendCellFormatting,
+                        this.calendar.defaultCellFormatting
+                    ], Lani.CalendarCellFormatting);
+
+                    dayFormatting.dayNumberFont = Lani.typedCoalescedObjectGet([
+                        this.calendar.days[i].formatting?.dayNumberFont,
+                        this.calendar.defaultWeekendCellFormatting?.dayNumberFont,
+                        this.calendar.defaultCellFormatting?.dayNumberFont
+                    ], Lani.Font);
                 }
                 else{
-                    dayFormatting = this.calendar.days[i].formatting ?? this.calendar.defaultCellFormatting;
+                    dayFormatting = Lani.typedCoalescedObjectGet([
+                        this.calendar.days[i].formatting,
+                        this.calendar.defaultCellFormatting
+                    ], Lani.CalendarCellFormatting);
                 }
 
                 let cell = Lani.c("td", null, row);

@@ -254,20 +254,44 @@ Lani.useGenericTemplate = (template, parent, appendMode=true) => {
     }
 }
 
-Lani.objectLoad = (source, objectType, options) => {
+Lani.getConstructor = obj => {
+    if(typeof obj !== "object")
+        return null;
+    else return obj.constructor ?? obj.prototype?.constructor;
+}
+
+Lani.isClass = obj => {
+    let ctor = Lani.getConstructor(obj);
+    return ctor.toString().substring(0, 5) === "class";
+    /*const isCtorClass = obj.constructor
+        && obj.constructor.toString().substring(0, 5) === 'class'
+    if(obj.prototype === undefined) {
+        return isCtorClass
+    }
+    const isPrototypeCtorClass = obj.prototype.constructor 
+        && obj.prototype.constructor.toString
+        && obj.prototype.constructor.toString().substring(0, 5) === 'class'
+    return isCtorClass || isPrototypeCtorClass*/
+}
+
+Lani.objectLoad = (source, objectType, options={}) => {
     let destination = options.destination ?? new objectType();
+    let recurse = options.recurse ?? true;
 
     let destItems = Object.entries(destination);
 
-    for(let entry of destItems){
-        let sourceTypeof = typeof source[entry.key];
+    for(let [key, value] of destItems){
+        let sourceTypeof = typeof source[key];
 
         // TODO: Read options so that we can recursively load
         // subtypes of objects
         if(sourceTypeof === "undefined")
             continue;
+        else if(sourceTypeof === "object"){
+
+        }
         else
-            dest[entry.key] = source[entry.key];
+            destination[key] = source[key];
     }
 
     return destination;
@@ -374,6 +398,8 @@ Lani.genericDimension = (input, dimension="px") =>
 // infinitely long list of fallback objects? Well, 'ere ya go
 Lani.coalescedPropertyGet = (objectArray, name, goPastNull=true) => {
     for(obj of objectArray){
+        if(typeof obj === "undefined" || obj === null)
+            continue;
         let val = obj[name];
         if(typeof val !== "undefined" && (goPastNull && val !== null))
             return val;
@@ -387,7 +413,7 @@ Lani.cPG = Lani.coalescedPropertyGet;
 // Using the first object as the seed object, returns
 // a basic JavaScript object that is populated by coalescing
 // the properties of the seed all the way to the end of the list
-Lani.coalescedObjectGet = (seed, objectArray, goPastNull=true) => {
+Lani.coalescedObjectGet = (seed={}, objectArray, goPastNull=true) => {
     let keys = Object.keys(seed);
     for(let key of keys){
         seed[key] = Lani.coalescedPropertyGet([seed, ...objectArray], key, goPastNull);
@@ -399,8 +425,8 @@ Lani.cOG = Lani.coalescedObjectGet;
 
 // The same as Lani.coalescedObjectGet, but returns an instance
 // of a type using Lani.objectLoad
-Lani.typedCoalescedObjectGet = (objectArray, type, goPastNull=true, objectLoadOptions=null) => {
-    return Lani.objectLoad(Lani.coalescedObjectGet(objectArray, goPastNull), type, objectLoadOptions);
+Lani.typedCoalescedObjectGet = (objectArray, type, goPastNull=true, objectLoadOptions) => {
+    return Lani.objectLoad(Lani.coalescedObjectGet(new type(), objectArray, goPastNull), type, objectLoadOptions);
 }
 
 Lani.tCOG = Lani.typedCoalescedObjectGet;
@@ -1550,6 +1576,13 @@ Lani.Markdown.TextStyleSymbol = class extends Lani.Markdown.Symbol {
     }
 }
 
+Lani.Markdown.Rules = class {
+    constructor(){
+        this.enableTextStyles = true;
+        this.enableHeaders = true;
+    }
+}
+
 Lani.Markdown.Parser = class {
     constructor(tokenizer){
         this.tokenizer = tokenizer;
@@ -2517,7 +2550,7 @@ Lani.CalendarCellFormatting = class {
         this.dayNumberFont.size = "1rem";
         this.dayNumberMargin = new Lani.Dimension(3);
         this.dayNumberPadding = new Lani.Dimension(3);
-        this.dayNumberForegroundColor = "black";
+        this.dayNumberForegroundColor = null;
         this.dayNumberBackgroundColor = null;
         this.dayNumberRounding = new Lani.Corners(3);
 
@@ -2534,6 +2567,7 @@ Lani.CalendarEvent = class {
     constructor(){
         this.formatting = new Lani.CalendarEventFormatting();
         this.content = "(new event)";
+        this.contentType = "text/plain";
     }
 }
 
@@ -2555,7 +2589,8 @@ Lani.Calendar = class {
 
         this.formatting = new Lani.CalendarFormatting();
         this.defaultCellFormatting = new Lani.CalendarCellFormatting();
-        this.defaultWeekendCellFormatting = null;
+        this.defaultWeekendCellFormatting = new Lani.CalendarCellFormatting();
+        this.defaultWeekendCellFormatting.dayNumberForegroundColor = "red";
         this.defaultEventFormatting = new Lani.CalendarEventFormatting();
     }
     createDaysArray(){
@@ -2782,12 +2817,23 @@ Lani.CalendarElement = class extends Lani.Element {
 
                 let dayFormatting;
                 if(isWeekend){
-                    dayFormatting = this.calendar.days[i].formatting ??
-                        this.calendar.defaultWeekendCellFormatting ??
-                        this.calendar.defaultCellFormatting;
+                    dayFormatting = Lani.typedCoalescedObjectGet([
+                        this.calendar.days[i].formatting,
+                        this.calendar.defaultWeekendCellFormatting,
+                        this.calendar.defaultCellFormatting
+                    ], Lani.CalendarCellFormatting);
+
+                    dayFormatting.dayNumberFont = Lani.typedCoalescedObjectGet([
+                        this.calendar.days[i].formatting?.dayNumberFont,
+                        this.calendar.defaultWeekendCellFormatting?.dayNumberFont,
+                        this.calendar.defaultCellFormatting?.dayNumberFont
+                    ], Lani.Font);
                 }
                 else{
-                    dayFormatting = this.calendar.days[i].formatting ?? this.calendar.defaultCellFormatting;
+                    dayFormatting = Lani.typedCoalescedObjectGet([
+                        this.calendar.days[i].formatting,
+                        this.calendar.defaultCellFormatting
+                    ], Lani.CalendarCellFormatting);
                 }
 
                 let cell = Lani.c("td", null, row);

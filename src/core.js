@@ -254,20 +254,36 @@ Lani.useGenericTemplate = (template, parent, appendMode=true) => {
     }
 }
 
-Lani.objectLoad = (source, objectType, options) => {
+Lani.getConstructor = obj => {
+    if(typeof obj !== "object")
+        return null;
+    else return obj.constructor ?? obj.prototype?.constructor;
+}
+
+Lani.isClass = obj => {
+    let ctor = Lani.getConstructor(obj);
+    return ctor.toString().substring(0, 5) === "class";
+}
+
+Lani.objectLoad = (source, objectType, options={}) => {
     let destination = options.destination ?? new objectType();
+    let recurse = options.recurse ?? true;
 
     let destItems = Object.entries(destination);
 
-    for(let entry of destItems){
-        let sourceTypeof = typeof source[entry.key];
+    for(let [key, value] of destItems){
+        let sourceTypeof = typeof source[key];
 
         // TODO: Read options so that we can recursively load
         // subtypes of objects
         if(sourceTypeof === "undefined")
             continue;
+        else if(sourceTypeof === "object"){
+            if(recurse && Lani.isClass(source[key]))
+                destination[key] = Lani.typedCoalescedObjectGet();
+        }
         else
-            dest[entry.key] = source[entry.key];
+            destination[key] = source[key];
     }
 
     return destination;
@@ -374,6 +390,8 @@ Lani.genericDimension = (input, dimension="px") =>
 // infinitely long list of fallback objects? Well, 'ere ya go
 Lani.coalescedPropertyGet = (objectArray, name, goPastNull=true) => {
     for(obj of objectArray){
+        if(typeof obj === "undefined" || obj === null)
+            continue;
         let val = obj[name];
         if(typeof val !== "undefined" && (goPastNull && val !== null))
             return val;
@@ -387,7 +405,7 @@ Lani.cPG = Lani.coalescedPropertyGet;
 // Using the first object as the seed object, returns
 // a basic JavaScript object that is populated by coalescing
 // the properties of the seed all the way to the end of the list
-Lani.coalescedObjectGet = (seed, objectArray, goPastNull=true) => {
+Lani.coalescedObjectGet = (seed={}, objectArray, goPastNull=true) => {
     let keys = Object.keys(seed);
     for(let key of keys){
         seed[key] = Lani.coalescedPropertyGet([seed, ...objectArray], key, goPastNull);
@@ -399,8 +417,8 @@ Lani.cOG = Lani.coalescedObjectGet;
 
 // The same as Lani.coalescedObjectGet, but returns an instance
 // of a type using Lani.objectLoad
-Lani.typedCoalescedObjectGet = (objectArray, type, goPastNull=true, objectLoadOptions=null) => {
-    return Lani.objectLoad(Lani.coalescedObjectGet(objectArray, goPastNull), type, objectLoadOptions);
+Lani.typedCoalescedObjectGet = (objectArray, type, goPastNull=true, objectLoadOptions) => {
+    return Lani.objectLoad(Lani.coalescedObjectGet(new type(), objectArray, goPastNull), type, objectLoadOptions);
 }
 
 Lani.tCOG = Lani.typedCoalescedObjectGet;
