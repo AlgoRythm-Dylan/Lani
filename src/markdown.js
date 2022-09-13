@@ -111,6 +111,13 @@ Lani.Markdown.TextStyleSymbol = class extends Lani.Markdown.Symbol {
     }
 }
 
+Lani.Markdown.Rules = class {
+    constructor(){
+        this.enableTextStyles = true;
+        this.enableHeaders = true;
+    }
+}
+
 Lani.Markdown.Parser = class {
     constructor(tokenizer){
         this.tokenizer = tokenizer;
